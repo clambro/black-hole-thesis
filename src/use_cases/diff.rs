@@ -1,9 +1,10 @@
+use crate::domain::field_vector::FieldVector;
 use crate::domain::grid::Grid;
 use rayon::prelude::*;
 
 /// Compute the derivative of a vector using a second order finite difference method.
-pub fn diff(grid: &Grid, vector: &Vec<f64>) -> Vec<f64> {
-    let mut diff: Vec<f64> = vec![0.0; vector.len()];
+pub fn diff(grid: &Grid, vector: &FieldVector) -> FieldVector {
+    let mut diff = FieldVector::zeros(vector.len());
 
     // Boundary terms.
     diff[0] = (-3.0 * vector[0] + 4.0 * vector[1] - vector[2]) / (2.0 * grid.delta);
