@@ -1,8 +1,8 @@
-use clap::Parser;
 use crate::domain::boundary_conditions::{BoundaryCondition, BoundaryConditions};
 use crate::domain::config::Config;
 use crate::domain::grid::Grid;
 use crate::domain::state::State;
+use clap::Parser;
 
 #[derive(Parser, Clone, Debug)]
 #[command(name = "black-hole-reflection")]
@@ -30,18 +30,17 @@ pub struct Args {
     pub right_bc: BoundaryCondition,
 }
 
-
 impl Args {
     pub fn parse_args() -> (Config, State) {
         let args = Args::parse();
-        
+
         let config = args.build_config_from_args();
         let state = args.build_state_from_args(&config);
         return (config, state);
     }
 
     fn build_config_from_args(&self) -> Config {
-        return Config{
+        return Config {
             grid: Grid::from_level_of_discretization(self.level_of_discretization),
             boundary_conditions: BoundaryConditions {
                 left: self.left_bc.clone(),
@@ -55,10 +54,10 @@ impl Args {
     }
 
     fn build_state_from_args(&self, config: &Config) -> State {
-        return State{
+        return State {
             time: 0.0,
             displacement: State::get_initial_displacement(&config.grid, config.initial_amplitude),
             momentum: State::get_initial_momentum(&config.grid),
-        }
+        };
     }
 }

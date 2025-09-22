@@ -4,10 +4,9 @@ mod use_cases;
 
 use app::cli::Args;
 use app::file_output::JsonlFileOutput;
-use use_cases::simulate::simulate;
 use std::fs::File;
 use std::time::Instant;
-
+use use_cases::simulate::simulate;
 
 fn main() {
     let (config, state) = Args::parse_args();
