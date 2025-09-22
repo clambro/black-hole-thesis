@@ -15,7 +15,7 @@ impl JsonlFileOutput {
 }
 
 impl StateOutput for JsonlFileOutput {
-    fn save_state(&self, state: &State, time: f64) {    let position_str = format!(
+    fn save_state(&self, state: &State) {    let position_str = format!(
         "[{}]",
         state
             .wave_position
@@ -25,7 +25,7 @@ impl StateOutput for JsonlFileOutput {
             .join(",")
     );
 
-    writeln!(&self.file, "{{\"time\":{},\"position\":{}}}", time, position_str)
+    writeln!(&self.file, "{{\"time\":{},\"position\":{}}}", state.time, position_str)
         .expect("Could not write to file");
     }
 }

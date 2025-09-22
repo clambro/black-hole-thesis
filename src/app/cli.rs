@@ -1,5 +1,6 @@
 use clap::Parser;
-use crate::domain::boundary_conditions::BoundaryCondition;
+use crate::domain::boundary_conditions::{BoundaryCondition, BoundaryConditions};
+use crate::domain::config::Config;
 use crate::domain::grid::Grid;
 use crate::domain::state::State;
 
@@ -31,18 +32,33 @@ pub struct Args {
 
 
 impl Args {
-    pub fn parse_state_from_args() -> State {
+    pub fn parse_args() -> (Config, State) {
         let args = Args::parse();
-        let grid = Grid::from_level_of_discretization(args.level_of_discretization);
-        let state = State::from_args(
-            grid,
-            args.wave_speed,
-            args.amplitude,
-            args.left_bc,
-            args.right_bc,
-            args.courant,
-            args.total_time,
-        );
-        return state;
+        
+        let config = args.build_config_from_args();
+        let state = args.build_state_from_args(&config);
+        return (config, state);
+    }
+
+    fn build_config_from_args(&self) -> Config {
+        return Config{
+            grid: Grid::from_level_of_discretization(self.level_of_discretization),
+            boundary_conditions: BoundaryConditions {
+                left: self.left_bc.clone(),
+                right: self.right_bc.clone(),
+            },
+            wave_speed: self.wave_speed,
+            initial_amplitude: self.amplitude,
+            courant_number: self.courant,
+            total_time: self.total_time,
+        };
+    }
+
+    fn build_state_from_args(&self, config: &Config) -> State {
+        return State{
+            time: 0.0,
+            wave_position: State::get_initial_displacement(&config.grid, config.initial_amplitude),
+            wave_velocity: State::get_initial_velocity(&config.grid),
+        }
     }
 }

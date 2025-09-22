@@ -1,5 +1,5 @@
 use crate::domain::boundary_conditions::{BoundaryCondition, BoundaryConditions};
-use crate::domain::grid::Grid;
+use crate::domain::config::Config;
 use crate::use_cases::diff::diff;
 use crate::use_cases::vector_math::{vec_add, vec_scalar_mul};
 use std::ops::{Add, Mul};
@@ -11,14 +11,12 @@ pub struct EquationsOfMotion {
 
 impl EquationsOfMotion {
     pub fn new(
-        grid: &Grid,
-        wave_speed: f64,
+        config: &Config,
         position: &Vec<f64>,
         velocity: &Vec<f64>,
-        bcs: &BoundaryConditions,
     ) -> Self {
         let position_dot = Self::calculate_position_dot(velocity);
-        let velocity_dot = Self::calculate_velocity_dot(grid, wave_speed, position, bcs);
+        let velocity_dot = Self::calculate_velocity_dot(config, position);
         Self {
             position_dot,
             velocity_dot,
@@ -30,21 +28,19 @@ impl EquationsOfMotion {
     }
 
     fn calculate_velocity_dot(
-        grid: &Grid,
-        wave_speed: f64,
+        config: &Config,
         position: &Vec<f64>,
-        bcs: &BoundaryConditions,
     ) -> Vec<f64> {
         let mut velocity_dot: Vec<f64> = position.clone();
-        Self::apply_zero_bc(&mut velocity_dot, bcs, BoundaryCondition::Dirichlet);
+        Self::apply_zero_bc(&mut velocity_dot, &config.boundary_conditions, BoundaryCondition::Dirichlet);
 
-        velocity_dot = diff(&grid, &velocity_dot);
-        Self::apply_zero_bc(&mut velocity_dot, bcs, BoundaryCondition::Neumann);
+        velocity_dot = diff(&config.grid, &velocity_dot);
+        Self::apply_zero_bc(&mut velocity_dot, &config.boundary_conditions, BoundaryCondition::Neumann);
 
-        velocity_dot = diff(&grid, &velocity_dot);
+        velocity_dot = diff(&config.grid, &velocity_dot);
         velocity_dot = velocity_dot
             .iter()
-            .map(|x| wave_speed * wave_speed * x)
+            .map(|x| config.wave_speed * config.wave_speed * x)
             .collect();
         return velocity_dot;
     }
