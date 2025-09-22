@@ -6,10 +6,9 @@ use clap::Parser;
 use domain::boundary_conditions::BoundaryCondition;
 use domain::grid::Grid;
 use domain::state::State;
-use use_cases::time_step::rk4_step;
+use use_cases::simulate::simulate;
 
 use std::fs::File;
-use std::io::Write;
 use std::time::Instant;
 
 #[derive(Parser, Clone, Debug)]
@@ -41,7 +40,7 @@ pub struct Args {
 fn main() {
     let args = Args::parse();
     let grid = Grid::from_level_of_discretization(args.level_of_discretization);
-    let mut state = State::from_args(
+    let state = State::from_args(
         grid,
         args.wave_speed,
         args.amplitude,
@@ -49,44 +48,11 @@ fn main() {
         args.right_bc,
     );
 
-    let mut file = File::create("results/simulation_output.jsonl").expect("Could not create file");
-
-    let time_step = args.courant * state.grid.delta / args.wave_speed;
-    let num_steps = (args.total_time / time_step).ceil() as i32;
-
-    // Save initial state
-    save_state_to_jsonl(&mut file, &state, 0.0);
-
     let start = Instant::now();
-
-    for step in 1..=num_steps {
-        let next_state = rk4_step(&state, time_step);
-        state = next_state;
-
-        // For the black hole stuff we want roughly 5 seconds of real time per unit of simulation time.
-        // At 30fps, this means saving every 1/150 units of simulation time.
-        if step % 5 == 0 {
-            let current_time = step as f64 * time_step;
-            save_state_to_jsonl(&mut file, &state, current_time);
-        }
-    }
-
+    let num_steps = simulate(&state, args.courant, args.total_time);
     let duration = start.elapsed();
+    
     println!("Evolution completed in: {:.2?}", duration);
     println!("Time per step: {:.2?}", duration / num_steps as u32);
 }
 
-fn save_state_to_jsonl(file: &mut File, state: &State, time: f64) {
-    let position_str = format!(
-        "[{}]",
-        state
-            .wave_position
-            .iter()
-            .map(|x| x.to_string())
-            .collect::<Vec<_>>()
-            .join(",")
-    );
-
-    writeln!(file, "{{\"time\":{},\"position\":{}}}", time, position_str)
-        .expect("Could not write to file");
-}
