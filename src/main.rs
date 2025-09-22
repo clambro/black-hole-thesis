@@ -7,7 +7,7 @@ use domain::boundary_conditions::BoundaryCondition;
 use domain::grid::Grid;
 use domain::state::State;
 use use_cases::simulate::simulate;
-
+use app::file_output::JsonlFileOutput;
 use std::fs::File;
 use std::time::Instant;
 
@@ -27,7 +27,7 @@ pub struct Args {
     #[arg(long, default_value = "0.5")]
     pub courant: f64,
 
-    #[arg(long, default_value = "10.0")]
+    #[arg(long, default_value = "5.0")]
     pub total_time: f64,
 
     #[arg(long, default_value = "dirichlet")]
@@ -48,10 +48,13 @@ fn main() {
         args.right_bc,
     );
 
+    let file = File::create("results/simulation_output.jsonl").expect("Could not create file");
+    let jsonl_output = JsonlFileOutput::new(file);
+
     let start = Instant::now();
-    let num_steps = simulate(&state, args.courant, args.total_time);
+    let num_steps = simulate(&state, args.courant, args.total_time, &jsonl_output);
     let duration = start.elapsed();
-    
+
     println!("Evolution completed in: {:.2?}", duration);
     println!("Time per step: {:.2?}", duration / num_steps as u32);
 }
