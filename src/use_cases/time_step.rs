@@ -57,5 +57,7 @@ pub fn rk4_step(state: &State, time_step: f64) -> State {
         wave_speed: state.wave_speed,
         wave_position: vec_add(&state.wave_position, &rk4.position_dot),
         wave_velocity: vec_add(&state.wave_velocity, &rk4.velocity_dot),
+        courant: state.courant,
+        total_time: state.total_time,
     };
 }

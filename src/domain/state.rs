@@ -8,6 +8,8 @@ pub struct State {
     pub wave_speed: f64,
     pub wave_position: Vec<f64>,
     pub wave_velocity: Vec<f64>,
+    pub courant: f64,
+    pub total_time: f64,
 }
 
 impl State {
@@ -17,6 +19,8 @@ impl State {
         amplitude: f64,
         left_bc: BoundaryCondition,
         right_bc: BoundaryCondition,
+        courant: f64,
+        total_time: f64,
     ) -> Self {
         // Assume a Gaussian wave packet.
         let grid_size = grid.points.len();
@@ -43,6 +47,8 @@ impl State {
             wave_speed,
             wave_position,
             wave_velocity: vec![0.0; grid_size],
+            courant,
+            total_time,
         }
     }
 }

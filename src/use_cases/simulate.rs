@@ -2,9 +2,9 @@ use crate::domain::state::State;
 use crate::use_cases::time_step::rk4_step;
 use crate::use_cases::ports::StateOutput;
 
-pub fn simulate(state: &State, courant: f64, total_time: f64, state_output: &dyn StateOutput) -> i32 {
-    let time_step = courant * state.grid.delta / state.wave_speed;
-    let num_steps = (total_time / time_step).ceil() as i32;
+pub fn simulate(state: &State, state_output: &dyn StateOutput) -> i32 {
+    let time_step = state.courant * state.grid.delta / state.wave_speed;
+    let num_steps = (state.total_time / time_step).ceil() as i32;
 
     state_output.save_state(&state, 0.0);
 
