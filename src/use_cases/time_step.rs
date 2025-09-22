@@ -1,17 +1,17 @@
 use crate::domain::state::State;
-use crate::use_cases::equations::RightHandSide;
+use crate::use_cases::equations::EquationsOfMotion;
 use crate::use_cases::vector_math::{vec_add, vec_scalar_mul};
 
 /// Perform a Runge-Kutta 4th order time step.
 pub fn rk4_step(state: &State, time_step: f64) -> State {
-    let u1 = RightHandSide::new(
+    let u1 = EquationsOfMotion::new(
         &state.grid,
         state.wave_speed,
         &state.wave_position,
         &state.wave_velocity,
         &state.boundary_conditions,
     );
-    let u2 = RightHandSide::new(
+    let u2 = EquationsOfMotion::new(
         &state.grid,
         state.wave_speed,
         &vec_add(
@@ -24,7 +24,7 @@ pub fn rk4_step(state: &State, time_step: f64) -> State {
         ),
         &state.boundary_conditions,
     );
-    let u3 = RightHandSide::new(
+    let u3 = EquationsOfMotion::new(
         &state.grid,
         state.wave_speed,
         &vec_add(
@@ -37,7 +37,7 @@ pub fn rk4_step(state: &State, time_step: f64) -> State {
         ),
         &state.boundary_conditions,
     );
-    let u4 = RightHandSide::new(
+    let u4 = EquationsOfMotion::new(
         &state.grid,
         state.wave_speed,
         &vec_add(
@@ -50,7 +50,7 @@ pub fn rk4_step(state: &State, time_step: f64) -> State {
         ),
         &state.boundary_conditions,
     );
-    let rk4: RightHandSide = (u1 + u2 * 2.0 + u3 * 2.0 + u4) * (time_step / 6.0);
+    let rk4: EquationsOfMotion = (u1 + u2 * 2.0 + u3 * 2.0 + u4) * (time_step / 6.0);
     return State {
         grid: state.grid.clone(),
         boundary_conditions: state.boundary_conditions.clone(),

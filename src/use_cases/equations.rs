@@ -4,12 +4,12 @@ use crate::use_cases::diff::diff;
 use crate::use_cases::vector_math::{vec_add, vec_scalar_mul};
 use std::ops::{Add, Mul};
 
-pub struct RightHandSide {
+pub struct EquationsOfMotion {
     pub position_dot: Vec<f64>,
     pub velocity_dot: Vec<f64>,
 }
 
-impl RightHandSide {
+impl EquationsOfMotion {
     pub fn new(
         grid: &Grid,
         wave_speed: f64,
@@ -60,7 +60,7 @@ impl RightHandSide {
     }
 }
 
-impl Add for RightHandSide {
+impl Add for EquationsOfMotion {
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
@@ -71,7 +71,7 @@ impl Add for RightHandSide {
     }
 }
 
-impl Mul<f64> for RightHandSide {
+impl Mul<f64> for EquationsOfMotion {
     type Output = Self;
 
     fn mul(self, scalar: f64) -> Self {
