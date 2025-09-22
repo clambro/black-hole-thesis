@@ -3,14 +3,14 @@ use crate::domain::grid::Grid;
 #[derive(Debug)]
 pub struct State {
     pub time: f64,
-    pub wave_position: Vec<f64>,
-    pub wave_velocity: Vec<f64>,
+    pub displacement: Vec<f64>,
+    pub momentum: Vec<f64>,
 }
 
 impl State {
     pub fn get_initial_displacement(grid: &Grid,
         amplitude: f64) -> Vec<f64> {
-        let wave_position: Vec<f64> = grid
+        let displacement: Vec<f64> = grid
             .points
             .iter()
             .map(|x| {
@@ -24,10 +24,10 @@ impl State {
                 amplitude * gaussian * boundary_factor
             })
             .collect();
-        return wave_position;
+        return displacement;
     }
 
-    pub fn get_initial_velocity(grid: &Grid) -> Vec<f64> {
+    pub fn get_initial_momentum(grid: &Grid) -> Vec<f64> {
         return vec![0.0; grid.points.len()];
     }
 }

@@ -15,17 +15,18 @@ impl JsonlFileOutput {
 }
 
 impl StateOutput for JsonlFileOutput {
-    fn save_state(&self, state: &State) {    let position_str = format!(
+    fn save_state(&self, state: &State) {
+    let displacement_str = format!(
         "[{}]",
         state
-            .wave_position
+            .displacement
             .iter()
             .map(|x| x.to_string())
             .collect::<Vec<_>>()
             .join(",")
     );
 
-    writeln!(&self.file, "{{\"time\":{},\"position\":{}}}", state.time, position_str)
+    writeln!(&self.file, "{{\"time\":{},\"displacement\":{}}}", state.time, displacement_str)
         .expect("Could not write to file");
     }
 }

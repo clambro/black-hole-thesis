@@ -57,8 +57,8 @@ impl Args {
     fn build_state_from_args(&self, config: &Config) -> State {
         return State{
             time: 0.0,
-            wave_position: State::get_initial_displacement(&config.grid, config.initial_amplitude),
-            wave_velocity: State::get_initial_velocity(&config.grid),
+            displacement: State::get_initial_displacement(&config.grid, config.initial_amplitude),
+            momentum: State::get_initial_momentum(&config.grid),
         }
     }
 }

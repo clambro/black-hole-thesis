@@ -10,20 +10,20 @@ with open('results/simulation_output.jsonl', 'r') as f:
     for line in f:
         data.append(json.loads(line.strip()))
 
-# Extract times and positions
+# Extract times and displacements
 times = [d['time'] for d in data]
-positions = [d['position'] for d in data]
+displacements = [d['displacement'] for d in data]
 
 # Create x-axis (assuming uniform grid from 0 to 1)
-n_points = len(positions[0])
+n_points = len(displacements[0])
 x = np.linspace(0, 1, n_points)
 
 # Set up the figure and axis
 fig, ax = plt.subplots(figsize=(10, 6))
 ax.set_xlim(0, 1)
-ax.set_ylim(min(min(pos) for pos in positions) * 1.1, 
-            max(max(pos) for pos in positions) * 1.1)
-ax.set_xlabel('Position (x)')
+ax.set_ylim(min(min(pos) for pos in displacements) * 1.1, 
+            max(max(pos) for pos in displacements) * 1.1)
+ax.set_xlabel('Displacement (x)')
 ax.set_ylabel('Wave Amplitude')
 ax.set_title('Wave Simulation')
 ax.grid(True, alpha=0.3)
@@ -34,7 +34,7 @@ time_text = ax.text(0.02, time_height, '', transform=ax.transAxes, fontsize=12,
                    bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
 
 def animate(frame):
-    line.set_data(x, positions[frame])
+    line.set_data(x, displacements[frame])
     time_text.set_text(f'Time: {times[frame]:.4f}')
     return line, time_text
 
