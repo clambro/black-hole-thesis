@@ -11,7 +11,7 @@ pub struct EquationsOfMotion {
 
 impl EquationsOfMotion {
     pub fn new(config: &Config, displacement: FieldVector, momentum: FieldVector) -> Self {
-        let d_dt_displacement = Self::calculate_d_dt_displacement(&momentum);
+        let d_dt_displacement = Self::calculate_d_dt_displacement(config, &momentum);
         let d_dt_momentum = Self::calculate_d_dt_momentum(config, &displacement);
         Self {
             d_dt_displacement: d_dt_displacement,
@@ -19,8 +19,14 @@ impl EquationsOfMotion {
         }
     }
 
-    fn calculate_d_dt_displacement(momentum: &FieldVector) -> FieldVector {
-        return momentum.clone();
+    fn calculate_d_dt_displacement(config: &Config, momentum: &FieldVector) -> FieldVector {
+        let mut d_dt_displacement = momentum.clone();
+        Self::apply_zero_bc(
+            &mut d_dt_displacement,
+            &config.boundary_conditions,
+            BoundaryCondition::Dirichlet,
+        );
+        return d_dt_displacement;
     }
 
     fn calculate_d_dt_momentum(config: &Config, displacement: &FieldVector) -> FieldVector {
