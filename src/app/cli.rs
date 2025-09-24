@@ -48,6 +48,9 @@ impl Args {
     }
 
     fn validate(&self) {
+        if self.level_of_discretization < 5 {
+            panic!("Level of discretization must be greater than 5.");
+        }
         let num_points = Grid::get_length_at_discretization(self.level_of_discretization) as f64;
         if self.output_dt * num_points < 1.0 {
             panic!(
