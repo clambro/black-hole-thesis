@@ -4,6 +4,7 @@ use crate::domain::field_vector::FieldVector;
 pub struct Grid {
     pub points: FieldVector,
     pub delta: f64,
+    pub level: u32,
 }
 
 impl Grid {
@@ -12,7 +13,11 @@ impl Grid {
         let delta: f64 = 2_f64.powi(-(level as i32)); // Forcing 0 to 1 inclusive.
         let points: FieldVector =
             FieldVector::new((0..num_points).map(|i| i as f64 * delta).collect());
-        return Self { points, delta };
+        return Self {
+            points,
+            delta,
+            level,
+        };
     }
 
     pub fn get_length(&self) -> usize {

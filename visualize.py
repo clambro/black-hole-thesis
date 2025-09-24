@@ -5,10 +5,10 @@ import matplotlib.animation as animation
 import numpy as np
 import argparse
 
-def main(function: str):
+def main(folder: str, function: str):
     # Read the JSONL file
     data = []
-    with open('results/simulation_output.jsonl', 'r') as f:
+    with open(f'results/{folder}/states.jsonl', 'r') as f:
         for line in f:
             data.append(json.loads(line.strip()))
 
@@ -44,12 +44,13 @@ def main(function: str):
 
     # Save as MP4
     print("Saving animation...")
-    anim.save(f'results/{function}.mp4', writer='ffmpeg', fps=30, bitrate=1000, extra_args=['-vcodec', 'libx264'])
-    print(f"Animation saved as {function}.mp4")
+    anim.save(f'results/{folder}/{function}.mp4', writer='ffmpeg', fps=30, bitrate=1000, extra_args=['-vcodec', 'libx264'])
+    print(f"Animation saved as {folder}/{function}.mp4")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Visualize the wave simulation.')
+    parser.add_argument('folder', type=str, help='The folder to visualize.')
     parser.add_argument('function', type=str, help='The function to visualize.')
     args = parser.parse_args()
-    main(args.function)
+    main(args.folder, args.function)
