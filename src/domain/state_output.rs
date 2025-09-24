@@ -6,6 +6,7 @@ pub struct StateOutput {
     pub time: f64,
     pub displacement: Vec<f64>,
     pub momentum: Vec<f64>,
+    pub energy_density: Vec<f64>,
 }
 
 impl StateOutput {
@@ -17,6 +18,10 @@ impl StateOutput {
                 config.output_dx_level,
             ),
             momentum: Self::reduce_spatial_resolution(&state.momentum, config.output_dx_level),
+            energy_density: Self::reduce_spatial_resolution(
+                &Self::calculate_energy_density(&state, &config),
+                config.output_dx_level,
+            ),
         }
     }
 
@@ -35,5 +40,12 @@ impl StateOutput {
             .copied()
             .take(target_length)
             .collect()
+    }
+
+    fn calculate_energy_density(state: &State, config: &Config) -> FieldVector {
+        let energy_density = 0.5
+            * (state.momentum.clone().powi(2)
+                + state.displacement.clone().powi(2) * config.wave_speed.powi(2));
+        return energy_density;
     }
 }
