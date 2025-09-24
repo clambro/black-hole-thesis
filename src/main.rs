@@ -19,5 +19,6 @@ fn main() {
     let duration = start.elapsed();
 
     println!("Evolution completed in: {:.2?}", duration);
+    println!("Number of steps: {}", num_steps);
     println!("Time per step: {:.2?}", duration / num_steps as u32);
 }

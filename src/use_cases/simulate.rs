@@ -1,7 +1,7 @@
 use crate::domain::config::Config;
 use crate::domain::state::State;
 use crate::use_cases::ports::StateOutput;
-use crate::use_cases::time_step::rk4_step;
+use crate::use_cases::time::rk4_step;
 
 pub fn simulate(config: &Config, mut state: State, state_output: &dyn StateOutput) -> i32 {
     let time_step = config.courant_number * config.grid.delta / config.wave_speed;

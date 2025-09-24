@@ -4,7 +4,7 @@ use std::ops::{Add, Index, IndexMut, Mul, Neg, Range, RangeFrom, RangeFull, Rang
 ///
 /// Supports element-wise operations, scalar arithmetic, and mathematical functions
 /// commonly needed for PDE solving. I tried using Rayon for parallelization, but
-/// it was slower than sequential operations.
+/// it was slower than the built-in map function for these operations.
 #[derive(Debug, Clone)]
 pub struct FieldVector {
     data: Vec<f64>,
