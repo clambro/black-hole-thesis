@@ -24,10 +24,10 @@ pub fn diff(grid: &Grid, vector: &FieldVector) -> FieldVector {
         / h;
 
     // Interior points.
-    for i in 4..n - 4 {
+    (4..n - 4).for_each(|i| {
         diff[i] = (vector[i - 2] - 8.0 * vector[i - 1] + 8.0 * vector[i + 1] - vector[i + 2])
             / (12.0 * h);
-    }
+    });
 
     // Right boundary.
     diff[n - 1] = (24.0 / 17.0 * vector[n - 1] - 59.0 / 34.0 * vector[n - 2]
