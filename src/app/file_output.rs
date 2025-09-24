@@ -1,19 +1,19 @@
 use crate::domain::state::State;
-use crate::use_cases::ports::StateOutput;
+use crate::use_cases::ports::StateOutputCreator;
 use std::fs::File;
 use std::io::Write;
 
-pub struct JsonlFileOutput {
+pub struct JsonlStateOutputCreator {
     file: File,
 }
 
-impl JsonlFileOutput {
+impl JsonlStateOutputCreator {
     pub fn new(file: File) -> Self {
         Self { file }
     }
 }
 
-impl StateOutput for JsonlFileOutput {
+impl StateOutputCreator for JsonlStateOutputCreator {
     fn save_state(&self, state: &State) {
         let displacement_str = format!(
             "[{}]",

@@ -1,10 +1,10 @@
 use crate::domain::config::Config;
 use crate::domain::state::State;
 use crate::use_cases::adaptive_time_step::TimeStep;
-use crate::use_cases::ports::StateOutput;
+use crate::use_cases::ports::StateOutputCreator;
 use crate::use_cases::time::rk4_step;
 
-pub fn simulate(config: &Config, mut state: State, state_output: &dyn StateOutput) -> i32 {
+pub fn simulate(config: &Config, mut state: State, state_output: &dyn StateOutputCreator) -> i32 {
     let mut num_steps = 0;
 
     state_output.save_state(&state);
