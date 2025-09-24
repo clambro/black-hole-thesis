@@ -20,7 +20,7 @@ pub struct Args {
     #[arg(long, default_value = "0.5")]
     pub courant: f64,
 
-    #[arg(long, default_value = "5.0")]
+    #[arg(long, default_value = "3.0")]
     pub total_time: f64,
 
     #[arg(long, default_value = "dirichlet")]
@@ -28,6 +28,10 @@ pub struct Args {
 
     #[arg(long, default_value = "neumann")]
     pub right_bc: BoundaryCondition,
+
+    // At 30fps, this default is approximately 5 seconds of real time per unit of simulation time.
+    #[arg(long, default_value = "0.0067")]
+    pub temporal_frame_rate: f64,
 }
 
 impl Args {
@@ -50,6 +54,7 @@ impl Args {
             initial_amplitude: self.amplitude,
             courant_number: self.courant,
             total_time: self.total_time,
+            temporal_frame_rate: self.temporal_frame_rate,
         };
     }
 

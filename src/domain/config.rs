@@ -9,4 +9,5 @@ pub struct Config {
     pub initial_amplitude: f64,
     pub courant_number: f64,
     pub total_time: f64,
+    pub temporal_frame_rate: f64,
 }
