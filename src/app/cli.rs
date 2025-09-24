@@ -48,7 +48,8 @@ impl Args {
     }
 
     fn validate(&self) {
-        if self.output_dt * 2_f64.powi(self.level_of_discretization as i32) < 1.0 {
+        let num_points = Grid::get_length_at_discretization(self.level_of_discretization) as f64;
+        if self.output_dt * num_points < 1.0 {
             panic!(
                 "Output dt is too short for the level of discretization. \
                  The output dt must be greater than 1 / 2^level_of_discretization."
@@ -74,6 +75,7 @@ impl Args {
             courant_number: self.courant,
             total_time: self.total_time,
             output_dt: self.output_dt,
+            output_dx_level: self.output_dx_level,
         };
     }
 
