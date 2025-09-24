@@ -31,16 +31,35 @@ pub struct Args {
 
     // At 30fps, this default is approximately 5 seconds of real time per unit of simulation time.
     #[arg(long, default_value = "0.0067")]
-    pub temporal_frame_rate: f64,
+    pub output_dt: f64,
+
+    #[arg(long, default_value = "8")]
+    pub output_dx_level: u32,
 }
 
 impl Args {
     pub fn parse_args() -> (Config, State) {
         let args = Args::parse();
+        args.validate();
 
         let config = args.build_config_from_args();
         let state = args.build_state_from_args(&config);
         return (config, state);
+    }
+
+    fn validate(&self) {
+        if self.output_dt * 2_f64.powi(self.level_of_discretization as i32) < 1.0 {
+            panic!(
+                "Output dt is too short for the level of discretization. \
+                 The output dt must be greater than 1 / 2^level_of_discretization."
+            );
+        }
+        if self.output_dx_level > self.level_of_discretization {
+            panic!(
+                "Output dx level is greater than the level of discretization. \
+                 The output dx level must be less than or equal to the level of discretization."
+            );
+        }
     }
 
     fn build_config_from_args(&self) -> Config {
@@ -54,7 +73,7 @@ impl Args {
             initial_amplitude: self.amplitude,
             courant_number: self.courant,
             total_time: self.total_time,
-            temporal_frame_rate: self.temporal_frame_rate,
+            output_dt: self.output_dt,
         };
     }
 

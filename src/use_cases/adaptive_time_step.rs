@@ -11,8 +11,8 @@ impl TimeStep {
         let base_time_step = config.courant_number * config.grid.delta / config.wave_speed;
 
         // Find the next frame boundary after the current time
-        let current_frame_index = (state.time / config.temporal_frame_rate).floor();
-        let next_frame = (current_frame_index + 1.0) * config.temporal_frame_rate;
+        let current_frame_index = (state.time / config.output_dt).floor();
+        let next_frame = (current_frame_index + 1.0) * config.output_dt;
         let time_to_next_frame = next_frame - state.time;
 
         // The first condition handles floating point errors if we're exactly at a frame boundary.
