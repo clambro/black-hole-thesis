@@ -1,35 +1,21 @@
-use crate::domain::state::State;
-use crate::use_cases::ports::StateOutput;
+use crate::domain::state_output::StateOutput;
+use crate::use_cases::ports::StateOutputCreator;
 use std::fs::File;
 use std::io::Write;
 
-pub struct JsonlFileOutput {
+pub struct JsonlStateOutputCreator {
     file: File,
 }
 
-impl JsonlFileOutput {
+impl JsonlStateOutputCreator {
     pub fn new(file: File) -> Self {
         Self { file }
     }
 }
 
-impl StateOutput for JsonlFileOutput {
-    fn save_state(&self, state: &State) {
-        let displacement_str = format!(
-            "[{}]",
-            state
-                .displacement
-                .iter()
-                .map(|x| x.to_string())
-                .collect::<Vec<_>>()
-                .join(",")
-        );
-
-        writeln!(
-            &self.file,
-            "{{\"time\":{},\"displacement\":{}}}",
-            state.time, displacement_str
-        )
-        .expect("Could not write to file");
+impl StateOutputCreator for JsonlStateOutputCreator {
+    fn save_state(&self, state_output: &StateOutput) {
+        let json_str = serde_json::to_string(state_output).expect("Could not serialize state");
+        writeln!(&self.file, "{}", json_str).expect("Could not write to file");
     }
 }
