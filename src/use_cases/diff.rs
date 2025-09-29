@@ -1,7 +1,9 @@
 use crate::domain::field_vector::FieldVector;
 use crate::domain::grid::Grid;
 
-/// SBP 4th order finite difference operator (provably stable, conserves energy).
+/// SBP 4th order finite difference operator (provably stable, conserves energy). From Strand (1994).
+/// For a detailed analysis of how this works, check out chapter 3 of the following thesis:
+/// https://dspacemainprd01.lib.uwaterloo.ca/server/api/core/bitstreams/58404c83-8268-4c93-81f1-04af95d47dc0/content
 pub fn diff(grid: &Grid, vector: &FieldVector) -> FieldVector {
     let mut diff = FieldVector::zeros(vector.len());
     let n = vector.len();
