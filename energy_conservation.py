@@ -25,7 +25,6 @@ def main(*folders: str):
         ax.plot(times, values, linewidth=2, label=f"level={folder.split('_')[1]}")
         ax.legend()
 
-        # Show a horizontal grid at integer values
         ax.grid(True, which='major', linestyle='--', color='gray', alpha=0.5)
 
     suffix = "_".join(folders)
