@@ -1,8 +1,7 @@
-use crate::domain::boundary_conditions::{BoundaryCondition, BoundaryConditions};
 use crate::domain::config::Config;
 use crate::domain::field_vector::FieldVector;
 use crate::domain::state::State;
-use crate::use_cases::diff::diff;
+use crate::use_cases::diff::{diff, diff2};
 use std::ops::{Add, Mul};
 
 pub struct EquationsOfMotion {
@@ -12,7 +11,7 @@ pub struct EquationsOfMotion {
 
 impl EquationsOfMotion {
     pub fn new(config: &Config, displacement: FieldVector, momentum: FieldVector) -> Self {
-        let d_dt_displacement = Self::calculate_d_dt_displacement(config, &momentum);
+        let d_dt_displacement = Self::calculate_d_dt_displacement(&momentum);
         let d_dt_momentum = Self::calculate_d_dt_momentum(config, &displacement);
         Self {
             d_dt_displacement,
@@ -29,48 +28,13 @@ impl EquationsOfMotion {
         return kinetic_energy + potential_energy;
     }
 
-    fn calculate_d_dt_displacement(config: &Config, momentum: &FieldVector) -> FieldVector {
-        let mut d_dt_displacement = momentum.clone();
-        Self::apply_zero_bc(
-            &mut d_dt_displacement,
-            &config.boundary_conditions,
-            BoundaryCondition::Dirichlet,
-        );
-        return d_dt_displacement;
+    fn calculate_d_dt_displacement(momentum: &FieldVector) -> FieldVector {
+        return momentum.clone();
     }
 
     fn calculate_d_dt_momentum(config: &Config, displacement: &FieldVector) -> FieldVector {
-        let mut d_dt_momentum = displacement.clone();
-        Self::apply_zero_bc(
-            &mut d_dt_momentum,
-            &config.boundary_conditions,
-            BoundaryCondition::Dirichlet,
-        );
-
-        d_dt_momentum = diff(&config.grid, &d_dt_momentum);
-        Self::apply_zero_bc(
-            &mut d_dt_momentum,
-            &config.boundary_conditions,
-            BoundaryCondition::Neumann,
-        );
-
-        d_dt_momentum = diff(&config.grid, &d_dt_momentum);
-        d_dt_momentum = config.wave_speed.powi(2) * d_dt_momentum;
-        return d_dt_momentum;
-    }
-
-    fn apply_zero_bc(
-        vector: &mut FieldVector,
-        bcs: &BoundaryConditions,
-        bc_type: BoundaryCondition,
-    ) {
-        if bcs.left == bc_type {
-            vector[0] = 0.0;
-        }
-        if bcs.right == bc_type {
-            let length = vector.len();
-            vector[length - 1] = 0.0;
-        }
+        let d_dt_momentum = diff2(&config.grid, displacement);
+        return config.wave_speed.powi(2) * d_dt_momentum;
     }
 }
 
