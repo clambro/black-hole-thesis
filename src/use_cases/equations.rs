@@ -1,6 +1,7 @@
 use crate::domain::boundary_conditions::{BoundaryCondition, BoundaryConditions};
 use crate::domain::config::Config;
 use crate::domain::field_vector::FieldVector;
+use crate::domain::state::State;
 use crate::use_cases::diff::diff;
 use std::ops::{Add, Mul};
 
@@ -14,9 +15,18 @@ impl EquationsOfMotion {
         let d_dt_displacement = Self::calculate_d_dt_displacement(config, &momentum);
         let d_dt_momentum = Self::calculate_d_dt_momentum(config, &displacement);
         Self {
-            d_dt_displacement: d_dt_displacement,
-            d_dt_momentum: d_dt_momentum,
+            d_dt_displacement,
+            d_dt_momentum,
         }
+    }
+
+    pub fn calculate_energy_density(state: &State, config: &Config) -> FieldVector {
+        let kinetic_energy = 0.5 * state.momentum.clone().powi(2);
+
+        let du_dx = diff(&config.grid, &state.displacement);
+        let potential_energy = 0.5 * du_dx.powi(2) * config.wave_speed.powi(2);
+
+        return kinetic_energy + potential_energy;
     }
 
     fn calculate_d_dt_displacement(config: &Config, momentum: &FieldVector) -> FieldVector {

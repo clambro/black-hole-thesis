@@ -1,4 +1,7 @@
-use crate::domain::{config::Config, field_vector::FieldVector, grid::Grid, state::State};
+use crate::{
+    domain::{config::Config, field_vector::FieldVector, grid::Grid, state::State},
+    use_cases::{equations::EquationsOfMotion, integration::integrate},
+};
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -7,10 +10,12 @@ pub struct StateOutput {
     pub displacement: Vec<f64>,
     pub momentum: Vec<f64>,
     pub energy_density: Vec<f64>,
+    pub total_energy: f64,
 }
 
 impl StateOutput {
     pub fn from_state(state: &State, config: &Config) -> Self {
+        let energy_density = EquationsOfMotion::calculate_energy_density(&state, &config);
         Self {
             time: state.time,
             displacement: Self::reduce_spatial_resolution(
@@ -19,9 +24,10 @@ impl StateOutput {
             ),
             momentum: Self::reduce_spatial_resolution(&state.momentum, config.output_dx_level),
             energy_density: Self::reduce_spatial_resolution(
-                &Self::calculate_energy_density(&state, &config),
+                &energy_density,
                 config.output_dx_level,
             ),
+            total_energy: integrate(&energy_density, config.grid.delta),
         }
     }
 
@@ -33,19 +39,13 @@ impl StateOutput {
             panic!("Target resolution is greater than the current resolution.");
         }
 
-        let step = current_length / target_length;
-        field
+        let step = (current_length - 1) / (target_length - 1); // Preserves grid points.
+
+        return field
             .iter()
             .step_by(step)
             .copied()
             .take(target_length)
-            .collect()
-    }
-
-    fn calculate_energy_density(state: &State, config: &Config) -> FieldVector {
-        let energy_density = 0.5
-            * (state.momentum.clone().powi(2)
-                + state.displacement.clone().powi(2) * config.wave_speed.powi(2));
-        return energy_density;
+            .collect();
     }
 }

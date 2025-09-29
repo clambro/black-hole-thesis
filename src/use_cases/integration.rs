@@ -1,4 +1,5 @@
 use crate::domain::config::Config;
+use crate::domain::field_vector::FieldVector;
 use crate::domain::state::State;
 use crate::use_cases::equations::EquationsOfMotion;
 
@@ -26,4 +27,31 @@ pub fn rk4_step(config: &Config, state: &State, time_step: f64) -> State {
         momentum: &state.momentum + &rk4.d_dt_momentum,
         time: state.time + time_step,
     };
+}
+
+/// Integrate a vector spatially, respecting the same SBP norm weights as the diff operator.
+pub fn integrate(vector: &FieldVector, grid_size: f64) -> f64 {
+    let n = vector.len();
+
+    // SBP norm weights for Strand (1994) 4th order operator
+    let mut total = 0.0;
+
+    // Boundary weights (these are the diagonal entries of the norm matrix)
+    total += (17.0 / 48.0) * vector[0];
+    total += (59.0 / 48.0) * vector[1];
+    total += (43.0 / 48.0) * vector[2];
+    total += (49.0 / 48.0) * vector[3];
+
+    // Interior points (standard weight of 1)
+    for i in 4..n - 4 {
+        total += vector[i];
+    }
+
+    // Right boundary weights (symmetric)
+    total += (49.0 / 48.0) * vector[n - 4];
+    total += (43.0 / 48.0) * vector[n - 3];
+    total += (59.0 / 48.0) * vector[n - 2];
+    total += (17.0 / 48.0) * vector[n - 1];
+
+    return total * grid_size;
 }
