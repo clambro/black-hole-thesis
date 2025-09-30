@@ -1,5 +1,4 @@
 use crate::domain::field_vector::FieldVector;
-use crate::domain::parity::Parity;
 use crate::domain::state::State;
 use crate::domain::{config::Config, constraints::Constraints};
 use crate::use_cases::diff::{diff, dissipation};
@@ -50,16 +49,11 @@ impl EquationsOfMotion {
         outgoing: &FieldVector,
         constraints: &Constraints,
     ) -> FieldVector {
-        let flux = diff(
-            &config.grid,
-            &(&constraints.char_speed * ingoing),
-            Parity::Swap(&constraints.char_speed * outgoing),
-        );
+        let flux = diff(&config.grid, &(&constraints.char_speed * ingoing));
         // Limiting behaviour for the source comes from L'Hôpital's rule.
         // TODO: It's inefficient to calculate the difference twice and the entire derivative.
         let mut source = &constraints.char_speed / &config.grid.points * (ingoing - outgoing);
-        source[0] =
-            constraints.char_speed[0] * diff(&config.grid, &(ingoing - outgoing), Parity::Odd)[0];
+        source[0] = constraints.char_speed[0] * diff(&config.grid, &(ingoing - outgoing))[0];
 
         return flux + source;
     }
@@ -70,15 +64,10 @@ impl EquationsOfMotion {
         outgoing: &FieldVector,
         constraints: &Constraints,
     ) -> FieldVector {
-        let flux = -diff(
-            &config.grid,
-            &(&constraints.char_speed * outgoing),
-            Parity::Swap(&constraints.char_speed * ingoing),
-        );
+        let flux = -diff(&config.grid, &(&constraints.char_speed * outgoing));
         // Same BC logic here.
         let mut source = &constraints.char_speed / &config.grid.points * (ingoing - outgoing);
-        source[0] =
-            constraints.char_speed[0] * diff(&config.grid, &(ingoing - outgoing), Parity::Odd)[0];
+        source[0] = constraints.char_speed[0] * diff(&config.grid, &(ingoing - outgoing))[0];
 
         return flux + source;
     }

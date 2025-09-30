@@ -1,36 +1,28 @@
 use crate::domain::field_vector::FieldVector;
 use crate::domain::grid::Grid;
-use crate::domain::parity::Parity;
 
 /// Standard 4th order finite difference operator for the first derivative.
-pub fn diff(grid: &Grid, vector: &FieldVector, parity: Parity) -> FieldVector {
+pub fn diff(grid: &Grid, vector: &FieldVector) -> FieldVector {
     let mut diff = FieldVector::zeros(vector.len());
     let n = vector.len();
     let h = grid.delta;
 
-    // Left side is calculated via parity. There's no physical boundary at r=0.
-    match parity {
-        Parity::Even => {
-            diff[0] = 0.0;
-            diff[1] = (vector[1] - 8.0 * vector[0] + 8.0 * vector[2] - vector[3]) / (12.0 * h);
-        }
-        Parity::Odd => {
-            diff[0] = (8.0 * vector[1] - vector[2]) / (6.0 * h);
-            diff[1] = (-vector[1] + 8.0 * vector[2] - vector[3]) / (12.0 * h); // f(0) = 0 for odd.
-        }
-        Parity::Swap(swap_vec) => {
-            diff[0] = (swap_vec[2] - 8.0 * swap_vec[1] + 8.0 * vector[1] - vector[2]) / (12.0 * h);
-            diff[1] = (swap_vec[1] - 8.0 * vector[0] + 8.0 * vector[2] - vector[3]) / (12.0 * h);
-        }
-    }
+    // Forward difference for the left boundary.
+    diff[0] = -(25.0 * vector[0] - 48.0 * vector[1] + 36.0 * vector[2] - 16.0 * vector[3]
+        + 3.0 * vector[4])
+        / (12.0 * h);
 
-    // Interior points calculated via standard 4th order finite difference.
+    diff[1] = -(3.0 * vector[0] + 10.0 * vector[1] - 18.0 * vector[2] + 6.0 * vector[3]
+        - vector[4])
+        / (12.0 * h);
+
+    // Central difference for the interior points.
     (2..n - 2).for_each(|i| {
         diff[i] = (vector[i - 2] - 8.0 * vector[i - 1] + 8.0 * vector[i + 1] - vector[i + 2])
             / (12.0 * h);
     });
 
-    // Right boundary calculated via backward difference.
+    // Backward difference for the right boundary.
     diff[n - 2] = (3.0 * vector[n - 1] + 10.0 * vector[n - 2] - 18.0 * vector[n - 3]
         + 6.0 * vector[n - 4]
         - vector[n - 5])

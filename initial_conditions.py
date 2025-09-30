@@ -8,7 +8,7 @@ def main(folder: str):
     with open(f'results/{folder}/states.jsonl', 'r') as f:
         while True:
             json_data = json.loads(f.readline().strip())
-            if json_data["time"] >= 0.15:
+            if json_data["time"] >= 0.1:
                 break
         initial_state = json_data
     
