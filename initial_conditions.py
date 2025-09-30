@@ -6,11 +6,11 @@ import argparse
 def main(folder: str):
     # Read the first line of the JSONL file (initial condition)
     with open(f'results/{folder}/states.jsonl', 'r') as f:
-        f.readline()
-        f.readline()
-        f.readline()
-        f.readline()
-        initial_state = json.loads(f.readline().strip())
+        while True:
+            json_data = json.loads(f.readline().strip())
+            if json_data["time"] >= 0.15:
+                break
+        initial_state = json_data
     
     # Define all the fields to visualize
     fields = [

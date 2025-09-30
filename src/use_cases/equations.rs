@@ -1,4 +1,5 @@
 use crate::domain::field_vector::FieldVector;
+use crate::domain::parity::Parity;
 use crate::domain::state::State;
 use crate::domain::{config::Config, constraints::Constraints};
 use crate::use_cases::diff::{diff, dissipation};
@@ -19,7 +20,7 @@ impl EquationsOfMotion {
     ) -> Self {
         let d_dt_ingoing = Self::calculate_d_dt_ingoing(config, &ingoing, &outgoing, &constraints);
         let d_dt_outgoing =
-            Self::calculate_d_dt_outgoing(config, &outgoing, &ingoing, &constraints);
+            Self::calculate_d_dt_outgoing(config, &ingoing, &outgoing, &constraints);
         Self {
             d_dt_ingoing: d_dt_ingoing + dissipation(&ingoing, &config.grid, time_step),
             d_dt_outgoing: d_dt_outgoing + dissipation(&outgoing, &config.grid, time_step),
@@ -27,18 +28,12 @@ impl EquationsOfMotion {
     }
 
     pub fn apply_bcs(ingoing: &mut FieldVector, outgoing: &mut FieldVector) {
-        // On the left we require W+ = W- to maintain regularity at the origin.
+        // On the left we require ingoing = outgoing to maintain regularity at the origin.
         let left_bc = 0.5 * (ingoing[0] + outgoing[0]);
         ingoing[0] = left_bc;
         outgoing[0] = left_bc;
-        let left_bc = 0.5 * (ingoing[1] + outgoing[1]);
-        ingoing[1] = left_bc;
-        outgoing[1] = left_bc;
-        let left_bc = 0.5 * (ingoing[2] + outgoing[2]);
-        ingoing[2] = left_bc;
-        outgoing[2] = left_bc;
 
-        // On the right we require W+ = -W- to create the reflection.
+        // On the right we require ingoing = -outgoing to create the reflection.
         let n = ingoing.len();
         let right_bc = 0.5 * (ingoing[n - 1] - outgoing[n - 1]);
         ingoing[n - 1] = right_bc;
@@ -55,11 +50,16 @@ impl EquationsOfMotion {
         outgoing: &FieldVector,
         constraints: &Constraints,
     ) -> FieldVector {
-        let flux = diff(&config.grid, &(&constraints.char_speed * ingoing));
+        let flux = diff(
+            &config.grid,
+            &(&constraints.char_speed * ingoing),
+            Parity::Swap(&constraints.char_speed * outgoing),
+        );
         // Limiting behaviour for the source comes from L'Hôpital's rule.
         // TODO: It's inefficient to calculate the difference twice and the entire derivative.
         let mut source = &constraints.char_speed / &config.grid.points * (ingoing - outgoing);
-        source[0] = constraints.char_speed[0] * diff(&config.grid, &(ingoing - outgoing))[0];
+        source[0] =
+            constraints.char_speed[0] * diff(&config.grid, &(ingoing - outgoing), Parity::Odd)[0];
 
         return flux + source;
     }
@@ -70,10 +70,15 @@ impl EquationsOfMotion {
         outgoing: &FieldVector,
         constraints: &Constraints,
     ) -> FieldVector {
-        let flux = -diff(&config.grid, &(&constraints.char_speed * outgoing));
+        let flux = -diff(
+            &config.grid,
+            &(&constraints.char_speed * outgoing),
+            Parity::Swap(&constraints.char_speed * ingoing),
+        );
         // Same BC logic here.
         let mut source = &constraints.char_speed / &config.grid.points * (ingoing - outgoing);
-        source[0] = constraints.char_speed[0] * diff(&config.grid, &(ingoing - outgoing))[0];
+        source[0] =
+            constraints.char_speed[0] * diff(&config.grid, &(ingoing - outgoing), Parity::Odd)[0];
 
         return flux + source;
     }

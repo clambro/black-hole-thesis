@@ -17,7 +17,7 @@ pub struct Args {
     #[arg(long, default_value = "0.25")]
     pub courant: f64,
 
-    #[arg(long, default_value = "0.1")]
+    #[arg(long, default_value = "0.2")]
     pub total_time: f64,
 
     // At 30fps, this default is approximately 5 seconds of real time per unit of simulation time.

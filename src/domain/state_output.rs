@@ -21,7 +21,7 @@ pub struct StateOutput {
 
 impl StateOutput {
     pub fn from_state(state: &State, config: &Config) -> Self {
-        let level = config.grid.level;
+        let level = config.output_dx_level;
         let energy_density = EquationsOfMotion::calculate_energy_density(&state);
         Self {
             time: state.time,
