@@ -235,6 +235,13 @@ impl Mul<FieldVector> for f64 {
     }
 }
 
+impl Mul<&FieldVector> for FieldVector {
+    type Output = FieldVector;
+    fn mul(self, other: &FieldVector) -> FieldVector {
+        &self * other
+    }
+}
+
 impl Mul<f64> for FieldVector {
     type Output = FieldVector;
     fn mul(self, scalar: f64) -> FieldVector {

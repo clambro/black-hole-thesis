@@ -4,8 +4,8 @@ use crate::domain::field_vector::FieldVector;
 #[derive(Debug)]
 pub struct State {
     pub time: f64,
-    pub ingoing: FieldVector,  // W_+ (speed is negative)
-    pub outgoing: FieldVector, // W_- (speed is positive)
+    pub ingoing: FieldVector,  // W_- (speed is -X)
+    pub outgoing: FieldVector, // W_+ (speed is +X)
     pub constraints: Constraints,
 }
 

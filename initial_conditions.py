@@ -8,7 +8,7 @@ def main(folder: str):
     with open(f'results/{folder}/states.jsonl', 'r') as f:
         while True:
             json_data = json.loads(f.readline().strip())
-            if json_data["time"] >= 0.1:
+            if json_data["time"] >= 0.5:
                 break
         initial_state = json_data
     
@@ -48,7 +48,7 @@ def main(folder: str):
         ax.grid(True, alpha=0.3)
         ax.set_xlim(0, 1)
     
-    plt.tight_layout()
+    plt.tight_layout(rect=[0, 0, 1, 0.96])
     
     # Save the figure
     output_file = f'results/{folder}/initial_conditions.png'

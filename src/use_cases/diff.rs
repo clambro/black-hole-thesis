@@ -41,7 +41,6 @@ pub fn diff(grid: &Grid, vector: &FieldVector) -> FieldVector {
 /// This smooths out high frequency noise at the 5th order level without affecting our 4th order accuracy.
 pub fn dissipation(vector: &FieldVector, grid: &Grid, time_step: f64) -> FieldVector {
     let mut result = FieldVector::zeros(vector.len());
-    return result;
     let n = vector.len();
 
     // Left boundary.
