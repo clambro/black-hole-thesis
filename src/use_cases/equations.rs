@@ -1,7 +1,7 @@
 use crate::domain::config::Config;
 use crate::domain::field_vector::FieldVector;
 use crate::domain::state::State;
-use crate::use_cases::diff::{diff, diff2};
+use crate::use_cases::diff::{diff, diff2, dissipation};
 use std::ops::{Add, Mul};
 
 pub struct EquationsOfMotion {
@@ -10,12 +10,18 @@ pub struct EquationsOfMotion {
 }
 
 impl EquationsOfMotion {
-    pub fn new(config: &Config, displacement: FieldVector, momentum: FieldVector) -> Self {
+    pub fn new(
+        config: &Config,
+        displacement: FieldVector,
+        momentum: FieldVector,
+        time_step: f64,
+    ) -> Self {
         let d_dt_displacement = Self::calculate_d_dt_displacement(&momentum);
         let d_dt_momentum = Self::calculate_d_dt_momentum(config, &displacement);
         Self {
-            d_dt_displacement,
-            d_dt_momentum,
+            d_dt_displacement: d_dt_displacement
+                + dissipation(&displacement, &config.grid, time_step),
+            d_dt_momentum: d_dt_momentum + dissipation(&momentum, &config.grid, time_step),
         }
     }
 

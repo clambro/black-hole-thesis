@@ -7,7 +7,12 @@ use crate::use_cases::equations::EquationsOfMotion;
 
 /// Perform a Runge-Kutta 4th order time step.
 pub fn rk4_step(config: &Config, state: &State, time_step: f64) -> State {
-    let u1 = EquationsOfMotion::new(&config, state.displacement.clone(), state.momentum.clone());
+    let u1 = EquationsOfMotion::new(
+        &config,
+        state.displacement.clone(),
+        state.momentum.clone(),
+        time_step,
+    );
     let mut u1_displacement = &state.displacement + 0.5 * time_step * &u1.d_dt_displacement;
     let mut u1_momentum = &state.momentum + 0.5 * time_step * &u1.d_dt_momentum;
     // This BC logic is a bit ugly, but we're going to change it dramatically for the black hole stuff,
@@ -15,19 +20,19 @@ pub fn rk4_step(config: &Config, state: &State, time_step: f64) -> State {
     apply_bcs(&mut u1_displacement, &config.boundary_conditions);
     apply_bcs(&mut u1_momentum, &config.boundary_conditions);
 
-    let u2 = EquationsOfMotion::new(&config, u1_displacement, u1_momentum);
+    let u2 = EquationsOfMotion::new(&config, u1_displacement, u1_momentum, time_step);
     let mut u2_displacement = &state.displacement + 0.5 * time_step * &u2.d_dt_displacement;
     let mut u2_momentum = &state.momentum + 0.5 * time_step * &u2.d_dt_momentum;
     apply_bcs(&mut u2_displacement, &config.boundary_conditions);
     apply_bcs(&mut u2_momentum, &config.boundary_conditions);
 
-    let u3 = EquationsOfMotion::new(&config, u2_displacement, u2_momentum);
+    let u3 = EquationsOfMotion::new(&config, u2_displacement, u2_momentum, time_step);
     let mut u3_displacement = &state.displacement + time_step * &u3.d_dt_displacement;
     let mut u3_momentum = &state.momentum + time_step * &u3.d_dt_momentum;
     apply_bcs(&mut u3_displacement, &config.boundary_conditions);
     apply_bcs(&mut u3_momentum, &config.boundary_conditions);
 
-    let u4 = EquationsOfMotion::new(&config, u3_displacement, u3_momentum);
+    let u4 = EquationsOfMotion::new(&config, u3_displacement, u3_momentum, time_step);
     let rk4: EquationsOfMotion = (u1 + u2 * 2.0 + u3 * 2.0 + u4) * (time_step / 6.0);
 
     let mut displacement = &state.displacement + &rk4.d_dt_displacement;

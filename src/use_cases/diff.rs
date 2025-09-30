@@ -89,3 +89,37 @@ pub fn set_neumann_bc(vector: &mut FieldVector, left: bool) {
             / 25.0;
     }
 }
+
+/// Apply a 5th order Kreiss-Oliger dissipation operator: (1/64) * (dt/dx) * S(f),
+/// where S(f) is the 6th order finite difference of f. Note that S does not include the dx^6 term.
+/// This smooths out high frequency noise at the 5th order level without affecting our 4th order accuracy.
+pub fn dissipation(vector: &FieldVector, grid: &Grid, time_step: f64) -> FieldVector {
+    let mut result = FieldVector::zeros(vector.len());
+    let n = vector.len();
+
+    // Left boundary.
+    (0..3).for_each(|i| {
+        result[i] = vector[i] - 6.0 * vector[i + 1] + 15.0 * vector[i + 2] - 20.0 * vector[i + 3]
+            + 15.0 * vector[i + 4]
+            - 6.0 * vector[i + 5]
+            + vector[i + 6];
+    });
+
+    // Interior points.
+    (3..n - 3).for_each(|i| {
+        result[i] = vector[i + 3] - 6.0 * vector[i + 2] + 15.0 * vector[i + 1] - 20.0 * vector[i]
+            + 15.0 * vector[i - 1]
+            - 6.0 * vector[i - 2]
+            + vector[i - 3];
+    });
+
+    // Right boundary.
+    ((n - 3)..n).for_each(|i| {
+        result[i] = vector[i] - 6.0 * vector[i - 1] + 15.0 * vector[i - 2] - 20.0 * vector[i - 3]
+            + 15.0 * vector[i - 4]
+            - 6.0 * vector[i - 5]
+            + vector[i - 6];
+    });
+
+    return time_step / grid.delta / 64.0 * result;
+}
