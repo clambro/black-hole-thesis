@@ -59,13 +59,16 @@ pub fn integrate_scalar(vector: &FieldVector, grid_size: f64) -> f64 {
 
 /// Integrate a vector cumulatively to a vector using Simpson's rule (4th order accurate).
 pub fn integrate_cumulative(vector: &FieldVector, grid_size: f64) -> FieldVector {
-    // TODO: Implement this correctly. This is not 4th order accurate.
     let n = vector.len();
-    let mut sum = vector[0];
     let mut result = FieldVector::zeros(n);
-    for i in 1..n {
-        result[i] = sum;
-        sum += vector[i];
+
+    // The left BC is set to zero by default, but integrals are free up to an additive constant.
+    result[1] = grid_size / 12.0 * (5.0 * vector[0] + 8.0 * vector[1] - vector[2]);
+    result[2] = grid_size / 3.0 * (vector[0] + 4.0 * vector[1] + vector[2]);
+
+    for i in 3..n {
+        result[i] =
+            result[i - 2] + grid_size / 3.0 * (vector[i - 2] + 4.0 * vector[i - 1] + vector[i]);
     }
-    return result * grid_size;
+    return result;
 }
