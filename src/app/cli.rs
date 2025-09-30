@@ -1,7 +1,7 @@
-use crate::domain::boundary_conditions::{BoundaryCondition, BoundaryConditions};
 use crate::domain::config::Config;
 use crate::domain::grid::Grid;
 use crate::domain::state::State;
+use crate::use_cases::state_builder::build_initial_state;
 use clap::Parser;
 
 #[derive(Parser, Clone, Debug)]
@@ -11,23 +11,14 @@ pub struct Args {
     #[arg(long, default_value = "10")]
     pub level_of_discretization: u32,
 
-    #[arg(long, default_value = "1.0")]
-    pub wave_speed: f64,
-
-    #[arg(long, default_value = "1.0")]
+    #[arg(long, default_value = "20.0")]
     pub amplitude: f64,
 
     #[arg(long, default_value = "0.25")]
     pub courant: f64,
 
-    #[arg(long, default_value = "3.0")]
+    #[arg(long, default_value = "0.1")]
     pub total_time: f64,
-
-    #[arg(long, default_value = "dirichlet")]
-    pub left_bc: BoundaryCondition,
-
-    #[arg(long, default_value = "neumann")]
-    pub right_bc: BoundaryCondition,
 
     // At 30fps, this default is approximately 5 seconds of real time per unit of simulation time.
     #[arg(long, default_value = "0.0067")]
@@ -43,7 +34,7 @@ impl Args {
         args.validate();
 
         let config = args.build_config_from_args();
-        let state = args.build_state_from_args(&config);
+        let state = build_initial_state(&config);
         return (config, state);
     }
 
@@ -69,24 +60,11 @@ impl Args {
     fn build_config_from_args(&self) -> Config {
         return Config {
             grid: Grid::from_level_of_discretization(self.level_of_discretization),
-            boundary_conditions: BoundaryConditions {
-                left: self.left_bc.clone(),
-                right: self.right_bc.clone(),
-            },
-            wave_speed: self.wave_speed,
             initial_amplitude: self.amplitude,
             courant_number: self.courant,
             total_time: self.total_time,
             output_dt: self.output_dt,
             output_dx_level: self.output_dx_level,
-        };
-    }
-
-    fn build_state_from_args(&self, config: &Config) -> State {
-        return State {
-            time: 0.0,
-            displacement: State::get_initial_displacement(&config.grid, config.initial_amplitude),
-            momentum: State::get_initial_momentum(&config.grid),
         };
     }
 }

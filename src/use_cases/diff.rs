@@ -36,60 +36,6 @@ pub fn diff(grid: &Grid, vector: &FieldVector) -> FieldVector {
     return diff;
 }
 
-/// Standard 4th order finite difference operator for the second derivative.
-pub fn diff2(grid: &Grid, vector: &FieldVector) -> FieldVector {
-    let mut diff2 = FieldVector::zeros(vector.len());
-    let n = vector.len();
-    let h2 = grid.delta * grid.delta;
-
-    // Left boundary.
-    diff2[0] = (45.0 * vector[0] - 154.0 * vector[1] + 214.0 * vector[2] - 156.0 * vector[3]
-        + 61.0 * vector[4]
-        - 10.0 * vector[5])
-        / (12.0 * h2);
-
-    diff2[1] = (10.0 * vector[0] - 15.0 * vector[1] - 4.0 * vector[2] + 14.0 * vector[3]
-        - 6.0 * vector[4]
-        + vector[5])
-        / (12.0 * h2);
-
-    // Interior points.
-    (2..n - 2).for_each(|i| {
-        diff2[i] = (-vector[i - 2] + 16.0 * vector[i - 1] - 30.0 * vector[i]
-            + 16.0 * vector[i + 1]
-            - vector[i + 2])
-            / (12.0 * h2);
-    });
-
-    // Right boundary.
-    diff2[n - 2] = (10.0 * vector[n - 1] - 15.0 * vector[n - 2] - 4.0 * vector[n - 3]
-        + 14.0 * vector[n - 4]
-        - 6.0 * vector[n - 5]
-        + vector[n - 6])
-        / (12.0 * h2);
-
-    diff2[n - 1] = (45.0 * vector[n - 1] - 154.0 * vector[n - 2] + 214.0 * vector[n - 3]
-        - 156.0 * vector[n - 4]
-        + 61.0 * vector[n - 5]
-        - 10.0 * vector[n - 6])
-        / (12.0 * h2);
-
-    return diff2;
-}
-
-/// Set the Neumann boundary condition for a vector using the above stencil.
-pub fn set_neumann_bc(vector: &mut FieldVector, left: bool) {
-    if left {
-        vector[0] =
-            (48.0 * vector[1] - 36.0 * vector[2] + 16.0 * vector[3] - 3.0 * vector[4]) / 25.0;
-    } else {
-        let n = vector.len();
-        vector[n - 1] = (48.0 * vector[n - 2] - 36.0 * vector[n - 3] + 16.0 * vector[n - 4]
-            - 3.0 * vector[n - 5])
-            / 25.0;
-    }
-}
-
 /// Apply a 5th order Kreiss-Oliger dissipation operator: (1/64) * (dt/dx) * S(f),
 /// where S(f) is the 6th order finite difference of f. Note that S does not include the dx^6 term.
 /// This smooths out high frequency noise at the 5th order level without affecting our 4th order accuracy.
