@@ -1,3 +1,4 @@
+use crate::domain::config::Config;
 use crate::domain::state_output::StateOutput;
 use crate::use_cases::ports::StateOutputCreator;
 use std::fs::File;
@@ -8,7 +9,10 @@ pub struct JsonlStateOutputCreator {
 }
 
 impl JsonlStateOutputCreator {
-    pub fn new(file: File) -> Self {
+    pub fn new(config: &Config) -> Self {
+        let folder = format!("results/{}_{}", config.initial_amplitude, config.grid.level);
+        std::fs::create_dir_all(&folder).expect("Could not create folder");
+        let file = File::create(format!("{}/states.jsonl", folder)).expect("Could not create file");
         Self { file }
     }
 }

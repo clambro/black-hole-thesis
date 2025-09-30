@@ -8,7 +8,7 @@ use clap::Parser;
 #[command(name = "black-hole-reflection")]
 #[command(about = "A black hole reflection simulation.")]
 pub struct Args {
-    #[arg(long, default_value = "8")]
+    #[arg(long, default_value = "10")]
     pub level_of_discretization: u32,
 
     #[arg(long, default_value = "1.0")]
@@ -17,7 +17,7 @@ pub struct Args {
     #[arg(long, default_value = "1.0")]
     pub amplitude: f64,
 
-    #[arg(long, default_value = "0.5")]
+    #[arg(long, default_value = "0.25")]
     pub courant: f64,
 
     #[arg(long, default_value = "3.0")]
@@ -48,6 +48,9 @@ impl Args {
     }
 
     fn validate(&self) {
+        if self.level_of_discretization < 5 {
+            panic!("Level of discretization must be greater than 5.");
+        }
         let num_points = Grid::get_length_at_discretization(self.level_of_discretization) as f64;
         if self.output_dt * num_points < 1.0 {
             panic!(
