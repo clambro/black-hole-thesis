@@ -47,8 +47,8 @@ pub fn rk4_step(config: &Config, state: &State, time_step: f64) -> State {
     };
 }
 
-/// Integrate a vector spatially using Simpson's rule (4th order accurate).
-pub fn integrate(vector: &FieldVector, grid_size: f64) -> f64 {
+/// Integrate a vector spatially to a scalar using Simpson's rule (4th order accurate).
+pub fn integrate_scalar(vector: &FieldVector, grid_size: f64) -> f64 {
     let n = vector.len();
     let mut sum = vector[0] + vector[n - 1];
 
@@ -61,6 +61,19 @@ pub fn integrate(vector: &FieldVector, grid_size: f64) -> f64 {
     }
 
     return sum * grid_size / 3.0;
+}
+
+/// Integrate a vector cumulatively to a vector using Simpson's rule (4th order accurate).
+pub fn integrate_cumulative(vector: &FieldVector, grid_size: f64) -> FieldVector {
+    // TODO: Implement this correctly. This is not 4th order accurate.
+    let n = vector.len();
+    let mut sum = vector[0];
+    let mut result = FieldVector::zeros(n);
+    for i in 1..n {
+        result[i] = sum;
+        sum += vector[i];
+    }
+    return result * grid_size;
 }
 
 fn apply_bcs(vector: &mut FieldVector, bcs: &BoundaryConditions) {

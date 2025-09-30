@@ -1,6 +1,6 @@
 use crate::{
     domain::{config::Config, field_vector::FieldVector, grid::Grid, state::State},
-    use_cases::{equations::EquationsOfMotion, integration::integrate},
+    use_cases::{equations::EquationsOfMotion, integration::integrate_scalar},
 };
 use serde::Serialize;
 
@@ -27,7 +27,7 @@ impl StateOutput {
                 &energy_density,
                 config.output_dx_level,
             ),
-            total_energy: integrate(&energy_density, config.grid.delta),
+            total_energy: integrate_scalar(&energy_density, config.grid.delta),
         }
     }
 
