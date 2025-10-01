@@ -11,10 +11,10 @@ pub struct State {
 
 impl State {
     pub fn get_radial_gradient(&self) -> FieldVector {
-        return 0.5 * (&self.ingoing - &self.outgoing);
+        return 0.5 * (&self.outgoing - &self.ingoing);
     }
 
     pub fn get_conjugate_momentum(&self) -> FieldVector {
-        return 0.5 * (&self.ingoing + &self.outgoing);
+        return 0.5 * (&self.outgoing + &self.ingoing);
     }
 }

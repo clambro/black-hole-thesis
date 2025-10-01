@@ -2,18 +2,19 @@ use crate::domain::field_vector::FieldVector;
 use crate::domain::grid::Grid;
 
 /// Standard 4th order finite difference operator for the first derivative.
+/// From https://web.media.mit.edu/~crtaylor/calculator.html
 pub fn diff(grid: &Grid, vector: &FieldVector) -> FieldVector {
     let mut diff = FieldVector::zeros(vector.len());
     let n = vector.len();
     let h = grid.delta;
 
     // Forward difference for the left boundary.
-    diff[0] = -(25.0 * vector[0] - 48.0 * vector[1] + 36.0 * vector[2] - 16.0 * vector[3]
-        + 3.0 * vector[4])
+    diff[0] = (-25.0 * vector[0] + 48.0 * vector[1] - 36.0 * vector[2] + 16.0 * vector[3]
+        - 3.0 * vector[4])
         / (12.0 * h);
 
-    diff[1] = -(3.0 * vector[0] + 10.0 * vector[1] - 18.0 * vector[2] + 6.0 * vector[3]
-        - vector[4])
+    diff[1] = (-3.0 * vector[0] - 10.0 * vector[1] + 18.0 * vector[2] - 6.0 * vector[3]
+        + vector[4])
         / (12.0 * h);
 
     // Central difference for the interior points.
@@ -23,22 +24,22 @@ pub fn diff(grid: &Grid, vector: &FieldVector) -> FieldVector {
     });
 
     // Backward difference for the right boundary.
-    diff[n - 2] = (3.0 * vector[n - 1] + 10.0 * vector[n - 2] - 18.0 * vector[n - 3]
-        + 6.0 * vector[n - 4]
-        - vector[n - 5])
+    diff[n - 2] = (-vector[n - 5] + 6.0 * vector[n - 4] - 18.0 * vector[n - 3]
+        + 10.0 * vector[n - 2]
+        + 3.0 * vector[n - 1])
         / (12.0 * h);
 
-    diff[n - 1] = (25.0 * vector[n - 1] - 48.0 * vector[n - 2] + 36.0 * vector[n - 3]
-        - 16.0 * vector[n - 4]
-        + 3.0 * vector[n - 5])
+    diff[n - 1] = (3.0 * vector[n - 5] - 16.0 * vector[n - 4] + 36.0 * vector[n - 3]
+        - 48.0 * vector[n - 2]
+        + 25.0 * vector[n - 1])
         / (12.0 * h);
 
     return diff;
 }
 
-/// Apply a 5th order Kreiss-Oliger dissipation operator: (1/64) * (dt/dx) * S(f),
-/// where S(f) is the 6th order finite difference of f. Note that S does not include the dx^6 term.
+/// Apply a 5th order Kreiss-Oliger dissipation operator.
 /// This smooths out high frequency noise at the 5th order level without affecting our 4th order accuracy.
+/// Stencils also from https://web.media.mit.edu/~crtaylor/calculator.html
 pub fn dissipation(vector: &FieldVector, grid: &Grid) -> FieldVector {
     let mut result = FieldVector::zeros(vector.len());
     let n = vector.len();

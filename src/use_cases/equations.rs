@@ -15,22 +15,34 @@ impl EquationsOfMotion {
         outgoing: FieldVector,
         constraints: &Constraints,
     ) -> Self {
-        let d_dt_ingoing = Self::calculate_d_dt_ingoing(config, &ingoing, &outgoing, &constraints);
-        let d_dt_outgoing =
-            Self::calculate_d_dt_outgoing(config, &ingoing, &outgoing, &constraints);
+        let mut d_dt_ingoing =
+            Self::calculate_d_dt_ingoing(config, &ingoing, &outgoing, &constraints)
+                + dissipation(&ingoing, &config.grid);
+        let mut d_dt_outgoing =
+            Self::calculate_d_dt_outgoing(config, &ingoing, &outgoing, &constraints)
+                + dissipation(&outgoing, &config.grid);
+
+        // The initial conditions satisfy the BCs, so as long as the updates satisfy them
+        // as well and the update process is linear, they will remain satisfied.
+        Self::apply_bcs(&mut d_dt_ingoing, &mut d_dt_outgoing);
+
         Self {
-            d_dt_ingoing: d_dt_ingoing + dissipation(&ingoing, &config.grid),
-            d_dt_outgoing: d_dt_outgoing + dissipation(&outgoing, &config.grid),
+            d_dt_ingoing,
+            d_dt_outgoing,
         }
     }
 
     pub fn apply_bcs(ingoing: &mut FieldVector, outgoing: &mut FieldVector) {
         // On the left we require ingoing = outgoing to maintain regularity at the origin.
-        ingoing[0] = outgoing[0];
+        let avg_left = 0.5 * (ingoing[0] + outgoing[0]);
+        ingoing[0] = avg_left;
+        outgoing[0] = avg_left;
 
         // On the right we require ingoing = -outgoing to create the reflection.
         let n = ingoing.len();
-        outgoing[n - 1] = -ingoing[n - 1];
+        let avg_right = 0.5 * (ingoing[n - 1] - outgoing[n - 1]);
+        ingoing[n - 1] = avg_right;
+        outgoing[n - 1] = -avg_right;
     }
 
     fn calculate_d_dt_ingoing(
