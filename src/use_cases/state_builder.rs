@@ -8,7 +8,7 @@ use std::f64::consts::PI;
 pub fn build_initial_state(config: &Config) -> State {
     let transport = get_initial_transport(config);
     let ingoing = transport.clone();
-    let outgoing = transport.clone();
+    let outgoing = transport.clone(); // Initial condition is symmetric.
     let constraints = compute_constraints(&ingoing, &outgoing, config);
     return State {
         time: 0.0,

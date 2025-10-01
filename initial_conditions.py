@@ -19,7 +19,7 @@ def main(folder: str):
         'radial_gradient',
         'conjugate_momentum',
         'mass',
-        'radial_factor',
+        'compactness',
         'lapse',
         'char_speed',
         'energy_density'
@@ -42,7 +42,7 @@ def main(folder: str):
         values = initial_state[field]
         
         ax.plot(x, values, 'b-', linewidth=2)
-        ax.set_xlabel('Position (r)')
+        ax.set_xlabel('Radius')
         ax.set_ylabel(field.replace('_', ' ').title())
         ax.set_title(field.replace('_', ' ').title())
         ax.grid(True, alpha=0.3)
