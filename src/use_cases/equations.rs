@@ -51,7 +51,9 @@ impl EquationsOfMotion {
         outgoing: &FieldVector,
         constraints: &Constraints,
     ) -> FieldVector {
-        let flux = -diff(&config.grid, &(&constraints.char_speed * ingoing));
+        let flux = -0.5
+            * (&constraints.char_speed * diff(&config.grid, &ingoing)
+                + diff(&config.grid, &(&constraints.char_speed * ingoing)));
         // Limiting behaviour for the source comes from L'Hôpital's rule.
         // TODO: It's inefficient to calculate the entire derivative.
         let difference = outgoing - ingoing;
@@ -67,7 +69,9 @@ impl EquationsOfMotion {
         outgoing: &FieldVector,
         constraints: &Constraints,
     ) -> FieldVector {
-        let flux = diff(&config.grid, &(&constraints.char_speed * outgoing));
+        let flux = 0.5
+            * (&constraints.char_speed * diff(&config.grid, &outgoing)
+                + diff(&config.grid, &(&constraints.char_speed * outgoing)));
         // Same BC logic here.
         let difference = outgoing - ingoing;
         let mut source = &constraints.char_speed * &difference / &config.grid.points;

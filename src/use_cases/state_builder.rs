@@ -7,11 +7,13 @@ use std::f64::consts::PI;
 
 pub fn build_initial_state(config: &Config) -> State {
     let transport = get_initial_transport(config);
-    let constraints = compute_constraints(&transport, &transport, config);
+    let ingoing = transport.clone();
+    let outgoing = transport.clone();
+    let constraints = compute_constraints(&ingoing, &outgoing, config);
     return State {
         time: 0.0,
-        ingoing: transport.clone(),
-        outgoing: transport, // Initial condition is symmetric.
+        ingoing,
+        outgoing,
         constraints,
     };
 }
@@ -49,7 +51,7 @@ pub fn compute_constraints(
 }
 
 fn get_initial_transport(config: &Config) -> FieldVector {
-    let exponent = -64.0 * (PI / 2.0 * &config.grid.points).tan().powi(2);
+    let exponent = -32.0 * (PI / 2.0 * &config.grid.points).tan().powi(2);
     return config.initial_amplitude * exponent.exp();
 }
 
