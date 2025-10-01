@@ -30,7 +30,7 @@ impl EquationsOfMotion {
 
         // On the right we require ingoing = -outgoing to create the reflection.
         let n = ingoing.len();
-        ingoing[n - 1] = -outgoing[n - 1];
+        outgoing[n - 1] = -ingoing[n - 1];
     }
 
     fn calculate_d_dt_ingoing(
