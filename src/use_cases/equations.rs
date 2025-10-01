@@ -1,5 +1,4 @@
 use crate::domain::field_vector::FieldVector;
-use crate::domain::state::State;
 use crate::domain::{config::Config, constraints::Constraints};
 use crate::use_cases::diff::{diff, dissipation};
 use std::ops::{Add, Mul};
@@ -15,14 +14,13 @@ impl EquationsOfMotion {
         ingoing: FieldVector,
         outgoing: FieldVector,
         constraints: &Constraints,
-        time_step: f64,
     ) -> Self {
         let d_dt_ingoing = Self::calculate_d_dt_ingoing(config, &ingoing, &outgoing, &constraints);
         let d_dt_outgoing =
             Self::calculate_d_dt_outgoing(config, &ingoing, &outgoing, &constraints);
         Self {
-            d_dt_ingoing: d_dt_ingoing + dissipation(&ingoing, &config.grid, time_step),
-            d_dt_outgoing: d_dt_outgoing + dissipation(&outgoing, &config.grid, time_step),
+            d_dt_ingoing: d_dt_ingoing + dissipation(&ingoing, &config.grid),
+            d_dt_outgoing: d_dt_outgoing + dissipation(&outgoing, &config.grid),
         }
     }
 
@@ -33,10 +31,6 @@ impl EquationsOfMotion {
         // On the right we require ingoing = -outgoing to create the reflection.
         let n = ingoing.len();
         ingoing[n - 1] = -outgoing[n - 1];
-    }
-
-    pub fn calculate_energy_density(state: &State) -> FieldVector {
-        return 0.25 * (&state.ingoing.powi(2) + &state.outgoing.powi(2));
     }
 
     fn calculate_d_dt_ingoing(

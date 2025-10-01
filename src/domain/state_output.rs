@@ -1,6 +1,6 @@
 use crate::{
     domain::{config::Config, field_vector::FieldVector, grid::Grid, state::State},
-    use_cases::{equations::EquationsOfMotion, integration::integrate_scalar},
+    use_cases::diff::diff,
 };
 use serde::Serialize;
 
@@ -22,7 +22,7 @@ pub struct StateOutput {
 impl StateOutput {
     pub fn from_state(state: &State, config: &Config) -> Self {
         let level = config.output_dx_level;
-        let energy_density = EquationsOfMotion::calculate_energy_density(&state);
+        let energy_density = diff(&config.grid, &state.constraints.mass); // E = m because c = 1.
         Self {
             time: state.time,
             ingoing: Self::reduce_spatial_resolution(&state.ingoing, level),
@@ -37,7 +37,7 @@ impl StateOutput {
             lapse: Self::reduce_spatial_resolution(&state.constraints.lapse, level),
             char_speed: Self::reduce_spatial_resolution(&state.constraints.char_speed, level),
             energy_density: Self::reduce_spatial_resolution(&energy_density, level),
-            total_energy: integrate_scalar(&energy_density, config.grid.delta),
+            total_energy: state.constraints.mass[state.constraints.mass.len() - 1],
         }
     }
 

@@ -39,7 +39,7 @@ pub fn diff(grid: &Grid, vector: &FieldVector) -> FieldVector {
 /// Apply a 5th order Kreiss-Oliger dissipation operator: (1/64) * (dt/dx) * S(f),
 /// where S(f) is the 6th order finite difference of f. Note that S does not include the dx^6 term.
 /// This smooths out high frequency noise at the 5th order level without affecting our 4th order accuracy.
-pub fn dissipation(vector: &FieldVector, grid: &Grid, time_step: f64) -> FieldVector {
+pub fn dissipation(vector: &FieldVector, grid: &Grid) -> FieldVector {
     let mut result = FieldVector::zeros(vector.len());
     let n = vector.len();
 
@@ -67,5 +67,5 @@ pub fn dissipation(vector: &FieldVector, grid: &Grid, time_step: f64) -> FieldVe
             + vector[i - 6];
     });
 
-    return time_step / grid.delta / 64.0 * result;
+    return 1.0 / grid.delta / 64.0 * result;
 }
