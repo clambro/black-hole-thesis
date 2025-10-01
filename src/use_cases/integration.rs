@@ -37,11 +37,12 @@ pub fn rk4_step(config: &Config, state: &State, time_step: f64) -> State {
 }
 
 /// Integrate a vector cumulatively to a vector using Simpson's rule (4th order accurate).
-pub fn integrate_cumulative(vector: &FieldVector, grid_size: f64) -> FieldVector {
+pub fn integrate(vector: &FieldVector, grid_size: f64) -> FieldVector {
     let n = vector.len();
     let mut result = FieldVector::zeros(n);
 
     // The left BC is set to zero by default, but integrals are free up to an additive constant.
+    // You can thus add whatever constant you want to the result to shift it up or down.
     result[1] = grid_size / 12.0 * (5.0 * vector[0] + 8.0 * vector[1] - vector[2]);
     result[2] = grid_size / 3.0 * (vector[0] + 4.0 * vector[1] + vector[2]);
 

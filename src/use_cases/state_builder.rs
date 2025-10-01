@@ -2,7 +2,7 @@ use crate::domain::config::Config;
 use crate::domain::constraints::Constraints;
 use crate::domain::field_vector::FieldVector;
 use crate::domain::state::State;
-use crate::use_cases::integration::integrate_cumulative;
+use crate::use_cases::integration::integrate;
 use std::f64::consts::PI;
 
 pub fn build_initial_state(config: &Config) -> State {
@@ -59,7 +59,7 @@ fn compute_mass(ingoing: &FieldVector, outgoing: &FieldVector, config: &Config) 
     let integrand = 0.25 * config.grid.points.powi(2) * (&ingoing.powi(2) + &outgoing.powi(2));
     // BC of m(0) = 0 is set automatically because the integrand is 0 at the left boundary and we
     // integrate from left to right.
-    return integrate_cumulative(&integrand, config.grid.delta);
+    return integrate(&integrand, config.grid.delta);
 }
 
 fn compute_radial_factor(mass: &FieldVector, config: &Config) -> FieldVector {
@@ -70,7 +70,7 @@ fn compute_radial_factor(mass: &FieldVector, config: &Config) -> FieldVector {
 
 fn compute_lapse(ingoing: &FieldVector, outgoing: &FieldVector, config: &Config) -> FieldVector {
     let integrand = -0.5 * &config.grid.points * (&ingoing.powi(2) + &outgoing.powi(2));
-    let log_lapse = integrate_cumulative(&integrand, config.grid.delta);
+    let log_lapse = integrate(&integrand, config.grid.delta);
     let lapse = log_lapse.exp();
     // The lapse is free up to a constant multiplier caused by the choice of reference frame,
     // so we apply the rightmost BC N(1) = 1 to make our time coordinate the proper time at r = 1.
