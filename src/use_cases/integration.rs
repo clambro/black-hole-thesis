@@ -1,78 +1,54 @@
-use crate::domain::boundary_conditions::{BoundaryCondition, BoundaryConditions};
 use crate::domain::config::Config;
 use crate::domain::field_vector::FieldVector;
 use crate::domain::state::State;
-use crate::use_cases::diff::set_neumann_bc;
 use crate::use_cases::equations::EquationsOfMotion;
+use crate::use_cases::state_builder::{build_subsequent_state, compute_constraints};
 
 /// Perform a Runge-Kutta 4th order time step.
 pub fn rk4_step(config: &Config, state: &State, time_step: f64) -> State {
     let u1 = EquationsOfMotion::new(
         &config,
-        state.displacement.clone(),
-        state.momentum.clone(),
-        time_step,
+        state.ingoing.clone(),
+        state.outgoing.clone(),
+        &state.constraints,
     );
-    let mut u1_displacement = &state.displacement + 0.5 * time_step * &u1.d_dt_displacement;
-    let mut u1_momentum = &state.momentum + 0.5 * time_step * &u1.d_dt_momentum;
-    // This BC logic is a bit ugly, but we're going to change it dramatically for the black hole stuff,
-    // so no point in refactoring it right now.
-    apply_bcs(&mut u1_displacement, &config.boundary_conditions);
-    apply_bcs(&mut u1_momentum, &config.boundary_conditions);
+    let u1_ingoing = &state.ingoing + 0.5 * time_step * &u1.d_dt_ingoing;
+    let u1_outgoing = &state.outgoing + 0.5 * time_step * &u1.d_dt_outgoing;
+    let u1_constraints = compute_constraints(&u1_ingoing, &u1_outgoing, config);
 
-    let u2 = EquationsOfMotion::new(&config, u1_displacement, u1_momentum, time_step);
-    let mut u2_displacement = &state.displacement + 0.5 * time_step * &u2.d_dt_displacement;
-    let mut u2_momentum = &state.momentum + 0.5 * time_step * &u2.d_dt_momentum;
-    apply_bcs(&mut u2_displacement, &config.boundary_conditions);
-    apply_bcs(&mut u2_momentum, &config.boundary_conditions);
+    let u2 = EquationsOfMotion::new(&config, u1_ingoing, u1_outgoing, &u1_constraints);
+    let u2_ingoing = &state.ingoing + 0.5 * time_step * &u2.d_dt_ingoing;
+    let u2_outgoing = &state.outgoing + 0.5 * time_step * &u2.d_dt_outgoing;
+    let u2_constraints = compute_constraints(&u2_ingoing, &u2_outgoing, config);
 
-    let u3 = EquationsOfMotion::new(&config, u2_displacement, u2_momentum, time_step);
-    let mut u3_displacement = &state.displacement + time_step * &u3.d_dt_displacement;
-    let mut u3_momentum = &state.momentum + time_step * &u3.d_dt_momentum;
-    apply_bcs(&mut u3_displacement, &config.boundary_conditions);
-    apply_bcs(&mut u3_momentum, &config.boundary_conditions);
+    let u3 = EquationsOfMotion::new(&config, u2_ingoing, u2_outgoing, &u2_constraints);
+    let u3_ingoing = &state.ingoing + time_step * &u3.d_dt_ingoing;
+    let u3_outgoing = &state.outgoing + time_step * &u3.d_dt_outgoing;
+    let u3_constraints = compute_constraints(&u3_ingoing, &u3_outgoing, config);
 
-    let u4 = EquationsOfMotion::new(&config, u3_displacement, u3_momentum, time_step);
+    let u4 = EquationsOfMotion::new(&config, u3_ingoing, u3_outgoing, &u3_constraints);
     let rk4: EquationsOfMotion = (u1 + u2 * 2.0 + u3 * 2.0 + u4) * (time_step / 6.0);
 
-    let mut displacement = &state.displacement + &rk4.d_dt_displacement;
-    let mut momentum = &state.momentum + &rk4.d_dt_momentum;
-    apply_bcs(&mut displacement, &config.boundary_conditions);
-    apply_bcs(&mut momentum, &config.boundary_conditions);
+    let ingoing = &state.ingoing + &rk4.d_dt_ingoing;
+    let outgoing = &state.outgoing + &rk4.d_dt_outgoing;
 
-    return State {
-        displacement,
-        momentum,
-        time: state.time + time_step,
-    };
+    let time = state.time + time_step;
+    return build_subsequent_state(config, time, ingoing, outgoing);
 }
 
-/// Integrate a vector spatially using Simpson's rule (4th order accurate).
-pub fn integrate(vector: &FieldVector, grid_size: f64) -> f64 {
+/// Integrate a vector cumulatively to a vector using Simpson's rule (4th order accurate).
+pub fn integrate(vector: &FieldVector, grid_size: f64) -> FieldVector {
     let n = vector.len();
-    let mut sum = vector[0] + vector[n - 1];
+    let mut result = FieldVector::zeros(n);
 
-    for i in 1..n - 1 {
-        if i % 2 == 1 {
-            sum += 4.0 * vector[i];
-        } else {
-            sum += 2.0 * vector[i];
-        }
-    }
+    // The left BC is set to zero by default, but integrals are free up to an additive constant.
+    // You can thus add whatever constant you want to the result to shift it up or down.
+    result[1] = grid_size / 12.0 * (5.0 * vector[0] + 8.0 * vector[1] - vector[2]);
+    result[2] = grid_size / 3.0 * (vector[0] + 4.0 * vector[1] + vector[2]);
 
-    return sum * grid_size / 3.0;
-}
-
-fn apply_bcs(vector: &mut FieldVector, bcs: &BoundaryConditions) {
-    if bcs.left == BoundaryCondition::Dirichlet {
-        vector[0] = 0.0;
-    } else if bcs.left == BoundaryCondition::Neumann {
-        set_neumann_bc(vector, true);
+    for i in 3..n {
+        result[i] =
+            result[i - 2] + grid_size / 3.0 * (vector[i - 2] + 4.0 * vector[i - 1] + vector[i]);
     }
-    if bcs.right == BoundaryCondition::Dirichlet {
-        let length = vector.len();
-        vector[length - 1] = 0.0;
-    } else if bcs.right == BoundaryCondition::Neumann {
-        set_neumann_bc(vector, false);
-    }
+    return result;
 }

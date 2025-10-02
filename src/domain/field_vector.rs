@@ -1,4 +1,4 @@
-use std::ops::{Add, Index, IndexMut, Mul, Neg, Range, RangeFrom, RangeFull, RangeTo, Sub};
+use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Range, RangeFrom, RangeFull, RangeTo, Sub};
 
 /// A vector type for field computations.
 ///
@@ -44,6 +44,13 @@ impl FieldVector {
     pub fn exp(&self) -> Self {
         Self {
             data: self.data.iter().map(|x| x.exp()).collect(),
+        }
+    }
+
+    /// Apply tangent function element-wise
+    pub fn tan(&self) -> Self {
+        Self {
+            data: self.data.iter().map(|x| x.tan()).collect(),
         }
     }
 }
@@ -152,6 +159,22 @@ impl Sub<&FieldVector> for f64 {
     }
 }
 
+// Vector / Vector (element-wise)
+impl Div for &FieldVector {
+    type Output = FieldVector;
+
+    fn div(self, other: &FieldVector) -> FieldVector {
+        FieldVector {
+            data: self
+                .data
+                .iter()
+                .zip(other.data.iter())
+                .map(|(a, b)| a / b)
+                .collect(),
+        }
+    }
+}
+
 // =============================================================================
 // Convenience operations (implemented via reference operations)
 // =============================================================================
@@ -184,6 +207,13 @@ impl Sub<FieldVector> for FieldVector {
     }
 }
 
+impl Sub<FieldVector> for f64 {
+    type Output = FieldVector;
+    fn sub(self, other: FieldVector) -> FieldVector {
+        self - &other
+    }
+}
+
 impl Mul<FieldVector> for FieldVector {
     type Output = FieldVector;
     fn mul(self, other: FieldVector) -> FieldVector {
@@ -205,10 +235,38 @@ impl Mul<FieldVector> for f64 {
     }
 }
 
+impl Mul<&FieldVector> for FieldVector {
+    type Output = FieldVector;
+    fn mul(self, other: &FieldVector) -> FieldVector {
+        &self * other
+    }
+}
+
 impl Mul<f64> for FieldVector {
     type Output = FieldVector;
     fn mul(self, scalar: f64) -> FieldVector {
         &self * scalar
+    }
+}
+
+impl Div<FieldVector> for FieldVector {
+    type Output = FieldVector;
+    fn div(self, other: FieldVector) -> FieldVector {
+        &self / &other
+    }
+}
+
+impl Div<&FieldVector> for FieldVector {
+    type Output = FieldVector;
+    fn div(self, other: &FieldVector) -> FieldVector {
+        &self / other
+    }
+}
+
+impl Div<FieldVector> for &FieldVector {
+    type Output = FieldVector;
+    fn div(self, other: FieldVector) -> FieldVector {
+        self / &other
     }
 }
 

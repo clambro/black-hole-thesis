@@ -1,33 +1,46 @@
 use crate::{
     domain::{config::Config, field_vector::FieldVector, grid::Grid, state::State},
-    use_cases::{equations::EquationsOfMotion, integration::integrate},
+    use_cases::diff::diff,
 };
 use serde::Serialize;
 
 #[derive(Serialize)]
 pub struct StateOutput {
     pub time: f64,
-    pub displacement: Vec<f64>,
-    pub momentum: Vec<f64>,
+    pub ingoing: Vec<f64>,
+    pub outgoing: Vec<f64>,
+    pub radial_gradient: Vec<f64>,
+    pub conjugate_momentum: Vec<f64>,
+    pub mass: Vec<f64>,
+    pub compactness: Vec<f64>,
+    pub lapse: Vec<f64>,
+    pub char_speed: Vec<f64>,
     pub energy_density: Vec<f64>,
     pub total_energy: f64,
 }
 
 impl StateOutput {
     pub fn from_state(state: &State, config: &Config) -> Self {
-        let energy_density = EquationsOfMotion::calculate_energy_density(&state, &config);
+        let level = config.output_dx_level;
+        let energy_density = diff(&config.grid, &state.constraints.mass); // E = m because c = 1.
         Self {
             time: state.time,
-            displacement: Self::reduce_spatial_resolution(
-                &state.displacement,
-                config.output_dx_level,
+            ingoing: Self::reduce_spatial_resolution(&state.ingoing, level),
+            outgoing: Self::reduce_spatial_resolution(&state.outgoing, level),
+            radial_gradient: Self::reduce_spatial_resolution(&state.get_radial_gradient(), level),
+            conjugate_momentum: Self::reduce_spatial_resolution(
+                &state.get_conjugate_momentum(),
+                level,
             ),
-            momentum: Self::reduce_spatial_resolution(&state.momentum, config.output_dx_level),
-            energy_density: Self::reduce_spatial_resolution(
-                &energy_density,
-                config.output_dx_level,
+            mass: Self::reduce_spatial_resolution(&state.constraints.mass, level),
+            compactness: Self::reduce_spatial_resolution(
+                &(1.0 - &state.constraints.radial_factor),
+                level,
             ),
-            total_energy: integrate(&energy_density, config.grid.delta),
+            lapse: Self::reduce_spatial_resolution(&state.constraints.lapse, level),
+            char_speed: Self::reduce_spatial_resolution(&state.constraints.char_speed, level),
+            energy_density: Self::reduce_spatial_resolution(&energy_density, level),
+            total_energy: state.constraints.mass[state.constraints.mass.len() - 1],
         }
     }
 

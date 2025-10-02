@@ -4,3 +4,4 @@ pub mod equations;
 pub mod integration;
 pub mod ports;
 pub mod simulate;
+pub mod state_builder;
