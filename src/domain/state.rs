@@ -17,4 +17,8 @@ impl State {
     pub fn get_conjugate_momentum(&self) -> FieldVector {
         return 0.5 * (&self.outgoing + &self.ingoing);
     }
+
+    pub fn get_black_hole_mass(&self) -> Option<f64> {
+        return self.constraints.get_black_hole_mass();
+    }
 }

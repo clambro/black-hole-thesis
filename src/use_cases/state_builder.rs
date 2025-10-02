@@ -51,7 +51,7 @@ pub fn compute_constraints(
 }
 
 fn get_initial_transport(config: &Config) -> FieldVector {
-    let exponent = -32.0 * (PI / 2.0 * &config.grid.points).tan().powi(2);
+    let exponent = -64.0 * (PI / 2.0 * &config.grid.points).tan().powi(2);
     return config.initial_amplitude * exponent.exp();
 }
 
