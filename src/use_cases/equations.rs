@@ -15,16 +15,11 @@ impl EquationsOfMotion {
         outgoing: FieldVector,
         constraints: &Constraints,
     ) -> Self {
-        let mut d_dt_ingoing =
-            Self::calculate_d_dt_ingoing(config, &ingoing, &outgoing, &constraints)
-                + dissipation(&ingoing, &config.grid);
-        let mut d_dt_outgoing =
+        let d_dt_ingoing = Self::calculate_d_dt_ingoing(config, &ingoing, &outgoing, &constraints)
+            + dissipation(&ingoing, &config.grid);
+        let d_dt_outgoing =
             Self::calculate_d_dt_outgoing(config, &ingoing, &outgoing, &constraints)
                 + dissipation(&outgoing, &config.grid);
-
-        // The initial conditions satisfy the BCs, so as long as the updates satisfy them
-        // as well and the update process is linear, they will remain satisfied.
-        Self::apply_bcs(&mut d_dt_ingoing, &mut d_dt_outgoing);
 
         Self {
             d_dt_ingoing,
@@ -40,9 +35,7 @@ impl EquationsOfMotion {
 
         // On the right we require ingoing = -outgoing to create the reflection.
         let n = ingoing.len();
-        let avg_right = 0.5 * (ingoing[n - 1] - outgoing[n - 1]);
-        ingoing[n - 1] = avg_right;
-        outgoing[n - 1] = -avg_right;
+        outgoing[n - 1] = -ingoing[n - 1];
     }
 
     fn calculate_d_dt_ingoing(
@@ -51,9 +44,7 @@ impl EquationsOfMotion {
         outgoing: &FieldVector,
         constraints: &Constraints,
     ) -> FieldVector {
-        let flux = -0.5
-            * (&constraints.char_speed * diff(&config.grid, &ingoing)
-                + diff(&config.grid, &(&constraints.char_speed * ingoing)));
+        let flux = -diff(&config.grid, &(&constraints.char_speed * ingoing));
         // Limiting behaviour for the source comes from L'Hôpital's rule.
         // TODO: It's inefficient to calculate the entire derivative.
         let difference = outgoing - ingoing;
@@ -69,9 +60,7 @@ impl EquationsOfMotion {
         outgoing: &FieldVector,
         constraints: &Constraints,
     ) -> FieldVector {
-        let flux = 0.5
-            * (&constraints.char_speed * diff(&config.grid, &outgoing)
-                + diff(&config.grid, &(&constraints.char_speed * outgoing)));
+        let flux = diff(&config.grid, &(&constraints.char_speed * outgoing));
         // Same BC logic here.
         let difference = outgoing - ingoing;
         let mut source = &constraints.char_speed * &difference / &config.grid.points;
