@@ -38,11 +38,13 @@ pub fn compute_constraints(
     outgoing: &FieldVector,
     config: &Config,
 ) -> Constraints {
-    let mass = compute_mass(ingoing, outgoing, config);
+    let energy_density = compute_energy_density(ingoing, outgoing, config);
+    let mass = compute_mass(&energy_density, config);
     let radial_factor = compute_radial_factor(&mass, config);
     let lapse = compute_lapse(ingoing, outgoing, config);
     let char_speed = &radial_factor / &lapse;
     return Constraints {
+        energy_density,
         mass,
         radial_factor,
         lapse,
@@ -55,11 +57,18 @@ fn get_initial_transport(config: &Config) -> FieldVector {
     return config.initial_amplitude * exponent.exp();
 }
 
-fn compute_mass(ingoing: &FieldVector, outgoing: &FieldVector, config: &Config) -> FieldVector {
-    let integrand = 0.25 * config.grid.points.powi(2) * (&ingoing.powi(2) + &outgoing.powi(2));
+fn compute_energy_density(
+    ingoing: &FieldVector,
+    outgoing: &FieldVector,
+    config: &Config,
+) -> FieldVector {
+    return 0.25 * config.grid.points.powi(2) * (&ingoing.powi(2) + &outgoing.powi(2));
+}
+
+fn compute_mass(energy_density: &FieldVector, config: &Config) -> FieldVector {
     // BC of m(0) = 0 is set automatically because the integrand is 0 at the left boundary and we
     // integrate from left to right.
-    return integrate(&integrand, config.grid.delta);
+    return integrate(&energy_density, config.grid.delta);
 }
 
 fn compute_radial_factor(mass: &FieldVector, config: &Config) -> FieldVector {
