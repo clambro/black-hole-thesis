@@ -5,3 +5,4 @@ pub mod grid;
 pub mod simulation_output;
 pub mod state;
 pub mod state_output;
+pub mod parity;

@@ -6,34 +6,37 @@ use crate::use_cases::state_builder::{build_subsequent_state, compute_constraint
 
 /// Perform a Runge-Kutta 4th order time step.
 pub fn rk4_step(config: &Config, state: &State, time_step: f64) -> State {
+    let initial_ingoing = state.ingoing.clone();
+    let initial_outgoing = state.outgoing.clone();
+
     let u1 = EquationsOfMotion::new(
         &config,
-        state.ingoing.clone(),
-        state.outgoing.clone(),
+        initial_ingoing.clone(),
+        initial_outgoing.clone(),
         &state.constraints,
     );
-    let mut u1_ingoing = &state.ingoing + 0.5 * time_step * &u1.d_dt_ingoing;
-    let mut u1_outgoing = &state.outgoing + 0.5 * time_step * &u1.d_dt_outgoing;
+    let mut u1_ingoing = &initial_ingoing + 0.5 * time_step * &u1.d_dt_ingoing;
+    let mut u1_outgoing = &initial_outgoing + 0.5 * time_step * &u1.d_dt_outgoing;
     EquationsOfMotion::apply_bcs(&mut u1_ingoing, &mut u1_outgoing);
     let u1_constraints = compute_constraints(&u1_ingoing, &u1_outgoing, config);
 
     let u2 = EquationsOfMotion::new(&config, u1_ingoing, u1_outgoing, &u1_constraints);
-    let mut u2_ingoing = &state.ingoing + 0.5 * time_step * &u2.d_dt_ingoing;
-    let mut u2_outgoing = &state.outgoing + 0.5 * time_step * &u2.d_dt_outgoing;
+    let mut u2_ingoing = &initial_ingoing + 0.5 * time_step * &u2.d_dt_ingoing;
+    let mut u2_outgoing = &initial_outgoing + 0.5 * time_step * &u2.d_dt_outgoing;
     EquationsOfMotion::apply_bcs(&mut u2_ingoing, &mut u2_outgoing);
     let u2_constraints = compute_constraints(&u2_ingoing, &u2_outgoing, config);
 
     let u3 = EquationsOfMotion::new(&config, u2_ingoing, u2_outgoing, &u2_constraints);
-    let mut u3_ingoing = &state.ingoing + time_step * &u3.d_dt_ingoing;
-    let mut u3_outgoing = &state.outgoing + time_step * &u3.d_dt_outgoing;
+    let mut u3_ingoing = &initial_ingoing + time_step * &u3.d_dt_ingoing;
+    let mut u3_outgoing = &initial_outgoing + time_step * &u3.d_dt_outgoing;
     EquationsOfMotion::apply_bcs(&mut u3_ingoing, &mut u3_outgoing);
     let u3_constraints = compute_constraints(&u3_ingoing, &u3_outgoing, config);
 
     let u4 = EquationsOfMotion::new(&config, u3_ingoing, u3_outgoing, &u3_constraints);
     let rk4: EquationsOfMotion = (u1 + u2 * 2.0 + u3 * 2.0 + u4) * (time_step / 6.0);
 
-    let mut ingoing = &state.ingoing + &rk4.d_dt_ingoing;
-    let mut outgoing = &state.outgoing + &rk4.d_dt_outgoing;
+    let mut ingoing = &initial_ingoing + &rk4.d_dt_ingoing;
+    let mut outgoing = &initial_outgoing + &rk4.d_dt_outgoing;
     EquationsOfMotion::apply_bcs(&mut ingoing, &mut outgoing);
 
     let time = state.time + time_step;

@@ -74,6 +74,9 @@ fn compute_mass(energy_density: &FieldVector, config: &Config) -> FieldVector {
 fn compute_radial_factor(mass: &FieldVector, config: &Config) -> FieldVector {
     let mut radial_factor = 1.0 - 2.0 * mass / &config.grid.points;
     radial_factor[0] = 1.0; // The mass is O(r^3) at the left boundary, so A(0) = 1.
+    radial_factor[1] = 0.75 + 0.25 * radial_factor[1];
+    radial_factor[2] = 0.5 + 0.5 * radial_factor[2];
+    radial_factor[3] = 0.25 + 0.75 * radial_factor[3];
     return radial_factor;
 }
 
