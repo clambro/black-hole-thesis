@@ -1,125 +1,65 @@
 use crate::domain::field_vector::FieldVector;
 use crate::domain::parity::Parity;
 use crate::domain::{config::Config, constraints::Constraints};
-use crate::use_cases::diff::{diff, dissipation};
+use crate::use_cases::diff::{diff, dissipation, set_neumann_bc};
 use std::ops::{Add, Mul};
 
 pub struct EquationsOfMotion {
-    pub d_dt_ingoing: FieldVector,
-    pub d_dt_outgoing: FieldVector,
+    pub dt_radial_gradient: FieldVector,
+    pub dt_conj_momentum: FieldVector,
 }
 
 impl EquationsOfMotion {
     pub fn new(
         config: &Config,
-        ingoing: FieldVector,
-        outgoing: FieldVector,
+        radial_gradient: FieldVector,
+        conj_momentum: FieldVector,
         constraints: &Constraints,
     ) -> Self {
-        let d_dt_ingoing = Self::calculate_d_dt_ingoing(config, &ingoing, &outgoing, &constraints)
-            + dissipation(&ingoing, &config.grid);
-        let d_dt_outgoing =
-            Self::calculate_d_dt_outgoing(config, &ingoing, &outgoing, &constraints)
-                + dissipation(&outgoing, &config.grid);
+        let dt_radial_gradient =
+            Self::calculate_dt_radial_gradient(config, &conj_momentum, &constraints)
+                + dissipation(&radial_gradient, &config.grid, Parity::Odd, Parity::Even);
+        let dt_conj_momentum =
+            Self::calculate_dt_conj_momentum(config, &radial_gradient, &constraints)
+                + dissipation(&conj_momentum, &config.grid, Parity::Even, Parity::Odd);
 
         Self {
-            d_dt_ingoing,
-            d_dt_outgoing,
+            dt_radial_gradient,
+            dt_conj_momentum,
         }
     }
 
-    pub fn apply_bcs(ingoing: &mut FieldVector, outgoing: &mut FieldVector) {
-        // On the left we require ingoing = outgoing to maintain regularity at the origin.
-        let avg_left = 0.5 * (ingoing[0] + outgoing[0]);
-        ingoing[0] = avg_left;
-        outgoing[0] = avg_left;
+    pub fn apply_bcs(radial_gradient: &mut FieldVector, conj_momentum: &mut FieldVector) {
+        // Coordinate singularity at the origin only requires smoothness.
+        radial_gradient[0] = 0.0;
+        set_neumann_bc(conj_momentum, true, Parity::Even);
 
-        // On the right we require ingoing = -outgoing to create the reflection.
-        let n = ingoing.len();
-        ingoing[n - 1] = -outgoing[n - 1];
+        // Artificial reflection at the right boundary.
+        set_neumann_bc(radial_gradient, false, Parity::Even);
+        let n = conj_momentum.len();
+        conj_momentum[n - 1] = 0.0;
     }
 
-    fn calculate_d_dt_ingoing(
+    fn calculate_dt_radial_gradient(
         config: &Config,
-        ingoing: &FieldVector,
-        outgoing: &FieldVector,
+        conj_momentum: &FieldVector,
         constraints: &Constraints,
     ) -> FieldVector {
-        let xdw = &constraints.char_speed
-            * diff(
-                &config.grid,
-                ingoing,
-                Parity::Swap(outgoing.clone()),
-                Parity::Swap(-outgoing.clone()),
-            );
-        let wdx = ingoing
-            * diff(
-                &config.grid,
-                &constraints.char_speed,
-                Parity::Even,
-                Parity::Even,
-            );
-        let dxw = diff(
-            &config.grid,
-            &(&constraints.char_speed * ingoing),
-            Parity::Swap(&constraints.char_speed * outgoing),
-            Parity::Swap(-(&constraints.char_speed * outgoing)),
-        );
-        let flux = -0.5 * (xdw + wdx + dxw);
-        // Limiting behaviour for the source comes from L'Hôpital's rule.
-        // TODO: It's inefficient to calculate the entire derivative.
-        let mut difference = outgoing - ingoing;
-        difference[0] = 0.0;
-        let mut source = &constraints.char_speed * &difference / &config.grid.points;
-        let d_diff =
-            &constraints.char_speed * diff(&config.grid, &difference, Parity::Odd, Parity::Even);
-        source[0] = d_diff[0];
-        source[1] = 0.75 * d_diff[1] + 0.25 * source[1];
-        source[2] = 0.5 * d_diff[2] + 0.5 * source[2];
-        source[3] = 0.25 * d_diff[3] + 0.75 * source[3];
-
-        return flux + source;
+        let fun = &constraints.char_speed * conj_momentum;
+        return diff(&config.grid, &fun, Parity::Even, Parity::Odd);
     }
 
-    fn calculate_d_dt_outgoing(
+    fn calculate_dt_conj_momentum(
         config: &Config,
-        ingoing: &FieldVector,
-        outgoing: &FieldVector,
+        radial_gradient: &FieldVector,
         constraints: &Constraints,
     ) -> FieldVector {
-        let xdw = &constraints.char_speed
-            * diff(
-                &config.grid,
-                outgoing,
-                Parity::Swap(ingoing.clone()),
-                Parity::Swap(-ingoing.clone()),
-            );
-        let wdx = outgoing
-            * diff(
-                &config.grid,
-                &constraints.char_speed,
-                Parity::Even,
-                Parity::Even,
-            );
-        let dxw = diff(
-            &config.grid,
-            &(&constraints.char_speed * outgoing),
-            Parity::Swap(&constraints.char_speed * ingoing),
-            Parity::Swap(-(&constraints.char_speed * ingoing)),
-        );
-        let flux = 0.5 * (xdw + wdx + dxw);
-        // Same BC logic here.
-        let mut difference = outgoing - ingoing;
-        difference[0] = 0.0;
-        let mut source = &constraints.char_speed * &difference / &config.grid.points;
-        let limit =
-            &constraints.char_speed * diff(&config.grid, &difference, Parity::Odd, Parity::Even);
-        source[0] = limit[0];
-        source[1] = 0.75 * limit[1] + 0.25 * source[1];
-        source[2] = 0.5 * limit[2] + 0.5 * source[2];
-        source[3] = 0.25 * limit[3] + 0.75 * source[3];
-
-        return flux + source;
+        let r2 = config.grid.points.powi(2);
+        let fun = &r2 * &constraints.char_speed * radial_gradient;
+        let fun = diff(&config.grid, &fun, Parity::Odd, Parity::Even);
+        let mut fun = fun / &r2;
+        fun[0] = 0.0; // Coordinate singularity at the origin.
+        return fun;
     }
 }
 
@@ -128,8 +68,8 @@ impl Add<EquationsOfMotion> for EquationsOfMotion {
 
     fn add(self, other: Self) -> Self {
         Self {
-            d_dt_ingoing: &self.d_dt_ingoing + &other.d_dt_ingoing,
-            d_dt_outgoing: &self.d_dt_outgoing + &other.d_dt_outgoing,
+            dt_radial_gradient: &self.dt_radial_gradient + &other.dt_radial_gradient,
+            dt_conj_momentum: &self.dt_conj_momentum + &other.dt_conj_momentum,
         }
     }
 }
@@ -139,8 +79,8 @@ impl Add<&EquationsOfMotion> for &EquationsOfMotion {
 
     fn add(self, other: &EquationsOfMotion) -> EquationsOfMotion {
         EquationsOfMotion {
-            d_dt_ingoing: &self.d_dt_ingoing + &other.d_dt_ingoing,
-            d_dt_outgoing: &self.d_dt_outgoing + &other.d_dt_outgoing,
+            dt_radial_gradient: &self.dt_radial_gradient + &other.dt_radial_gradient,
+            dt_conj_momentum: &self.dt_conj_momentum + &other.dt_conj_momentum,
         }
     }
 }
@@ -150,8 +90,8 @@ impl Mul<f64> for EquationsOfMotion {
 
     fn mul(self, scalar: f64) -> Self {
         Self {
-            d_dt_ingoing: scalar * &self.d_dt_ingoing,
-            d_dt_outgoing: scalar * &self.d_dt_outgoing,
+            dt_radial_gradient: scalar * &self.dt_radial_gradient,
+            dt_conj_momentum: scalar * &self.dt_conj_momentum,
         }
     }
 }
@@ -160,8 +100,8 @@ impl Mul<f64> for &EquationsOfMotion {
 
     fn mul(self, scalar: f64) -> EquationsOfMotion {
         EquationsOfMotion {
-            d_dt_ingoing: scalar * &self.d_dt_ingoing,
-            d_dt_outgoing: scalar * &self.d_dt_outgoing,
+            dt_radial_gradient: scalar * &self.dt_radial_gradient,
+            dt_conj_momentum: scalar * &self.dt_conj_momentum,
         }
     }
 }

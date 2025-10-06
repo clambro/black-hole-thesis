@@ -13,11 +13,9 @@ def main(folder: str):
         initial_state = json_data
     
     # Define all the fields to visualize
-    fields = [
-        'ingoing',
-        'outgoing', 
+    fields = [ 
         'radial_gradient',
-        'conjugate_momentum',
+        'conj_momentum',
         'mass',
         'compactness',
         'lapse',
@@ -26,7 +24,7 @@ def main(folder: str):
     ]
     
     # Create x-axis (uniform grid from 0 to 1)
-    n_points = len(initial_state['ingoing'])
+    n_points = len(initial_state['radial_gradient'])
     x = np.linspace(0, 1, n_points)
     
     # Create subplots - 3 rows, 3 columns

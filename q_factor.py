@@ -14,6 +14,12 @@ def main(low_folder, mid_folder, high_folder, function):
     mid_data, _ = _load_data(mid_folder, function)
     low_data, _ = _load_data(low_folder, function)
 
+    max_len = min(len(high_data), len(mid_data), len(low_data))
+    high_data = high_data[:max_len]
+    mid_data = mid_data[:max_len]
+    low_data = low_data[:max_len]
+    times = times[:max_len]
+
     q_factor = np.linalg.norm(mid_data - low_data, axis=1) / np.linalg.norm(high_data - mid_data, axis=1)
 
     ax.plot(times, q_factor, 'b-', linewidth=2)

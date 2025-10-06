@@ -6,41 +6,53 @@ use crate::use_cases::state_builder::{build_subsequent_state, compute_constraint
 
 /// Perform a Runge-Kutta 4th order time step.
 pub fn rk4_step(config: &Config, state: &State, time_step: f64) -> State {
-    let initial_ingoing = state.ingoing.clone();
-    let initial_outgoing = state.outgoing.clone();
-
     let u1 = EquationsOfMotion::new(
         &config,
-        initial_ingoing.clone(),
-        initial_outgoing.clone(),
+        state.radial_gradient.clone(),
+        state.conj_momentum.clone(),
         &state.constraints,
     );
-    let mut u1_ingoing = &initial_ingoing + 0.5 * time_step * &u1.d_dt_ingoing;
-    let mut u1_outgoing = &initial_outgoing + 0.5 * time_step * &u1.d_dt_outgoing;
-    EquationsOfMotion::apply_bcs(&mut u1_ingoing, &mut u1_outgoing);
-    let u1_constraints = compute_constraints(&u1_ingoing, &u1_outgoing, config);
+    let mut u1_radial_gradient = &state.radial_gradient + 0.5 * time_step * &u1.dt_radial_gradient;
+    let mut u1_conj_momentum = &state.conj_momentum + 0.5 * time_step * &u1.dt_conj_momentum;
+    EquationsOfMotion::apply_bcs(&mut u1_radial_gradient, &mut u1_conj_momentum);
+    let u1_constraints = compute_constraints(&u1_radial_gradient, &u1_conj_momentum, config);
 
-    let u2 = EquationsOfMotion::new(&config, u1_ingoing, u1_outgoing, &u1_constraints);
-    let mut u2_ingoing = &initial_ingoing + 0.5 * time_step * &u2.d_dt_ingoing;
-    let mut u2_outgoing = &initial_outgoing + 0.5 * time_step * &u2.d_dt_outgoing;
-    EquationsOfMotion::apply_bcs(&mut u2_ingoing, &mut u2_outgoing);
-    let u2_constraints = compute_constraints(&u2_ingoing, &u2_outgoing, config);
+    let u2 = EquationsOfMotion::new(
+        &config,
+        u1_radial_gradient,
+        u1_conj_momentum,
+        &u1_constraints,
+    );
+    let mut u2_radial_gradient = &state.radial_gradient + 0.5 * time_step * &u2.dt_radial_gradient;
+    let mut u2_conj_momentum = &state.conj_momentum + 0.5 * time_step * &u2.dt_conj_momentum;
+    EquationsOfMotion::apply_bcs(&mut u2_radial_gradient, &mut u2_conj_momentum);
+    let u2_constraints = compute_constraints(&u2_radial_gradient, &u2_conj_momentum, config);
 
-    let u3 = EquationsOfMotion::new(&config, u2_ingoing, u2_outgoing, &u2_constraints);
-    let mut u3_ingoing = &initial_ingoing + time_step * &u3.d_dt_ingoing;
-    let mut u3_outgoing = &initial_outgoing + time_step * &u3.d_dt_outgoing;
-    EquationsOfMotion::apply_bcs(&mut u3_ingoing, &mut u3_outgoing);
-    let u3_constraints = compute_constraints(&u3_ingoing, &u3_outgoing, config);
+    let u3 = EquationsOfMotion::new(
+        &config,
+        u2_radial_gradient,
+        u2_conj_momentum,
+        &u2_constraints,
+    );
+    let mut u3_radial_gradient = &state.radial_gradient + time_step * &u3.dt_radial_gradient;
+    let mut u3_conj_momentum = &state.conj_momentum + time_step * &u3.dt_conj_momentum;
+    EquationsOfMotion::apply_bcs(&mut u3_radial_gradient, &mut u3_conj_momentum);
+    let u3_constraints = compute_constraints(&u3_radial_gradient, &u3_conj_momentum, config);
 
-    let u4 = EquationsOfMotion::new(&config, u3_ingoing, u3_outgoing, &u3_constraints);
+    let u4 = EquationsOfMotion::new(
+        &config,
+        u3_radial_gradient,
+        u3_conj_momentum,
+        &u3_constraints,
+    );
     let rk4: EquationsOfMotion = (u1 + u2 * 2.0 + u3 * 2.0 + u4) * (time_step / 6.0);
 
-    let mut ingoing = &initial_ingoing + &rk4.d_dt_ingoing;
-    let mut outgoing = &initial_outgoing + &rk4.d_dt_outgoing;
-    EquationsOfMotion::apply_bcs(&mut ingoing, &mut outgoing);
+    let mut radial_gradient = &state.radial_gradient + &rk4.dt_radial_gradient;
+    let mut conj_momentum = &state.conj_momentum + &rk4.dt_conj_momentum;
+    EquationsOfMotion::apply_bcs(&mut radial_gradient, &mut conj_momentum);
 
     let time = state.time + time_step;
-    return build_subsequent_state(config, time, ingoing, outgoing);
+    return build_subsequent_state(config, time, radial_gradient, conj_momentum);
 }
 
 /// Integrate a vector cumulatively to a vector using Simpson's rule (4th order accurate).

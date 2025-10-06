@@ -4,10 +4,8 @@ use serde::Serialize;
 #[derive(Serialize)]
 pub struct StateOutput {
     pub time: f64,
-    pub ingoing: Vec<f64>,
-    pub outgoing: Vec<f64>,
     pub radial_gradient: Vec<f64>,
-    pub conjugate_momentum: Vec<f64>,
+    pub conj_momentum: Vec<f64>,
     pub mass: Vec<f64>,
     pub compactness: Vec<f64>,
     pub lapse: Vec<f64>,
@@ -21,13 +19,8 @@ impl StateOutput {
         let level = config.output_dx_level;
         Self {
             time: state.time,
-            ingoing: Self::reduce_spatial_resolution(&state.ingoing, level),
-            outgoing: Self::reduce_spatial_resolution(&state.outgoing, level),
-            radial_gradient: Self::reduce_spatial_resolution(&state.get_radial_gradient(), level),
-            conjugate_momentum: Self::reduce_spatial_resolution(
-                &state.get_conjugate_momentum(),
-                level,
-            ),
+            radial_gradient: Self::reduce_spatial_resolution(&state.radial_gradient, level),
+            conj_momentum: Self::reduce_spatial_resolution(&state.conj_momentum, level),
             mass: Self::reduce_spatial_resolution(&state.constraints.mass, level),
             compactness: Self::reduce_spatial_resolution(
                 &(1.0 - &state.constraints.radial_factor),
