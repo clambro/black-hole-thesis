@@ -14,7 +14,7 @@ pub struct Args {
     #[arg(long, default_value = "30.0")]
     pub amplitude: f64,
 
-    #[arg(long, default_value = "0.1")]
+    #[arg(long, default_value = "0.25")]
     pub courant: f64,
 
     #[arg(long, default_value = "3.0")]

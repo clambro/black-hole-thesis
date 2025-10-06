@@ -30,12 +30,14 @@ impl EquationsOfMotion {
     }
 
     pub fn apply_bcs(radial_gradient: &mut FieldVector, conj_momentum: &mut FieldVector) {
-        // Coordinate singularity at the origin only requires smoothness.
+        // Coordinate singularity at the origin requires smoothness. Changing either of these
+        // kills 4th order accuracy.
         radial_gradient[0] = 0.0;
         set_neumann_bc(conj_momentum, true, Parity::Even);
 
-        // Artificial reflection at the right boundary.
-        set_neumann_bc(radial_gradient, false, Parity::Even);
+        // Artificial reflection at the right boundary. We don't need to set the Neumann
+        // BC for the radial gradient because it is enforced via the parity in the derivative
+        // operator in the equations of motion. Setting it kills 4th order accuracy.
         let n = conj_momentum.len();
         conj_momentum[n - 1] = 0.0;
     }
