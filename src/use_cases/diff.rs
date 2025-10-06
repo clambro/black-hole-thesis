@@ -114,7 +114,7 @@ pub fn dissipation(
         + vector[n - 4];
 
     // TODO: Parameterize the factor.
-    return 0.01 / grid.delta / 64.0 * result;
+    return 0.1 / grid.delta / 64.0 * result;
 }
 
 fn get_ghost_vec(vector: &FieldVector, parity: Parity) -> FieldVector {

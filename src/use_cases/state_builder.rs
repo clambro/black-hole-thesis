@@ -37,13 +37,27 @@ pub fn compute_constraints(
     conj_momentum: &FieldVector,
     config: &Config,
 ) -> Constraints {
-    let energy_density = compute_energy_density(radial_gradient, conj_momentum, config);
-    let mass = compute_mass(&energy_density, config);
+    // Solve m' = ½r²A(Φ² + Π²) where A = 1 - 2m/r iteratively
+    // Start with weak field limit (A ≈ 1) for faster convergence
+    let unnormed_energy_density = &radial_gradient.powi(2) + &conj_momentum.powi(2);
+    let flat_space_energy_density = 0.5 * &config.grid.points.powi(2) * &unnormed_energy_density;
+    let flat_space_mass = integrate(&flat_space_energy_density, config.grid.delta);
+
+    let mut self_gravity_energy_density = FieldVector::zeros(config.grid.points.len());
+    let mut mass = flat_space_mass.clone();
+
+    for _iteration in 0..20 {
+        self_gravity_energy_density = -1.0 * &config.grid.points * &mass * &unnormed_energy_density;
+        mass = &flat_space_mass + integrate(&self_gravity_energy_density, config.grid.delta);
+    }
+
+    // Now compute the final constraints
     let radial_factor = compute_radial_factor(&mass, config);
     let lapse = compute_lapse(radial_gradient, conj_momentum, config);
     let char_speed = &radial_factor / &lapse;
+
     return Constraints {
-        energy_density,
+        energy_density: &flat_space_energy_density + &self_gravity_energy_density,
         mass,
         radial_factor,
         lapse,
@@ -54,20 +68,6 @@ pub fn compute_constraints(
 fn get_initial_conj_momentum(config: &Config) -> FieldVector {
     let exponent = -64.0 * (PI / 2.0 * &config.grid.points).tan().powi(2);
     return config.initial_amplitude * exponent.exp();
-}
-
-fn compute_energy_density(
-    radial_gradient: &FieldVector,
-    conj_momentum: &FieldVector,
-    config: &Config,
-) -> FieldVector {
-    return 0.5 * config.grid.points.powi(2) * (&radial_gradient.powi(2) + &conj_momentum.powi(2));
-}
-
-fn compute_mass(energy_density: &FieldVector, config: &Config) -> FieldVector {
-    // BC of m(0) = 0 is set automatically because the integrand is 0 at the left boundary and we
-    // integrate from left to right.
-    return integrate(&energy_density, config.grid.delta);
 }
 
 fn compute_radial_factor(mass: &FieldVector, config: &Config) -> FieldVector {
