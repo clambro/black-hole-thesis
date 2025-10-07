@@ -38,7 +38,10 @@ impl StateOutput {
                 level,
             ),
             total_energy: state.constraints.mass[state.constraints.mass.len() - 1], // E = m because c = 1.
-            momentum_residual: calculate_momentum_residual(&state, &config),
+            momentum_residual: Self::rms(&Self::reduce_spatial_resolution(
+                &calculate_momentum_residual(&state, &config),
+                level,
+            )),
         }
     }
 
@@ -58,5 +61,9 @@ impl StateOutput {
             .copied()
             .take(target_length)
             .collect();
+    }
+
+    fn rms(field: &Vec<f64>) -> f64 {
+        return (field.iter().map(|x| x * x).sum::<f64>() / field.len() as f64).sqrt();
     }
 }
