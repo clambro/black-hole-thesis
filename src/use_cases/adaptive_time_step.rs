@@ -14,9 +14,10 @@ impl TimeStep {
             .iter()
             .min_by(|a, b| a.total_cmp(b))
             .unwrap()
-            .max(0.1);  // Speed is in (0, 1], but don't go too slow.
+            .max(0.1); // Speed is in (0, 1], but don't go too slow.
 
-        // This is a Courant number of 1, but adjusted for the speed of the slowest point.
+        // This is a Courant number of 1, but adjusted for the speed of the slowest point,
+        // so it should be stable.
         let base_time_step = config.grid.delta * min_speed;
 
         // Find the next frame boundary after the current time
