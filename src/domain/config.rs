@@ -4,7 +4,7 @@ use crate::domain::grid::Grid;
 pub struct Config {
     pub grid: Grid,
     pub initial_amplitude: f64,
-    pub total_time: f64,
+    pub max_time: f64,
     pub output_dt: f64,
     pub output_dx_level: u32,
 }
