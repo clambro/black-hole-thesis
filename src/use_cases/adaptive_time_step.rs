@@ -8,7 +8,17 @@ pub struct TimeStep {
 // Get the next time step, ensuring that we land on a frame boundary if it is within the base time step.
 impl TimeStep {
     pub fn next(config: &Config, state: &State) -> Self {
-        let base_time_step = config.courant_number * config.grid.delta; // Max speed = c = 1.
+        let min_speed = state
+            .constraints
+            .char_speed
+            .iter()
+            .min_by(|a, b| a.total_cmp(b))
+            .unwrap()
+            .max(0.1); // Speed is in (0, 1], but don't go too slow.
+
+        // This is a Courant number of 1, but adjusted for the speed of the slowest point,
+        // so it should be stable.
+        let base_time_step = config.grid.delta * min_speed;
 
         // Find the next frame boundary after the current time
         let current_frame_index = (state.time / config.output_dt).floor();

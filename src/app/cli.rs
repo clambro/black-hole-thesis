@@ -14,18 +14,16 @@ pub struct Args {
     #[arg(long, default_value = "30.0")]
     pub amplitude: f64,
 
-    #[arg(long, default_value = "0.5")]
-    pub courant: f64,
-
-    #[arg(long, default_value = "3.0")]
-    pub total_time: f64,
-
     // At 30fps, this default is approximately 5 seconds of real time per unit of simulation time.
     #[arg(long, default_value = "0.0067")]
     pub output_dt: f64,
 
     #[arg(long, default_value = "8")]
     pub output_dx_level: u32,
+
+    // The simulation should end with BH formation, but this is here as a safety.
+    #[arg(long, default_value = "15.0")]
+    pub max_time: f64,
 }
 
 impl Args {
@@ -61,8 +59,7 @@ impl Args {
         return Config {
             grid: Grid::from_level_of_discretization(self.level_of_discretization),
             initial_amplitude: self.amplitude,
-            courant_number: self.courant,
-            total_time: self.total_time,
+            max_time: self.max_time,
             output_dt: self.output_dt,
             output_dx_level: self.output_dx_level,
         };

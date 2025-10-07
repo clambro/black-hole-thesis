@@ -12,21 +12,22 @@ pub fn simulate(
     state_output_creator: &dyn StateOutputCreator,
 ) -> SimulationOutput {
     let mut num_steps = 0;
-    let mut black_hole_mass: Option<f64> = None;
+    let mut black_hole_mass = state.get_black_hole_mass();
 
     state_output_creator.save_state(&StateOutput::from_state(&state, config));
 
     while black_hole_mass.is_none() {
-        let time_step = TimeStep::next(&config, &state);
-        state = rk4_step(&config, &state, time_step.delta);
         num_steps += 1;
+        let time_step = TimeStep::next(&config, &state);
 
+        state = rk4_step(&config, &state, time_step.delta);
         black_hole_mass = state.get_black_hole_mass();
 
         if time_step.is_frame_boundary {
             state_output_creator.save_state(&StateOutput::from_state(&state, config));
         }
-        if state.time > config.total_time {
+        if state.time > config.max_time {
+            println!("WARNING: Simulation time exceeded max time without BH formation.");
             break;
         }
     }
@@ -38,6 +39,6 @@ pub fn simulate(
     return SimulationOutput {
         num_steps,
         final_time: state.time,
-        black_hole_mass: black_hole_mass.unwrap_or(-1.0), // TODO: Remove this.
+        black_hole_mass: black_hole_mass.unwrap_or(-1.0),
     };
 }
