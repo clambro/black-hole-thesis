@@ -53,6 +53,11 @@ impl FieldVector {
             data: self.data.iter().map(|x| x.tan()).collect(),
         }
     }
+
+    /// Sum the elements of the vector
+    pub fn sum(&self) -> f64 {
+        self.data.iter().sum()
+    }
 }
 
 // =============================================================================

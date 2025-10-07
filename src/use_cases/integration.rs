@@ -70,13 +70,7 @@ pub fn rk4_step(config: &Config, state: &State, time_step: f64) -> State {
     EquationsOfMotion::apply_bcs(&mut radial_gradient, &mut conj_momentum);
 
     let time = state.time + time_step;
-    return build_subsequent_state(
-        config,
-        time,
-        radial_gradient,
-        conj_momentum,
-        state.constraints.mass.clone(),
-    );
+    return build_subsequent_state(config, time, radial_gradient, conj_momentum, state);
 }
 
 /// Integrate a vector cumulatively to a vector using Simpson's rule (4th order accurate).

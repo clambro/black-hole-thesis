@@ -1,5 +1,6 @@
 use crate::domain::constraints::Constraints;
 use crate::domain::field_vector::FieldVector;
+use crate::domain::mass_history::MassHistory;
 
 #[derive(Debug)]
 pub struct State {
@@ -7,6 +8,7 @@ pub struct State {
     pub radial_gradient: FieldVector,
     pub conj_momentum: FieldVector,
     pub constraints: Constraints,
+    pub mass_history: MassHistory,
 }
 
 impl State {
