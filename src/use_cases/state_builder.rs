@@ -8,7 +8,18 @@ use std::f64::consts::PI;
 pub fn build_initial_state(config: &Config) -> State {
     let radial_gradient = FieldVector::zeros(config.grid.points.len());
     let conj_momentum = get_initial_conj_momentum(config);
-    let constraints = compute_constraints(&radial_gradient, &conj_momentum, config);
+
+    let unnormed_energy_density = &radial_gradient.powi(2) + &conj_momentum.powi(2);
+    let flat_space_energy_density = 0.5 * &config.grid.points.powi(2) * &unnormed_energy_density;
+    let starting_mass = integrate(&flat_space_energy_density, config.grid.delta);
+
+    let constraints = compute_constraints(
+        &radial_gradient,
+        &conj_momentum,
+        &starting_mass,
+        config,
+        true,
+    );
     return State {
         time: 0.0,
         radial_gradient,
@@ -22,8 +33,15 @@ pub fn build_subsequent_state(
     time: f64,
     radial_gradient: FieldVector,
     conj_momentum: FieldVector,
+    starting_mass: FieldVector,
 ) -> State {
-    let constraints = compute_constraints(&radial_gradient, &conj_momentum, config);
+    let constraints = compute_constraints(
+        &radial_gradient,
+        &conj_momentum,
+        &starting_mass,
+        config,
+        false,
+    );
     return State {
         time,
         radial_gradient,
@@ -35,20 +53,21 @@ pub fn build_subsequent_state(
 pub fn compute_constraints(
     radial_gradient: &FieldVector,
     conj_momentum: &FieldVector,
+    starting_mass: &FieldVector,
     config: &Config,
+    is_initial: bool,
 ) -> Constraints {
     // Solve m' = ½r²A(Φ² + Π²) where A = 1 - 2m/r iteratively
-    // Start with weak field limit (A ≈ 1) for faster convergence
+    let mut mass = starting_mass.clone();
     let unnormed_energy_density = &radial_gradient.powi(2) + &conj_momentum.powi(2);
     let flat_space_energy_density = 0.5 * &config.grid.points.powi(2) * &unnormed_energy_density;
-    let flat_space_mass = integrate(&flat_space_energy_density, config.grid.delta);
 
-    let mut self_gravity_energy_density = FieldVector::zeros(config.grid.points.len());
-    let mut mass = flat_space_mass.clone();
+    let max_iterations = if is_initial { 50 } else { 10 };
 
-    for _iteration in 0..20 {
-        self_gravity_energy_density = -1.0 * &config.grid.points * &mass * &unnormed_energy_density;
-        mass = &flat_space_mass + integrate(&self_gravity_energy_density, config.grid.delta);
+    for _iteration in 0..max_iterations {
+        let radial_factor = compute_radial_factor(&mass, config);
+        let integrand = &radial_factor * &flat_space_energy_density;
+        mass = integrate(&integrand, config.grid.delta);
     }
 
     // Now compute the final constraints
@@ -57,7 +76,7 @@ pub fn compute_constraints(
     let char_speed = &radial_factor / &lapse;
 
     return Constraints {
-        energy_density: &flat_space_energy_density + &self_gravity_energy_density,
+        energy_density: &radial_factor * &flat_space_energy_density,
         mass,
         radial_factor,
         lapse,

@@ -15,7 +15,13 @@ pub fn rk4_step(config: &Config, state: &State, time_step: f64) -> State {
     let mut u1_radial_gradient = &state.radial_gradient + 0.5 * time_step * &u1.dt_radial_gradient;
     let mut u1_conj_momentum = &state.conj_momentum + 0.5 * time_step * &u1.dt_conj_momentum;
     EquationsOfMotion::apply_bcs(&mut u1_radial_gradient, &mut u1_conj_momentum);
-    let u1_constraints = compute_constraints(&u1_radial_gradient, &u1_conj_momentum, config);
+    let u1_constraints = compute_constraints(
+        &u1_radial_gradient,
+        &u1_conj_momentum,
+        &state.constraints.mass,
+        config,
+        false,
+    );
 
     let u2 = EquationsOfMotion::new(
         &config,
@@ -26,7 +32,13 @@ pub fn rk4_step(config: &Config, state: &State, time_step: f64) -> State {
     let mut u2_radial_gradient = &state.radial_gradient + 0.5 * time_step * &u2.dt_radial_gradient;
     let mut u2_conj_momentum = &state.conj_momentum + 0.5 * time_step * &u2.dt_conj_momentum;
     EquationsOfMotion::apply_bcs(&mut u2_radial_gradient, &mut u2_conj_momentum);
-    let u2_constraints = compute_constraints(&u2_radial_gradient, &u2_conj_momentum, config);
+    let u2_constraints = compute_constraints(
+        &u2_radial_gradient,
+        &u2_conj_momentum,
+        &state.constraints.mass,
+        config,
+        false,
+    );
 
     let u3 = EquationsOfMotion::new(
         &config,
@@ -37,7 +49,13 @@ pub fn rk4_step(config: &Config, state: &State, time_step: f64) -> State {
     let mut u3_radial_gradient = &state.radial_gradient + time_step * &u3.dt_radial_gradient;
     let mut u3_conj_momentum = &state.conj_momentum + time_step * &u3.dt_conj_momentum;
     EquationsOfMotion::apply_bcs(&mut u3_radial_gradient, &mut u3_conj_momentum);
-    let u3_constraints = compute_constraints(&u3_radial_gradient, &u3_conj_momentum, config);
+    let u3_constraints = compute_constraints(
+        &u3_radial_gradient,
+        &u3_conj_momentum,
+        &state.constraints.mass,
+        config,
+        false,
+    );
 
     let u4 = EquationsOfMotion::new(
         &config,
@@ -52,7 +70,13 @@ pub fn rk4_step(config: &Config, state: &State, time_step: f64) -> State {
     EquationsOfMotion::apply_bcs(&mut radial_gradient, &mut conj_momentum);
 
     let time = state.time + time_step;
-    return build_subsequent_state(config, time, radial_gradient, conj_momentum);
+    return build_subsequent_state(
+        config,
+        time,
+        radial_gradient,
+        conj_momentum,
+        state.constraints.mass.clone(),
+    );
 }
 
 /// Integrate a vector cumulatively to a vector using Simpson's rule (4th order accurate).
