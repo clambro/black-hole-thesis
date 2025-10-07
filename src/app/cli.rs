@@ -8,10 +8,10 @@ use clap::Parser;
 #[command(name = "black-hole-reflection")]
 #[command(about = "A black hole reflection simulation.")]
 pub struct Args {
-    #[arg(long, default_value = "10")]
+    #[arg(long, default_value = "13")]
     pub level_of_discretization: u32,
 
-    #[arg(long, default_value = "20.0")]
+    #[arg(long, default_value = "30.0")]
     pub amplitude: f64,
 
     #[arg(long, default_value = "0.5")]

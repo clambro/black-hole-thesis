@@ -6,14 +6,24 @@ use crate::use_cases::integration::integrate;
 use std::f64::consts::PI;
 
 pub fn build_initial_state(config: &Config) -> State {
-    let transport = get_initial_transport(config);
-    let ingoing = transport.clone();
-    let outgoing = transport.clone(); // Initial condition is symmetric.
-    let constraints = compute_constraints(&ingoing, &outgoing, config);
+    let radial_gradient = FieldVector::zeros(config.grid.points.len());
+    let conj_momentum = get_initial_conj_momentum(config);
+
+    let unnormed_energy_density = &radial_gradient.powi(2) + &conj_momentum.powi(2);
+    let flat_space_energy_density = 0.5 * &config.grid.points.powi(2) * &unnormed_energy_density;
+    let starting_mass = integrate(&flat_space_energy_density, config.grid.delta);
+
+    let constraints = compute_constraints(
+        &radial_gradient,
+        &conj_momentum,
+        &starting_mass,
+        config,
+        true,
+    );
     return State {
         time: 0.0,
-        ingoing,
-        outgoing,
+        radial_gradient,
+        conj_momentum,
         constraints,
     };
 }
@@ -21,28 +31,52 @@ pub fn build_initial_state(config: &Config) -> State {
 pub fn build_subsequent_state(
     config: &Config,
     time: f64,
-    ingoing: FieldVector,
-    outgoing: FieldVector,
+    radial_gradient: FieldVector,
+    conj_momentum: FieldVector,
+    starting_mass: FieldVector,
 ) -> State {
-    let constraints = compute_constraints(&ingoing, &outgoing, config);
+    let constraints = compute_constraints(
+        &radial_gradient,
+        &conj_momentum,
+        &starting_mass,
+        config,
+        false,
+    );
     return State {
         time,
-        ingoing,
-        outgoing,
+        radial_gradient,
+        conj_momentum,
         constraints,
     };
 }
 
 pub fn compute_constraints(
-    ingoing: &FieldVector,
-    outgoing: &FieldVector,
+    radial_gradient: &FieldVector,
+    conj_momentum: &FieldVector,
+    starting_mass: &FieldVector,
     config: &Config,
+    is_initial: bool,
 ) -> Constraints {
-    let mass = compute_mass(ingoing, outgoing, config);
+    // Solve m' = ½r²A(Φ² + Π²) where A = 1 - 2m/r iteratively
+    let mut mass = starting_mass.clone();
+    let unnormed_energy_density = &radial_gradient.powi(2) + &conj_momentum.powi(2);
+    let flat_space_energy_density = 0.5 * &config.grid.points.powi(2) * &unnormed_energy_density;
+
+    let max_iterations = if is_initial { 50 } else { 10 };
+
+    for _iteration in 0..max_iterations {
+        let radial_factor = compute_radial_factor(&mass, config);
+        let integrand = &radial_factor * &flat_space_energy_density;
+        mass = integrate(&integrand, config.grid.delta);
+    }
+
+    // Now compute the final constraints
     let radial_factor = compute_radial_factor(&mass, config);
-    let lapse = compute_lapse(ingoing, outgoing, config);
+    let lapse = compute_lapse(radial_gradient, conj_momentum, config);
     let char_speed = &radial_factor / &lapse;
+
     return Constraints {
+        energy_density: &radial_factor * &flat_space_energy_density,
         mass,
         radial_factor,
         lapse,
@@ -50,16 +84,9 @@ pub fn compute_constraints(
     };
 }
 
-fn get_initial_transport(config: &Config) -> FieldVector {
-    let exponent = -32.0 * (PI / 2.0 * &config.grid.points).tan().powi(2);
+fn get_initial_conj_momentum(config: &Config) -> FieldVector {
+    let exponent = -64.0 * (PI / 2.0 * &config.grid.points).tan().powi(2);
     return config.initial_amplitude * exponent.exp();
-}
-
-fn compute_mass(ingoing: &FieldVector, outgoing: &FieldVector, config: &Config) -> FieldVector {
-    let integrand = 0.25 * config.grid.points.powi(2) * (&ingoing.powi(2) + &outgoing.powi(2));
-    // BC of m(0) = 0 is set automatically because the integrand is 0 at the left boundary and we
-    // integrate from left to right.
-    return integrate(&integrand, config.grid.delta);
 }
 
 fn compute_radial_factor(mass: &FieldVector, config: &Config) -> FieldVector {
@@ -68,8 +95,13 @@ fn compute_radial_factor(mass: &FieldVector, config: &Config) -> FieldVector {
     return radial_factor;
 }
 
-fn compute_lapse(ingoing: &FieldVector, outgoing: &FieldVector, config: &Config) -> FieldVector {
-    let integrand = -0.5 * &config.grid.points * (&ingoing.powi(2) + &outgoing.powi(2));
+fn compute_lapse(
+    radial_gradient: &FieldVector,
+    conj_momentum: &FieldVector,
+    config: &Config,
+) -> FieldVector {
+    let integrand =
+        -1.0 * &config.grid.points * (&radial_gradient.powi(2) + &conj_momentum.powi(2));
     let log_lapse = integrate(&integrand, config.grid.delta);
     let lapse = log_lapse.exp();
     // The lapse is free up to a constant multiplier caused by the choice of reference frame,
