@@ -26,16 +26,13 @@ fn calculate_mass_time_derivative(mass_history: &MassHistory) -> FieldVector {
     let h3 = t_2 - t_1;
     let h4 = t_1 - t_0;
 
-    let h1_h2 = h1 + h2;
-    let h1_h2_h3 = h1_h2 + h3;
-    let h1_h2_h3_h4 = h1_h2_h3 + h4;
-
-    // Calculate the weights according to the correct formula
-    let w0 = h1 * h1_h2 * h1_h2_h3 / (h4 * (h3 + h4) * (h2 + h3 + h4) * h1_h2_h3_h4);
-    let w1 = -h1 * h1_h2 * h1_h2_h3_h4 / (h3 * h4 * (h2 + h3) * h1_h2_h3);
-    let w2 = h1 * h1_h2_h3 * h1_h2_h3_h4 / (h2 * h3 * h1_h2 * (h3 + h4));
-    let w3 = -h1_h2 * h1_h2_h3 * h1_h2_h3_h4 / (h1 * h2 * (h2 + h3) * (h2 + h3 + h4));
-    let w4 = 1.0 / h1 + 1.0 / h1_h2 + 1.0 / h1_h2_h3 + 1.0 / h1_h2_h3_h4;
+    let w0 =
+        h1 * (h1 + h2) * (h1 + h2 + h3) / (h4 * (h3 + h4) * (h2 + h3 + h4) * (h1 + h2 + h3 + h4));
+    let w1 = -h1 * (h1 + h2) * (h1 + h2 + h3 + h4) / (h3 * h4 * (h2 + h3) * (h1 + h2 + h3));
+    let w2 = h1 * (h1 + h2 + h3) * (h1 + h2 + h3 + h4) / (h2 * h3 * (h1 + h2) * (h3 + h4));
+    let w3 = -(h1 + h2) * (h1 + h2 + h3) * (h1 + h2 + h3 + h4)
+        / (h1 * h2 * (h2 + h3) * (h2 + h3 + h4));
+    let w4 = 1.0 / h1 + 1.0 / (h1 + h2) + 1.0 / (h1 + h2 + h3) + 1.0 / (h1 + h2 + h3 + h4);
 
     return w0 * m_0 + w1 * m_1 + w2 * m_2 + w3 * m_3 + w4 * m_4;
 }
