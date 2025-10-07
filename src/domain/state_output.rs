@@ -1,7 +1,4 @@
-use crate::domain::{
-    config::Config, field_vector::FieldVector, grid::Grid,
-    momentum_residual::calculate_momentum_residual, state::State,
-};
+use crate::domain::{config::Config, field_vector::FieldVector, grid::Grid, state::State};
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -39,7 +36,7 @@ impl StateOutput {
             ),
             total_energy: state.constraints.mass[state.constraints.mass.len() - 1], // E = m because c = 1.
             momentum_residual: Self::rms(&Self::reduce_spatial_resolution(
-                &calculate_momentum_residual(&state, &config),
+                &state.calculate_momentum_residual(&config),
                 level,
             )),
         }
