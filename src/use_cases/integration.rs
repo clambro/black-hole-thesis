@@ -20,7 +20,6 @@ pub fn rk4_step(config: &Config, state: &State, time_step: f64) -> State {
         &u1_conj_momentum,
         &state.constraints.mass,
         config,
-        false,
     );
 
     let u2 = EquationsOfMotion::new(
@@ -37,7 +36,6 @@ pub fn rk4_step(config: &Config, state: &State, time_step: f64) -> State {
         &u2_conj_momentum,
         &state.constraints.mass,
         config,
-        false,
     );
 
     let u3 = EquationsOfMotion::new(
@@ -54,7 +52,6 @@ pub fn rk4_step(config: &Config, state: &State, time_step: f64) -> State {
         &u3_conj_momentum,
         &state.constraints.mass,
         config,
-        false,
     );
 
     let u4 = EquationsOfMotion::new(

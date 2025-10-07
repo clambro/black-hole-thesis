@@ -14,13 +14,7 @@ pub fn build_initial_state(config: &Config) -> State {
     let flat_space_energy_density = 0.5 * &config.grid.points.powi(2) * &unnormed_energy_density;
     let starting_mass = integrate(&flat_space_energy_density, config.grid.delta);
 
-    let constraints = compute_constraints(
-        &radial_gradient,
-        &conj_momentum,
-        &starting_mass,
-        config,
-        true,
-    );
+    let constraints = compute_constraints(&radial_gradient, &conj_momentum, &starting_mass, config);
     let mass_history = MassHistory::new(constraints.mass.clone(), 0.0);
 
     return State {
@@ -44,7 +38,6 @@ pub fn build_subsequent_state(
         &conj_momentum,
         &prev_state.constraints.mass,
         config,
-        false,
     );
 
     let new_mass_history = prev_state
@@ -65,15 +58,9 @@ pub fn compute_constraints(
     conj_momentum: &FieldVector,
     starting_mass: &FieldVector,
     config: &Config,
-    is_initial: bool,
 ) -> Constraints {
-    let (mass, flat_space_energy_density) = compute_mass_and_energy_density(
-        radial_gradient,
-        conj_momentum,
-        starting_mass,
-        config,
-        is_initial,
-    );
+    let (mass, flat_space_energy_density) =
+        compute_mass_and_energy_density(radial_gradient, conj_momentum, starting_mass, config);
     let radial_factor = compute_radial_factor(&mass, config);
     let lapse = compute_lapse(radial_gradient, conj_momentum, config);
     let char_speed = &radial_factor / &lapse;
@@ -97,19 +84,39 @@ fn compute_mass_and_energy_density(
     conj_momentum: &FieldVector,
     starting_mass: &FieldVector,
     config: &Config,
-    is_initial: bool,
 ) -> (FieldVector, FieldVector) {
     let mut mass = starting_mass.clone();
     let flat_space_energy_density =
         0.5 * &config.grid.points.powi(2) * (&radial_gradient.powi(2) + &conj_momentum.powi(2));
 
-    let max_iterations = if is_initial { 50 } else { 20 };
+    let tolerance = 1e-14;
+    let mut iteration = 0;
+    loop {
+        let prev_mass = mass.clone();
 
-    for _iteration in 0..max_iterations {
         let radial_factor = compute_radial_factor(&mass, config);
         let integrand = &radial_factor * &flat_space_energy_density;
         mass = integrate(&integrand, config.grid.delta);
+
+        // Relaxation to avoid oscillating around the solution.
+        // Helps with convergence when we're near BH formation.
+        mass = 0.5 * (&mass + &prev_mass);
+
+        let diff = (&mass - &prev_mass).powi(2).sum().sqrt();
+
+        if diff < tolerance {
+            break;
+        } else if iteration > 1000 {
+            println!("WARNING: Mass convergence not achieved after 1000 iterations.");
+            break;
+        }
+        iteration += 1;
     }
+
+    // One final round to avoid noise from the relaxation.
+    let radial_factor = compute_radial_factor(&mass, config);
+    let integrand = &radial_factor * &flat_space_energy_density;
+    mass = integrate(&integrand, config.grid.delta);
 
     return (mass, flat_space_energy_density);
 }
