@@ -67,20 +67,13 @@ pub fn compute_constraints(
     config: &Config,
     is_initial: bool,
 ) -> Constraints {
-    // Solve m' = ½r²A(Φ² + Π²) where A = 1 - 2m/r iteratively
-    let mut mass = starting_mass.clone();
-    let unnormed_energy_density = &radial_gradient.powi(2) + &conj_momentum.powi(2);
-    let flat_space_energy_density = 0.5 * &config.grid.points.powi(2) * &unnormed_energy_density;
-
-    let max_iterations = if is_initial { 50 } else { 10 };
-
-    for _iteration in 0..max_iterations {
-        let radial_factor = compute_radial_factor(&mass, config);
-        let integrand = &radial_factor * &flat_space_energy_density;
-        mass = integrate(&integrand, config.grid.delta);
-    }
-
-    // Now compute the final constraints
+    let (mass, flat_space_energy_density) = compute_mass_and_energy_density(
+        radial_gradient,
+        conj_momentum,
+        starting_mass,
+        config,
+        is_initial,
+    );
     let radial_factor = compute_radial_factor(&mass, config);
     let lapse = compute_lapse(radial_gradient, conj_momentum, config);
     let char_speed = &radial_factor / &lapse;
@@ -97,6 +90,28 @@ pub fn compute_constraints(
 fn get_initial_conj_momentum(config: &Config) -> FieldVector {
     let exponent = -64.0 * (PI / 2.0 * &config.grid.points).tan().powi(2);
     return config.initial_amplitude * exponent.exp();
+}
+
+fn compute_mass_and_energy_density(
+    radial_gradient: &FieldVector,
+    conj_momentum: &FieldVector,
+    starting_mass: &FieldVector,
+    config: &Config,
+    is_initial: bool,
+) -> (FieldVector, FieldVector) {
+    let mut mass = starting_mass.clone();
+    let flat_space_energy_density =
+        0.5 * &config.grid.points.powi(2) * (&radial_gradient.powi(2) + &conj_momentum.powi(2));
+
+    let max_iterations = if is_initial { 50 } else { 20 };
+
+    for _iteration in 0..max_iterations {
+        let radial_factor = compute_radial_factor(&mass, config);
+        let integrand = &radial_factor * &flat_space_energy_density;
+        mass = integrate(&integrand, config.grid.delta);
+    }
+
+    return (mass, flat_space_energy_density);
 }
 
 fn compute_radial_factor(mass: &FieldVector, config: &Config) -> FieldVector {

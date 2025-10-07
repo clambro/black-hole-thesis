@@ -8,7 +8,7 @@ def main(*folders: str):
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.set_xlabel('Time', fontsize=14)
     ax.set_ylabel('$\log_{16}(\Delta P_{total})$', fontsize=14)
-    ax.set_title('Conservation of Momentum', fontsize=16)
+    ax.set_title('Conservation of Momentum Residual', fontsize=16)
 
     for folder in folders:
         data = []
