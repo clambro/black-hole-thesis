@@ -14,9 +14,6 @@ pub struct Args {
     #[arg(long, default_value = "30.0")]
     pub amplitude: f64,
 
-    #[arg(long, default_value = "0.5")]
-    pub courant: f64,
-
     #[arg(long, default_value = "3.0")]
     pub total_time: f64,
 
@@ -61,7 +58,6 @@ impl Args {
         return Config {
             grid: Grid::from_level_of_discretization(self.level_of_discretization),
             initial_amplitude: self.amplitude,
-            courant_number: self.courant,
             total_time: self.total_time,
             output_dt: self.output_dt,
             output_dx_level: self.output_dx_level,
