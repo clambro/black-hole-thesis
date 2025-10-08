@@ -2,7 +2,6 @@ pub mod config;
 pub mod constraints;
 pub mod field_vector;
 pub mod grid;
-pub mod mass_history;
 pub mod parity;
 pub mod simulation_output;
 pub mod state;

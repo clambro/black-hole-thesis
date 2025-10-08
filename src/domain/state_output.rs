@@ -12,7 +12,7 @@ pub struct StateOutput {
     pub char_speed: Vec<f64>,
     pub energy_density: Vec<f64>,
     pub total_energy: f64,
-    pub momentum_residual: f64,
+    pub alternate_mass: Vec<f64>,
 }
 
 impl StateOutput {
@@ -34,11 +34,8 @@ impl StateOutput {
                 &state.constraints.energy_density,
                 level,
             ),
-            total_energy: state.constraints.mass[state.constraints.mass.len() - 1], // E = m because c = 1.
-            momentum_residual: Self::rms(&Self::reduce_spatial_resolution(
-                &state.calculate_momentum_residual(&config),
-                level,
-            )),
+            total_energy: state.get_total_energy(),
+            alternate_mass: Self::reduce_spatial_resolution(&state.alternate_mass, level),
         }
     }
 
@@ -58,9 +55,5 @@ impl StateOutput {
             .copied()
             .take(target_length)
             .collect();
-    }
-
-    fn rms(field: &Vec<f64>) -> f64 {
-        return (field.iter().map(|x| x * x).sum::<f64>() / field.len() as f64).sqrt();
     }
 }

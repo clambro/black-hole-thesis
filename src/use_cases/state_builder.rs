@@ -1,7 +1,6 @@
 use crate::domain::config::Config;
 use crate::domain::constraints::Constraints;
 use crate::domain::field_vector::FieldVector;
-use crate::domain::mass_history::MassHistory;
 use crate::domain::state::State;
 use crate::use_cases::integration::integrate;
 use std::f64::consts::PI;
@@ -11,14 +10,14 @@ pub fn build_initial_state(config: &Config) -> State {
     let conj_momentum = get_initial_conj_momentum(config);
 
     let constraints = compute_constraints(&radial_gradient, &conj_momentum, config);
-    let mass_history = MassHistory::new(constraints.mass.clone(), 0.0);
+    let alternate_mass = constraints.mass.clone();
 
     return State {
         time: 0.0,
         radial_gradient,
         conj_momentum,
         constraints,
-        mass_history,
+        alternate_mass,
     };
 }
 
@@ -27,20 +26,16 @@ pub fn build_subsequent_state(
     time: f64,
     radial_gradient: FieldVector,
     conj_momentum: FieldVector,
-    prev_state: &State,
+    alternate_mass: FieldVector,
 ) -> State {
     let constraints = compute_constraints(&radial_gradient, &conj_momentum, config);
-
-    let new_mass_history = prev_state
-        .mass_history
-        .add_mass(constraints.mass.clone(), time);
 
     return State {
         time,
         radial_gradient,
         conj_momentum,
         constraints,
-        mass_history: new_mass_history,
+        alternate_mass,
     };
 }
 
