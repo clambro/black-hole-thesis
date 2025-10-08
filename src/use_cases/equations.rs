@@ -1,87 +1,107 @@
 use crate::domain::field_vector::FieldVector;
-use crate::domain::parity::Parity;
 use crate::domain::{config::Config, constraints::Constraints};
-use crate::use_cases::diff::{diff, dissipation, set_neumann_bc};
+use crate::use_cases::diff::{diff, dissipation};
 use std::ops::{Add, Mul};
 
 pub struct EquationsOfMotion {
-    pub dt_radial_gradient: FieldVector,
-    pub dt_conj_momentum: FieldVector,
+    pub dt_ingoing: FieldVector,
+    pub dt_outgoing: FieldVector,
     pub dt_alternate_mass: FieldVector,
 }
 
 impl EquationsOfMotion {
     pub fn new(
         config: &Config,
-        radial_gradient: FieldVector,
-        conj_momentum: FieldVector,
+        ingoing: FieldVector,
+        outgoing: FieldVector,
         constraints: &Constraints,
     ) -> Self {
-        let dt_radial_gradient =
-            Self::calculate_dt_radial_gradient(config, &conj_momentum, &constraints)
-                + dissipation(&radial_gradient, &config.grid, Parity::Odd, Parity::Even);
-        let dt_conj_momentum =
-            Self::calculate_dt_conj_momentum(config, &radial_gradient, &constraints)
-                + dissipation(&conj_momentum, &config.grid, Parity::Even, Parity::Odd);
-        let dt_alternate_mass = Self::calculate_dt_alternate_mass(
-            config,
-            &radial_gradient,
-            &conj_momentum,
-            &constraints,
-        );
+        let dt_ingoing = Self::calculate_dt_ingoing(config, &ingoing, &outgoing, &constraints)
+            + dissipation(&ingoing, &config.grid, &outgoing, &(-1.0 * &outgoing));
+        let dt_outgoing = Self::calculate_dt_outgoing(config, &ingoing, &outgoing, &constraints)
+            + dissipation(&outgoing, &config.grid, &ingoing, &(-1.0 * &ingoing));
+        let dt_alternate_mass =
+            Self::calculate_dt_alternate_mass(config, &ingoing, &outgoing, &constraints);
 
         Self {
-            dt_radial_gradient,
-            dt_conj_momentum,
+            dt_ingoing,
+            dt_outgoing,
             dt_alternate_mass,
         }
     }
 
-    pub fn apply_bcs(radial_gradient: &mut FieldVector, conj_momentum: &mut FieldVector) {
-        // Coordinate singularity at the origin requires smoothness. Changing either of these
-        // kills 4th order accuracy.
-        radial_gradient[0] = 0.0;
-        set_neumann_bc(conj_momentum, true, Parity::Even);
+    pub fn apply_bcs(ingoing: &mut FieldVector, outgoing: &mut FieldVector) {
+        // On the left we require ingoing = outgoing to maintain regularity at the origin.
+        let avg_left = 0.5 * (ingoing[0] + outgoing[0]);
+        ingoing[0] = avg_left;
+        outgoing[0] = avg_left;
 
-        // Artificial reflection at the right boundary. We don't need to set the Neumann
-        // BC for the radial gradient because it is enforced via the parity in the derivative
-        // operator in the equations of motion. Setting it kills 4th order accuracy.
-        let n = conj_momentum.len();
-        conj_momentum[n - 1] = 0.0;
+        // On the right we require ingoing = -outgoing to create the reflection.
+        let n = ingoing.len();
+        let avg_right = 0.5 * (ingoing[n - 1] - outgoing[n - 1]);
+        ingoing[n - 1] = avg_right;
+        outgoing[n - 1] = -avg_right;
     }
 
-    fn calculate_dt_radial_gradient(
+    fn calculate_dt_ingoing(
         config: &Config,
-        conj_momentum: &FieldVector,
+        ingoing: &FieldVector,
+        outgoing: &FieldVector,
         constraints: &Constraints,
     ) -> FieldVector {
-        let fun = &constraints.char_speed * conj_momentum;
-        return diff(&config.grid, &fun, Parity::Even, Parity::Odd);
+        let flux = -1.0
+            * diff(
+                &config.grid,
+                &(&constraints.char_speed * ingoing),
+                &(&constraints.char_speed * outgoing),
+                &(-1.0 * &constraints.char_speed * outgoing),
+            );
+        // Source has a coordinate singularity at the origin, so we use L'Hôpital's rule.
+        // TODO: Abstract this out so we're not calculating it twice. Also we don't need the full
+        // stencil here, just the first point.
+        let mut source = &constraints.char_speed / &config.grid.points * (outgoing - ingoing);
+        source[0] = constraints.char_speed[0]
+            * diff(
+                &config.grid,
+                &(outgoing - ingoing),
+                &(-1.0 * (outgoing - ingoing)),
+                &(outgoing - ingoing),
+            )[0];
+        return flux + source;
     }
 
-    fn calculate_dt_conj_momentum(
+    fn calculate_dt_outgoing(
         config: &Config,
-        radial_gradient: &FieldVector,
+        ingoing: &FieldVector,
+        outgoing: &FieldVector,
         constraints: &Constraints,
     ) -> FieldVector {
-        let r2 = config.grid.points.powi(2);
-        let fun = &r2 * &constraints.char_speed * radial_gradient;
-        let fun = diff(&config.grid, &fun, Parity::Odd, Parity::Even);
-        let mut fun = fun / &r2;
-        fun[0] = 0.0; // Coordinate singularity at the origin.
-        return fun;
+        let flux = diff(
+            &config.grid,
+            &(&constraints.char_speed * outgoing),
+            &(&constraints.char_speed * ingoing),
+            &(-1.0 * &constraints.char_speed * ingoing),
+        );
+        let mut source = &constraints.char_speed / &config.grid.points * (outgoing - ingoing);
+        source[0] = constraints.char_speed[0]
+            * diff(
+                &config.grid,
+                &(outgoing - ingoing),
+                &(-1.0 * (outgoing - ingoing)),
+                &(outgoing - ingoing),
+            )[0];
+        return flux + source;
     }
 
     fn calculate_dt_alternate_mass(
         config: &Config,
-        radial_gradient: &FieldVector,
-        conj_momentum: &FieldVector,
+        ingoing: &FieldVector,
+        outgoing: &FieldVector,
         constraints: &Constraints,
     ) -> FieldVector {
-        return &config.grid.points.powi(2) * &constraints.radial_factor.powi(2)
+        return 0.25 * &config.grid.points.powi(2) * &constraints.radial_factor.powi(2)
             / &constraints.lapse
-            * radial_gradient
-            * conj_momentum;
+            * (outgoing.powi(2) - ingoing.powi(2));
     }
 }
 
@@ -90,8 +110,8 @@ impl Add<EquationsOfMotion> for EquationsOfMotion {
 
     fn add(self, other: Self) -> Self {
         Self {
-            dt_radial_gradient: &self.dt_radial_gradient + &other.dt_radial_gradient,
-            dt_conj_momentum: &self.dt_conj_momentum + &other.dt_conj_momentum,
+            dt_ingoing: &self.dt_ingoing + &other.dt_ingoing,
+            dt_outgoing: &self.dt_outgoing + &other.dt_outgoing,
             dt_alternate_mass: &self.dt_alternate_mass + &other.dt_alternate_mass,
         }
     }
@@ -102,8 +122,8 @@ impl Add<&EquationsOfMotion> for &EquationsOfMotion {
 
     fn add(self, other: &EquationsOfMotion) -> EquationsOfMotion {
         EquationsOfMotion {
-            dt_radial_gradient: &self.dt_radial_gradient + &other.dt_radial_gradient,
-            dt_conj_momentum: &self.dt_conj_momentum + &other.dt_conj_momentum,
+            dt_ingoing: &self.dt_ingoing + &other.dt_ingoing,
+            dt_outgoing: &self.dt_outgoing + &other.dt_outgoing,
             dt_alternate_mass: &self.dt_alternate_mass + &other.dt_alternate_mass,
         }
     }
@@ -114,8 +134,8 @@ impl Mul<f64> for EquationsOfMotion {
 
     fn mul(self, scalar: f64) -> Self {
         Self {
-            dt_radial_gradient: scalar * &self.dt_radial_gradient,
-            dt_conj_momentum: scalar * &self.dt_conj_momentum,
+            dt_ingoing: scalar * &self.dt_ingoing,
+            dt_outgoing: scalar * &self.dt_outgoing,
             dt_alternate_mass: scalar * &self.dt_alternate_mass,
         }
     }
@@ -126,8 +146,8 @@ impl Mul<f64> for &EquationsOfMotion {
 
     fn mul(self, scalar: f64) -> EquationsOfMotion {
         EquationsOfMotion {
-            dt_radial_gradient: scalar * &self.dt_radial_gradient,
-            dt_conj_momentum: scalar * &self.dt_conj_momentum,
+            dt_ingoing: scalar * &self.dt_ingoing,
+            dt_outgoing: scalar * &self.dt_outgoing,
             dt_alternate_mass: scalar * &self.dt_alternate_mass,
         }
     }

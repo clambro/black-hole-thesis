@@ -8,53 +8,53 @@ use crate::use_cases::state_builder::{build_subsequent_state, compute_constraint
 pub fn rk4_step(config: &Config, state: &State, time_step: f64) -> State {
     let u1 = EquationsOfMotion::new(
         &config,
-        state.radial_gradient.clone(),
-        state.conj_momentum.clone(),
+        state.ingoing.clone(),
+        state.outgoing.clone(),
         &state.constraints,
     );
-    let mut u1_radial_gradient = &state.radial_gradient + 0.5 * time_step * &u1.dt_radial_gradient;
-    let mut u1_conj_momentum = &state.conj_momentum + 0.5 * time_step * &u1.dt_conj_momentum;
-    EquationsOfMotion::apply_bcs(&mut u1_radial_gradient, &mut u1_conj_momentum);
-    let u1_constraints = compute_constraints(&u1_radial_gradient, &u1_conj_momentum, config);
+    let mut u1_ingoing = &state.ingoing + 0.5 * time_step * &u1.dt_ingoing;
+    let mut u1_outgoing = &state.outgoing + 0.5 * time_step * &u1.dt_outgoing;
+    EquationsOfMotion::apply_bcs(&mut u1_ingoing, &mut u1_outgoing);
+    let u1_constraints = compute_constraints(&u1_ingoing, &u1_outgoing, config);
 
     let u2 = EquationsOfMotion::new(
         &config,
-        u1_radial_gradient.clone(),
-        u1_conj_momentum.clone(),
+        u1_ingoing.clone(),
+        u1_outgoing.clone(),
         &u1_constraints,
     );
-    let mut u2_radial_gradient = &state.radial_gradient + 0.5 * time_step * &u2.dt_radial_gradient;
-    let mut u2_conj_momentum = &state.conj_momentum + 0.5 * time_step * &u2.dt_conj_momentum;
-    EquationsOfMotion::apply_bcs(&mut u2_radial_gradient, &mut u2_conj_momentum);
-    let u2_constraints = compute_constraints(&u2_radial_gradient, &u2_conj_momentum, config);
+    let mut u2_ingoing = &state.ingoing + 0.5 * time_step * &u2.dt_ingoing;
+    let mut u2_outgoing = &state.outgoing + 0.5 * time_step * &u2.dt_outgoing;
+    EquationsOfMotion::apply_bcs(&mut u2_ingoing, &mut u2_outgoing);
+    let u2_constraints = compute_constraints(&u2_ingoing, &u2_outgoing, config);
 
     let u3 = EquationsOfMotion::new(
         &config,
-        u2_radial_gradient.clone(),
-        u2_conj_momentum.clone(),
+        u2_ingoing.clone(),
+        u2_outgoing.clone(),
         &u2_constraints,
     );
-    let mut u3_radial_gradient = &state.radial_gradient + time_step * &u3.dt_radial_gradient;
-    let mut u3_conj_momentum = &state.conj_momentum + time_step * &u3.dt_conj_momentum;
-    EquationsOfMotion::apply_bcs(&mut u3_radial_gradient, &mut u3_conj_momentum);
-    let u3_constraints = compute_constraints(&u3_radial_gradient, &u3_conj_momentum, config);
+    let mut u3_ingoing = &state.ingoing + time_step * &u3.dt_ingoing;
+    let mut u3_outgoing = &state.outgoing + time_step * &u3.dt_outgoing;
+    EquationsOfMotion::apply_bcs(&mut u3_ingoing, &mut u3_outgoing);
+    let u3_constraints = compute_constraints(&u3_ingoing, &u3_outgoing, config);
 
     let u4 = EquationsOfMotion::new(
         &config,
-        u3_radial_gradient.clone(),
-        u3_conj_momentum.clone(),
+        u3_ingoing.clone(),
+        u3_outgoing.clone(),
         &u3_constraints,
     );
     let rk4: EquationsOfMotion = (u1 + u2 * 2.0 + u3 * 2.0 + u4) * (time_step / 6.0);
 
-    let mut radial_gradient = &state.radial_gradient + &rk4.dt_radial_gradient;
-    let mut conj_momentum = &state.conj_momentum + &rk4.dt_conj_momentum;
+    let mut ingoing = &state.ingoing + &rk4.dt_ingoing;
+    let mut outgoing = &state.outgoing + &rk4.dt_outgoing;
     let alternate_mass = &state.alternate_mass + &rk4.dt_alternate_mass;
-    EquationsOfMotion::apply_bcs(&mut radial_gradient, &mut conj_momentum);
+    EquationsOfMotion::apply_bcs(&mut ingoing, &mut outgoing);
 
     let time = state.time + time_step;
 
-    return build_subsequent_state(config, time, radial_gradient, conj_momentum, alternate_mass);
+    return build_subsequent_state(config, time, ingoing, outgoing, alternate_mass);
 }
 
 /// Integrate a vector cumulatively to a vector using Simpson's rule (4th order accurate).
