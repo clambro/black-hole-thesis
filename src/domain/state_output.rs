@@ -12,11 +12,13 @@ pub struct StateOutput {
     pub char_speed: Vec<f64>,
     pub energy_density: Vec<f64>,
     pub total_energy: f64,
+    pub alternate_mass: Vec<f64>,
 }
 
 impl StateOutput {
     pub fn from_state(state: &State, config: &Config) -> Self {
         let level = config.output_dx_level;
+
         Self {
             time: state.time,
             radial_gradient: Self::reduce_spatial_resolution(&state.radial_gradient, level),
@@ -32,7 +34,8 @@ impl StateOutput {
                 &state.constraints.energy_density,
                 level,
             ),
-            total_energy: state.constraints.mass[state.constraints.mass.len() - 1], // E = m because c = 1.
+            total_energy: state.get_total_energy(),
+            alternate_mass: Self::reduce_spatial_resolution(&state.alternate_mass, level),
         }
     }
 

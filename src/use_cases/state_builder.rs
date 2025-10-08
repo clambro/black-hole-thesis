@@ -9,22 +9,15 @@ pub fn build_initial_state(config: &Config) -> State {
     let radial_gradient = FieldVector::zeros(config.grid.points.len());
     let conj_momentum = get_initial_conj_momentum(config);
 
-    let unnormed_energy_density = &radial_gradient.powi(2) + &conj_momentum.powi(2);
-    let flat_space_energy_density = 0.5 * &config.grid.points.powi(2) * &unnormed_energy_density;
-    let starting_mass = integrate(&flat_space_energy_density, config.grid.delta);
+    let constraints = compute_constraints(&radial_gradient, &conj_momentum, config);
+    let alternate_mass = constraints.mass.clone();
 
-    let constraints = compute_constraints(
-        &radial_gradient,
-        &conj_momentum,
-        &starting_mass,
-        config,
-        true,
-    );
     return State {
         time: 0.0,
         radial_gradient,
         conj_momentum,
         constraints,
+        alternate_mass,
     };
 }
 
@@ -33,50 +26,32 @@ pub fn build_subsequent_state(
     time: f64,
     radial_gradient: FieldVector,
     conj_momentum: FieldVector,
-    starting_mass: FieldVector,
+    alternate_mass: FieldVector,
 ) -> State {
-    let constraints = compute_constraints(
-        &radial_gradient,
-        &conj_momentum,
-        &starting_mass,
-        config,
-        false,
-    );
+    let constraints = compute_constraints(&radial_gradient, &conj_momentum, config);
+
     return State {
         time,
         radial_gradient,
         conj_momentum,
         constraints,
+        alternate_mass,
     };
 }
 
 pub fn compute_constraints(
     radial_gradient: &FieldVector,
     conj_momentum: &FieldVector,
-    starting_mass: &FieldVector,
     config: &Config,
-    is_initial: bool,
 ) -> Constraints {
-    // Solve m' = ½r²A(Φ² + Π²) where A = 1 - 2m/r iteratively
-    let mut mass = starting_mass.clone();
-    let unnormed_energy_density = &radial_gradient.powi(2) + &conj_momentum.powi(2);
-    let flat_space_energy_density = 0.5 * &config.grid.points.powi(2) * &unnormed_energy_density;
-
-    let max_iterations = if is_initial { 50 } else { 10 };
-
-    for _iteration in 0..max_iterations {
-        let radial_factor = compute_radial_factor(&mass, config);
-        let integrand = &radial_factor * &flat_space_energy_density;
-        mass = integrate(&integrand, config.grid.delta);
-    }
-
-    // Now compute the final constraints
-    let radial_factor = compute_radial_factor(&mass, config);
     let lapse = compute_lapse(radial_gradient, conj_momentum, config);
+    let energy_density = compute_energy_density(radial_gradient, conj_momentum, config);
+    let radial_factor = compute_radial_factor(&lapse, config);
+    let mass = 0.5 * &config.grid.points * (1.0 - &radial_factor);
     let char_speed = &radial_factor / &lapse;
 
     return Constraints {
-        energy_density: &radial_factor * &flat_space_energy_density,
+        energy_density,
         mass,
         radial_factor,
         lapse,
@@ -89,8 +64,18 @@ fn get_initial_conj_momentum(config: &Config) -> FieldVector {
     return config.initial_amplitude * exponent.exp();
 }
 
-fn compute_radial_factor(mass: &FieldVector, config: &Config) -> FieldVector {
-    let mut radial_factor = 1.0 - 2.0 * mass / &config.grid.points;
+fn compute_energy_density(
+    radial_gradient: &FieldVector,
+    conj_momentum: &FieldVector,
+    config: &Config,
+) -> FieldVector {
+    0.5 * &config.grid.points.powi(2) * (&radial_gradient.powi(2) + &conj_momentum.powi(2))
+}
+
+fn compute_radial_factor(lapse: &FieldVector, config: &Config) -> FieldVector {
+    let indefinite_integral = integrate(&lapse.powi(-1), config.grid.delta);
+    let mut radial_factor =
+        lapse / &config.grid.points * (&indefinite_integral - indefinite_integral[0]);
     radial_factor[0] = 1.0; // The mass is O(r^3) at the left boundary, so A(0) = 1.
     return radial_factor;
 }

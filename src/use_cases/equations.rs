@@ -7,6 +7,7 @@ use std::ops::{Add, Mul};
 pub struct EquationsOfMotion {
     pub dt_radial_gradient: FieldVector,
     pub dt_conj_momentum: FieldVector,
+    pub dt_alternate_mass: FieldVector,
 }
 
 impl EquationsOfMotion {
@@ -22,10 +23,17 @@ impl EquationsOfMotion {
         let dt_conj_momentum =
             Self::calculate_dt_conj_momentum(config, &radial_gradient, &constraints)
                 + dissipation(&conj_momentum, &config.grid, Parity::Even, Parity::Odd);
+        let dt_alternate_mass = Self::calculate_dt_alternate_mass(
+            config,
+            &radial_gradient,
+            &conj_momentum,
+            &constraints,
+        );
 
         Self {
             dt_radial_gradient,
             dt_conj_momentum,
+            dt_alternate_mass,
         }
     }
 
@@ -63,6 +71,18 @@ impl EquationsOfMotion {
         fun[0] = 0.0; // Coordinate singularity at the origin.
         return fun;
     }
+
+    fn calculate_dt_alternate_mass(
+        config: &Config,
+        radial_gradient: &FieldVector,
+        conj_momentum: &FieldVector,
+        constraints: &Constraints,
+    ) -> FieldVector {
+        return &config.grid.points.powi(2) * &constraints.radial_factor.powi(2)
+            / &constraints.lapse
+            * radial_gradient
+            * conj_momentum;
+    }
 }
 
 impl Add<EquationsOfMotion> for EquationsOfMotion {
@@ -72,6 +92,7 @@ impl Add<EquationsOfMotion> for EquationsOfMotion {
         Self {
             dt_radial_gradient: &self.dt_radial_gradient + &other.dt_radial_gradient,
             dt_conj_momentum: &self.dt_conj_momentum + &other.dt_conj_momentum,
+            dt_alternate_mass: &self.dt_alternate_mass + &other.dt_alternate_mass,
         }
     }
 }
@@ -83,6 +104,7 @@ impl Add<&EquationsOfMotion> for &EquationsOfMotion {
         EquationsOfMotion {
             dt_radial_gradient: &self.dt_radial_gradient + &other.dt_radial_gradient,
             dt_conj_momentum: &self.dt_conj_momentum + &other.dt_conj_momentum,
+            dt_alternate_mass: &self.dt_alternate_mass + &other.dt_alternate_mass,
         }
     }
 }
@@ -94,9 +116,11 @@ impl Mul<f64> for EquationsOfMotion {
         Self {
             dt_radial_gradient: scalar * &self.dt_radial_gradient,
             dt_conj_momentum: scalar * &self.dt_conj_momentum,
+            dt_alternate_mass: scalar * &self.dt_alternate_mass,
         }
     }
 }
+
 impl Mul<f64> for &EquationsOfMotion {
     type Output = EquationsOfMotion;
 
@@ -104,6 +128,7 @@ impl Mul<f64> for &EquationsOfMotion {
         EquationsOfMotion {
             dt_radial_gradient: scalar * &self.dt_radial_gradient,
             dt_conj_momentum: scalar * &self.dt_conj_momentum,
+            dt_alternate_mass: scalar * &self.dt_alternate_mass,
         }
     }
 }
