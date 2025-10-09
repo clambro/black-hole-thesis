@@ -1,11 +1,11 @@
 use crate::domain::{config::Config, field_vector::FieldVector, grid::Grid, state::State};
+use crate::use_cases::state_builder::compute_radial_gradient;
 use serde::Serialize;
 
 #[derive(Serialize)]
 pub struct StateOutput {
     pub time: f64,
-    pub ingoing: Vec<f64>,
-    pub outgoing: Vec<f64>,
+    pub field: Vec<f64>,
     pub radial_gradient: Vec<f64>,
     pub conj_momentum: Vec<f64>,
     pub mass: Vec<f64>,
@@ -23,10 +23,12 @@ impl StateOutput {
 
         Self {
             time: state.time,
-            ingoing: Self::reduce_spatial_resolution(&state.ingoing, level),
-            outgoing: Self::reduce_spatial_resolution(&state.outgoing, level),
-            radial_gradient: Self::reduce_spatial_resolution(&state.get_radial_gradient(), level),
-            conj_momentum: Self::reduce_spatial_resolution(&state.get_conj_momentum(), level),
+            field: Self::reduce_spatial_resolution(&state.field, level),
+            radial_gradient: Self::reduce_spatial_resolution(
+                &compute_radial_gradient(&state.field, config),
+                level,
+            ),
+            conj_momentum: Self::reduce_spatial_resolution(&state.conj_momentum, level),
             mass: Self::reduce_spatial_resolution(&state.constraints.mass, level),
             compactness: Self::reduce_spatial_resolution(
                 &(1.0 - &state.constraints.radial_factor),

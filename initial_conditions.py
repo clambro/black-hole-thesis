@@ -14,8 +14,7 @@ def main(folder: str):
     
     # Define all the fields to visualize
     fields = [ 
-        'ingoing',
-        'outgoing',
+        'field',
         'radial_gradient',
         'conj_momentum',
         'mass',

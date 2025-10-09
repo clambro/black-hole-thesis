@@ -1,107 +1,79 @@
 use crate::domain::field_vector::FieldVector;
 use crate::domain::{config::Config, constraints::Constraints};
-use crate::use_cases::diff::{diff, dissipation};
+use crate::use_cases::diff::{diff, diff2, dissipation, set_left_neumann_bc};
 use std::ops::{Add, Mul};
 
 pub struct EquationsOfMotion {
-    pub dt_ingoing: FieldVector,
-    pub dt_outgoing: FieldVector,
+    pub dt_field: FieldVector,
+    pub dt_conj_momentum: FieldVector,
     pub dt_alternate_mass: FieldVector,
 }
 
 impl EquationsOfMotion {
     pub fn new(
         config: &Config,
-        ingoing: FieldVector,
-        outgoing: FieldVector,
+        field: FieldVector,
+        conj_momentum: FieldVector,
         constraints: &Constraints,
     ) -> Self {
-        let dt_ingoing = Self::calculate_dt_ingoing(config, &ingoing, &outgoing, &constraints)
-            + dissipation(&ingoing, &config.grid, &outgoing, &(-1.0 * &outgoing));
-        let dt_outgoing = Self::calculate_dt_outgoing(config, &ingoing, &outgoing, &constraints)
-            + dissipation(&outgoing, &config.grid, &ingoing, &(-1.0 * &ingoing));
+        let dt_field = Self::calculate_dt_field(&conj_momentum, &constraints)
+            + dissipation(&field, &config.grid);
+        let dt_conj_momentum = Self::calculate_dt_conj_momentum(config, &field, &constraints)
+            + dissipation(&conj_momentum, &config.grid);
+        // The mass function is smooth, so no dissipation required.
         let dt_alternate_mass =
-            Self::calculate_dt_alternate_mass(config, &ingoing, &outgoing, &constraints);
+            Self::calculate_dt_alternate_mass(config, &field, &conj_momentum, &constraints);
 
         Self {
-            dt_ingoing,
-            dt_outgoing,
+            dt_field,
+            dt_conj_momentum,
             dt_alternate_mass,
         }
     }
 
-    pub fn apply_bcs(ingoing: &mut FieldVector, outgoing: &mut FieldVector) {
-        // On the left we require ingoing = outgoing to maintain regularity at the origin.
-        let avg_left = 0.5 * (ingoing[0] + outgoing[0]);
-        ingoing[0] = avg_left;
-        outgoing[0] = avg_left;
+    pub fn apply_bcs(field: &mut FieldVector, conj_momentum: &mut FieldVector) {
+        // Neumann BCs at the origin maintain regularity.
+        set_left_neumann_bc(field);
+        set_left_neumann_bc(conj_momentum);
 
-        // On the right we require ingoing = -outgoing to create the reflection.
-        let n = ingoing.len();
-        let avg_right = 0.5 * (ingoing[n - 1] - outgoing[n - 1]);
-        ingoing[n - 1] = avg_right;
-        outgoing[n - 1] = -avg_right;
+        // On the right we have a Dirichlet BC to create the reflection.
+        let n = field.len();
+        field[n - 1] = 0.0;
+        conj_momentum[n - 1] = 0.0;
     }
 
-    fn calculate_dt_ingoing(
-        config: &Config,
-        ingoing: &FieldVector,
-        outgoing: &FieldVector,
-        constraints: &Constraints,
-    ) -> FieldVector {
-        let flux = -1.0
-            * diff(
-                &config.grid,
-                &(&constraints.char_speed * ingoing),
-                &(&constraints.char_speed * outgoing),
-                &(-1.0 * &constraints.char_speed * outgoing),
-            );
-        // Source has a coordinate singularity at the origin, so we use L'Hôpital's rule.
-        // TODO: Abstract this out so we're not calculating it twice. Also we don't need the full
-        // stencil here, just the first point.
-        let mut source = &constraints.char_speed / &config.grid.points * (outgoing - ingoing);
-        source[0] = constraints.char_speed[0]
-            * diff(
-                &config.grid,
-                &(outgoing - ingoing),
-                &(-1.0 * (outgoing - ingoing)),
-                &(outgoing - ingoing),
-            )[0];
-        return flux + source;
+    fn calculate_dt_field(conj_momentum: &FieldVector, constraints: &Constraints) -> FieldVector {
+        let mut result = &constraints.char_speed * conj_momentum;
+        result[0] = conj_momentum[0] / &constraints.lapse[0]; // L'Hopital's rule.
+        return result;
     }
 
-    fn calculate_dt_outgoing(
+    fn calculate_dt_conj_momentum(
         config: &Config,
-        ingoing: &FieldVector,
-        outgoing: &FieldVector,
+        field: &FieldVector,
         constraints: &Constraints,
     ) -> FieldVector {
-        let flux = diff(
-            &config.grid,
-            &(&constraints.char_speed * outgoing),
-            &(&constraints.char_speed * ingoing),
-            &(-1.0 * &constraints.char_speed * ingoing),
-        );
-        let mut source = &constraints.char_speed / &config.grid.points * (outgoing - ingoing);
-        source[0] = constraints.char_speed[0]
-            * diff(
-                &config.grid,
-                &(outgoing - ingoing),
-                &(-1.0 * (outgoing - ingoing)),
-                &(outgoing - ingoing),
-            )[0];
-        return flux + source;
+        let d2_field = diff2(&config.grid, &field);
+        let curvature = &constraints.char_speed * &d2_field;
+        let divergence = (&constraints.radial_factor + 1.0)
+            / (&config.grid.points * &constraints.lapse)
+            * diff(&config.grid, &field);
+        let mut result = curvature + divergence;
+        result[0] = 3.0 * &d2_field[0] / &constraints.lapse[0]; // L'Hopital's rule.
+        return result;
     }
 
     fn calculate_dt_alternate_mass(
         config: &Config,
-        ingoing: &FieldVector,
-        outgoing: &FieldVector,
+        field: &FieldVector,
+        conj_momentum: &FieldVector,
         constraints: &Constraints,
     ) -> FieldVector {
-        return 0.25 * &config.grid.points.powi(2) * &constraints.radial_factor.powi(2)
+        let radial_gradient = diff(&config.grid, &field);
+        return &config.grid.points.powi(2) * &constraints.radial_factor.powi(2)
             / &constraints.lapse
-            * (outgoing.powi(2) - ingoing.powi(2));
+            * &radial_gradient
+            * conj_momentum;
     }
 }
 
@@ -110,8 +82,8 @@ impl Add<EquationsOfMotion> for EquationsOfMotion {
 
     fn add(self, other: Self) -> Self {
         Self {
-            dt_ingoing: &self.dt_ingoing + &other.dt_ingoing,
-            dt_outgoing: &self.dt_outgoing + &other.dt_outgoing,
+            dt_field: &self.dt_field + &other.dt_field,
+            dt_conj_momentum: &self.dt_conj_momentum + &other.dt_conj_momentum,
             dt_alternate_mass: &self.dt_alternate_mass + &other.dt_alternate_mass,
         }
     }
@@ -122,8 +94,8 @@ impl Add<&EquationsOfMotion> for &EquationsOfMotion {
 
     fn add(self, other: &EquationsOfMotion) -> EquationsOfMotion {
         EquationsOfMotion {
-            dt_ingoing: &self.dt_ingoing + &other.dt_ingoing,
-            dt_outgoing: &self.dt_outgoing + &other.dt_outgoing,
+            dt_field: &self.dt_field + &other.dt_field,
+            dt_conj_momentum: &self.dt_conj_momentum + &other.dt_conj_momentum,
             dt_alternate_mass: &self.dt_alternate_mass + &other.dt_alternate_mass,
         }
     }
@@ -134,8 +106,8 @@ impl Mul<f64> for EquationsOfMotion {
 
     fn mul(self, scalar: f64) -> Self {
         Self {
-            dt_ingoing: scalar * &self.dt_ingoing,
-            dt_outgoing: scalar * &self.dt_outgoing,
+            dt_field: scalar * &self.dt_field,
+            dt_conj_momentum: scalar * &self.dt_conj_momentum,
             dt_alternate_mass: scalar * &self.dt_alternate_mass,
         }
     }
@@ -146,8 +118,8 @@ impl Mul<f64> for &EquationsOfMotion {
 
     fn mul(self, scalar: f64) -> EquationsOfMotion {
         EquationsOfMotion {
-            dt_ingoing: scalar * &self.dt_ingoing,
-            dt_outgoing: scalar * &self.dt_outgoing,
+            dt_field: scalar * &self.dt_field,
+            dt_conj_momentum: scalar * &self.dt_conj_momentum,
             dt_alternate_mass: scalar * &self.dt_alternate_mass,
         }
     }
