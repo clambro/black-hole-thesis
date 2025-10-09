@@ -21,6 +21,7 @@ def main(low_folder, mid_folder, high_folder, function):
     times = times[:max_len]
 
     q_factor = np.linalg.norm(mid_data - low_data, axis=1) / np.linalg.norm(high_data - mid_data, axis=1)
+    q_factor = np.clip(q_factor, 0, 32)
 
     ax.plot(times, q_factor, 'b-', linewidth=2)
     ax.hlines(16, times[0], times[-1], 'r', '--', linewidth=2)
