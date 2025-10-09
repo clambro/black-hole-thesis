@@ -18,7 +18,7 @@ pub struct Args {
     #[arg(long, default_value = "0.0067")]
     pub output_dt: f64,
 
-    #[arg(long, default_value = "8")]
+    #[arg(long, default_value = "9")]
     pub output_dx_level: u32,
 
     // The simulation should end with BH formation, but this is here as a safety.

@@ -4,7 +4,7 @@ use crate::domain::field_vector::FieldVector;
 #[derive(Debug)]
 pub struct State {
     pub time: f64,
-    pub radial_gradient: FieldVector,
+    pub field: FieldVector,
     pub conj_momentum: FieldVector,
     pub alternate_mass: FieldVector,
     pub constraints: Constraints,

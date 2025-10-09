@@ -1,11 +1,10 @@
 use crate::domain::field_vector::FieldVector;
-use crate::domain::parity::Parity;
 use crate::domain::{config::Config, constraints::Constraints};
-use crate::use_cases::diff::{diff, dissipation, set_neumann_bc};
+use crate::use_cases::diff::{diff, diff2, dissipation, set_left_neumann_bc};
 use std::ops::{Add, Mul};
 
 pub struct EquationsOfMotion {
-    pub dt_radial_gradient: FieldVector,
+    pub dt_field: FieldVector,
     pub dt_conj_momentum: FieldVector,
     pub dt_alternate_mass: FieldVector,
 }
@@ -13,74 +12,67 @@ pub struct EquationsOfMotion {
 impl EquationsOfMotion {
     pub fn new(
         config: &Config,
-        radial_gradient: FieldVector,
+        field: FieldVector,
         conj_momentum: FieldVector,
         constraints: &Constraints,
     ) -> Self {
-        let dt_radial_gradient =
-            Self::calculate_dt_radial_gradient(config, &conj_momentum, &constraints)
-                + dissipation(&radial_gradient, &config.grid, Parity::Odd, Parity::Even);
-        let dt_conj_momentum =
-            Self::calculate_dt_conj_momentum(config, &radial_gradient, &constraints)
-                + dissipation(&conj_momentum, &config.grid, Parity::Even, Parity::Odd);
-        let dt_alternate_mass = Self::calculate_dt_alternate_mass(
-            config,
-            &radial_gradient,
-            &conj_momentum,
-            &constraints,
-        );
+        let dt_field = Self::calculate_dt_field(&conj_momentum, &constraints)
+            + dissipation(&field, &config.grid);
+        let dt_conj_momentum = Self::calculate_dt_conj_momentum(config, &field, &constraints)
+            + dissipation(&conj_momentum, &config.grid);
+        // The mass function is smooth, so no dissipation required.
+        let dt_alternate_mass =
+            Self::calculate_dt_alternate_mass(config, &field, &conj_momentum, &constraints);
 
         Self {
-            dt_radial_gradient,
+            dt_field,
             dt_conj_momentum,
             dt_alternate_mass,
         }
     }
 
-    pub fn apply_bcs(radial_gradient: &mut FieldVector, conj_momentum: &mut FieldVector) {
-        // Coordinate singularity at the origin requires smoothness. Changing either of these
-        // kills 4th order accuracy.
-        radial_gradient[0] = 0.0;
-        set_neumann_bc(conj_momentum, true, Parity::Even);
+    pub fn apply_bcs(field: &mut FieldVector, conj_momentum: &mut FieldVector) {
+        // Neumann BCs at the origin maintain regularity.
+        set_left_neumann_bc(field);
+        set_left_neumann_bc(conj_momentum);
 
-        // Artificial reflection at the right boundary. We don't need to set the Neumann
-        // BC for the radial gradient because it is enforced via the parity in the derivative
-        // operator in the equations of motion. Setting it kills 4th order accuracy.
-        let n = conj_momentum.len();
+        // On the right we have a Dirichlet BC to create the reflection.
+        let n = field.len();
+        field[n - 1] = 0.0;
         conj_momentum[n - 1] = 0.0;
     }
 
-    fn calculate_dt_radial_gradient(
-        config: &Config,
-        conj_momentum: &FieldVector,
-        constraints: &Constraints,
-    ) -> FieldVector {
-        let fun = &constraints.char_speed * conj_momentum;
-        return diff(&config.grid, &fun, Parity::Even, Parity::Odd);
+    fn calculate_dt_field(conj_momentum: &FieldVector, constraints: &Constraints) -> FieldVector {
+        let mut result = &constraints.char_speed * conj_momentum;
+        result[0] = conj_momentum[0] / &constraints.lapse[0]; // L'Hopital's rule.
+        return result;
     }
 
     fn calculate_dt_conj_momentum(
         config: &Config,
-        radial_gradient: &FieldVector,
+        field: &FieldVector,
         constraints: &Constraints,
     ) -> FieldVector {
-        let r2 = config.grid.points.powi(2);
-        let fun = &r2 * &constraints.char_speed * radial_gradient;
-        let fun = diff(&config.grid, &fun, Parity::Odd, Parity::Even);
-        let mut fun = fun / &r2;
-        fun[0] = 0.0; // Coordinate singularity at the origin.
-        return fun;
+        let d2_field = diff2(&config.grid, &field);
+        let curvature = &constraints.char_speed * &d2_field;
+        let divergence = (&constraints.radial_factor + 1.0)
+            / (&config.grid.points * &constraints.lapse)
+            * diff(&config.grid, &field);
+        let mut result = curvature + divergence;
+        result[0] = 3.0 * &d2_field[0] / &constraints.lapse[0]; // L'Hopital's rule.
+        return result;
     }
 
     fn calculate_dt_alternate_mass(
         config: &Config,
-        radial_gradient: &FieldVector,
+        field: &FieldVector,
         conj_momentum: &FieldVector,
         constraints: &Constraints,
     ) -> FieldVector {
+        let radial_gradient = diff(&config.grid, &field);
         return &config.grid.points.powi(2) * &constraints.radial_factor.powi(2)
             / &constraints.lapse
-            * radial_gradient
+            * &radial_gradient
             * conj_momentum;
     }
 }
@@ -90,7 +82,7 @@ impl Add<EquationsOfMotion> for EquationsOfMotion {
 
     fn add(self, other: Self) -> Self {
         Self {
-            dt_radial_gradient: &self.dt_radial_gradient + &other.dt_radial_gradient,
+            dt_field: &self.dt_field + &other.dt_field,
             dt_conj_momentum: &self.dt_conj_momentum + &other.dt_conj_momentum,
             dt_alternate_mass: &self.dt_alternate_mass + &other.dt_alternate_mass,
         }
@@ -102,7 +94,7 @@ impl Add<&EquationsOfMotion> for &EquationsOfMotion {
 
     fn add(self, other: &EquationsOfMotion) -> EquationsOfMotion {
         EquationsOfMotion {
-            dt_radial_gradient: &self.dt_radial_gradient + &other.dt_radial_gradient,
+            dt_field: &self.dt_field + &other.dt_field,
             dt_conj_momentum: &self.dt_conj_momentum + &other.dt_conj_momentum,
             dt_alternate_mass: &self.dt_alternate_mass + &other.dt_alternate_mass,
         }
@@ -114,7 +106,7 @@ impl Mul<f64> for EquationsOfMotion {
 
     fn mul(self, scalar: f64) -> Self {
         Self {
-            dt_radial_gradient: scalar * &self.dt_radial_gradient,
+            dt_field: scalar * &self.dt_field,
             dt_conj_momentum: scalar * &self.dt_conj_momentum,
             dt_alternate_mass: scalar * &self.dt_alternate_mass,
         }
@@ -126,7 +118,7 @@ impl Mul<f64> for &EquationsOfMotion {
 
     fn mul(self, scalar: f64) -> EquationsOfMotion {
         EquationsOfMotion {
-            dt_radial_gradient: scalar * &self.dt_radial_gradient,
+            dt_field: scalar * &self.dt_field,
             dt_conj_momentum: scalar * &self.dt_conj_momentum,
             dt_alternate_mass: scalar * &self.dt_alternate_mass,
         }

@@ -2,19 +2,22 @@ use crate::domain::config::Config;
 use crate::domain::constraints::Constraints;
 use crate::domain::field_vector::FieldVector;
 use crate::domain::state::State;
+use crate::use_cases::diff::diff;
 use crate::use_cases::integration::integrate;
 use std::f64::consts::PI;
 
 pub fn build_initial_state(config: &Config) -> State {
-    let radial_gradient = FieldVector::zeros(config.grid.points.len());
-    let conj_momentum = get_initial_conj_momentum(config);
+    let n = config.grid.points.len();
 
-    let constraints = compute_constraints(&radial_gradient, &conj_momentum, config);
+    let field = FieldVector::zeros(n);
+    let conj_momentum = get_initial_wave(config);
+
+    let constraints = compute_constraints(&field, &conj_momentum, config);
     let alternate_mass = constraints.mass.clone();
 
     return State {
         time: 0.0,
-        radial_gradient,
+        field,
         conj_momentum,
         constraints,
         alternate_mass,
@@ -24,15 +27,15 @@ pub fn build_initial_state(config: &Config) -> State {
 pub fn build_subsequent_state(
     config: &Config,
     time: f64,
-    radial_gradient: FieldVector,
+    field: FieldVector,
     conj_momentum: FieldVector,
     alternate_mass: FieldVector,
 ) -> State {
-    let constraints = compute_constraints(&radial_gradient, &conj_momentum, config);
+    let constraints = compute_constraints(&field, &conj_momentum, config);
 
     return State {
         time,
-        radial_gradient,
+        field,
         conj_momentum,
         constraints,
         alternate_mass,
@@ -40,12 +43,13 @@ pub fn build_subsequent_state(
 }
 
 pub fn compute_constraints(
-    radial_gradient: &FieldVector,
+    field: &FieldVector,
     conj_momentum: &FieldVector,
     config: &Config,
 ) -> Constraints {
-    let lapse = compute_lapse(radial_gradient, conj_momentum, config);
-    let energy_density = compute_energy_density(radial_gradient, conj_momentum, config);
+    let radial_gradient = compute_radial_gradient(field, config);
+    let lapse = compute_lapse(&radial_gradient, conj_momentum, config);
+    let energy_density = compute_energy_density(&radial_gradient, conj_momentum, config);
     let radial_factor = compute_radial_factor(&lapse, config);
     let mass = 0.5 * &config.grid.points * (1.0 - &radial_factor);
     let char_speed = &radial_factor / &lapse;
@@ -59,7 +63,11 @@ pub fn compute_constraints(
     };
 }
 
-fn get_initial_conj_momentum(config: &Config) -> FieldVector {
+pub fn compute_radial_gradient(field: &FieldVector, config: &Config) -> FieldVector {
+    return diff(&config.grid, field);
+}
+
+fn get_initial_wave(config: &Config) -> FieldVector {
     let exponent = -64.0 * (PI / 2.0 * &config.grid.points).tan().powi(2);
     return config.initial_amplitude * exponent.exp();
 }

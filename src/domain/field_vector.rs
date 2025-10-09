@@ -137,6 +137,17 @@ impl Mul<f64> for &FieldVector {
     }
 }
 
+// Vector + Scalar
+impl Add<f64> for &FieldVector {
+    type Output = FieldVector;
+
+    fn add(self, scalar: f64) -> FieldVector {
+        FieldVector {
+            data: self.data.iter().map(|x| x + scalar).collect(),
+        }
+    }
+}
+
 // Vector - Scalar
 impl Sub<f64> for &FieldVector {
     type Output = FieldVector;
@@ -267,6 +278,13 @@ impl Div<FieldVector> for &FieldVector {
     type Output = FieldVector;
     fn div(self, other: FieldVector) -> FieldVector {
         self / &other
+    }
+}
+
+impl Add<f64> for FieldVector {
+    type Output = FieldVector;
+    fn add(self, scalar: f64) -> FieldVector {
+        &self + scalar
     }
 }
 
