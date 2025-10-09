@@ -68,8 +68,14 @@ pub fn integrate(vector: &FieldVector, grid_size: f64) -> FieldVector {
     result[2] = grid_size / 3.0 * (vector[0] + 4.0 * vector[1] + vector[2]);
 
     for i in 3..n {
-        result[i] =
-            result[i - 2] + grid_size / 3.0 * (vector[i - 2] + 4.0 * vector[i - 1] + vector[i]);
+        if i % 2 == 0 {
+            result[i] =
+                result[i - 2] + grid_size / 3.0 * (vector[i - 2] + 4.0 * vector[i - 1] + vector[i]);
+        } else {
+            result[i] = result[i - 3]
+                + 3.0 * grid_size / 8.0
+                    * (vector[i - 3] + 3.0 * vector[i - 2] + 3.0 * vector[i - 1] + vector[i]);
+        }
     }
     return result;
 }
