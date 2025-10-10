@@ -25,6 +25,13 @@ impl JsonlStateOutputCreator {
             results_file,
         }
     }
+
+    fn flush(file: &mut File) {
+        match file.flush() {
+            Ok(_) => (),
+            Err(e) => eprintln!("Could not flush file: {}", e),
+        }
+    }
 }
 
 impl StateOutputCreator for JsonlStateOutputCreator {
@@ -37,12 +44,12 @@ impl StateOutputCreator for JsonlStateOutputCreator {
         let state_output = build_state_output(state, out_config, sim_config);
         let json_str = serde_json::to_string(&state_output).expect("Could not serialize state");
         writeln!(&self.state_file, "{}", json_str).expect("Could not write to file");
-        self.state_file.flush().expect("Could not flush file");
+        JsonlStateOutputCreator::flush(&mut self.state_file);
     }
 
     fn save_final_results(&mut self, output: &SimulationOutput) {
         let json_str = serde_json::to_string(&output).expect("Could not serialize output");
         writeln!(&self.results_file, "{}", json_str).expect("Could not write to file");
-        self.results_file.flush().expect("Could not flush file");
+        JsonlStateOutputCreator::flush(&mut self.results_file);
     }
 }
