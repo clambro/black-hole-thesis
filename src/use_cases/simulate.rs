@@ -1,4 +1,4 @@
-use crate::domain::parsed_inputs::ParsedInputs;
+use crate::domain::simulation_inputs::SimulationInputs;
 use crate::domain::simulation_output::SimulationOutput;
 use crate::use_cases::adaptive_time_step::TimeStep;
 use crate::use_cases::integration::rk4_step;
@@ -6,7 +6,7 @@ use crate::use_cases::ports::{SimulationLogger, StateOutputCreator};
 use std::time::Instant;
 
 pub fn simulate(
-    inputs: ParsedInputs,
+    inputs: SimulationInputs,
     state_output_creator: &mut dyn StateOutputCreator,
     logger: &dyn SimulationLogger,
 ) {

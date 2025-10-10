@@ -1,7 +1,7 @@
 use crate::domain::grid::Grid;
 use crate::domain::output_config::OutputConfig;
-use crate::domain::parsed_inputs::ParsedInputs;
 use crate::domain::simulation_config::SimulationConfig;
+use crate::domain::simulation_inputs::SimulationInputs;
 use crate::use_cases::state_builder::build_initial_state;
 use clap::Parser;
 
@@ -28,7 +28,7 @@ pub struct Args {
 }
 
 impl Args {
-    pub fn parse_args() -> ParsedInputs {
+    pub fn parse_args() -> SimulationInputs {
         let args = Args::parse();
 
         let sim_config = SimulationConfig {
@@ -42,7 +42,7 @@ impl Args {
         };
         let initial_state = build_initial_state(&sim_config);
 
-        let inputs = ParsedInputs {
+        let inputs = SimulationInputs {
             sim_config,
             out_config,
             initial_state,

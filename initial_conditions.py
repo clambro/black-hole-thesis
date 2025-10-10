@@ -18,7 +18,7 @@ def main(folder: str):
         'radial_gradient',
         'conj_momentum',
         'mass',
-        'compactness',
+        'radial_factor',
         'lapse',
         'char_speed',
         'energy_density'

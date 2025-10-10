@@ -3,13 +3,13 @@ use crate::domain::output_config::OutputConfig;
 use crate::domain::simulation_config::SimulationConfig;
 use crate::domain::state::State;
 
-pub struct ParsedInputs {
+pub struct SimulationInputs {
     pub sim_config: SimulationConfig,
     pub out_config: OutputConfig,
     pub initial_state: State,
 }
 
-impl ParsedInputs {
+impl SimulationInputs {
     pub fn validate(&self) -> Result<(), &'static str> {
         if self.sim_config.grid.level < 5 {
             return Err("Level of discretization must be greater than 5.");
