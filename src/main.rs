@@ -4,7 +4,6 @@ mod use_cases;
 
 use app::cli::Args;
 use app::file_output::JsonlStateOutputCreator;
-use std::time::Instant;
 use use_cases::simulate::simulate;
 
 fn main() {
@@ -12,16 +11,23 @@ fn main() {
 
     let jsonl_output = JsonlStateOutputCreator::new(&config);
 
-    let start = Instant::now();
     let output = simulate(&config, state, &jsonl_output);
-    let duration = start.elapsed();
 
-    println!("Evolution completed in: {:.2?} seconds", duration);
+    println!(
+        "Evolution completed in: {:.2?} seconds",
+        output.time_taken_seconds
+    );
     println!("Number of steps: {}", output.num_steps);
-    println!("Time per step: {:.2?}", duration / output.num_steps as u32);
+    println!(
+        "Time per step: {:.2?} milliseconds",
+        output.time_taken_seconds / output.num_steps as f64 * 1000.0
+    );
     match output.black_hole_mass {
-        Some(mass) => println!("Black hole mass: {}", mass),
+        Some(mass) => println!("Black hole mass: {:.4?}", mass),
         None => println!("Black hole mass: None"),
     }
-    println!("Final simulation time: {}", output.final_simulation_time);
+    println!(
+        "Final simulation time: {:.4?}",
+        output.final_simulation_time
+    );
 }
