@@ -16,7 +16,10 @@ impl SimulationLogger for ConsoleLogger {
             "\rReal time: {:.2}s, Simulation time: {:.3}s, Steps: {}",
             elapsed_seconds, simulation_time, num_steps
         );
-        io::stdout().flush().unwrap();
+        match io::stdout().flush() {
+            Ok(_) => (),
+            Err(e) => eprintln!("Could not flush stdout: {}", e),
+        };
     }
 
     fn log_timeout_warning(&self, max_time: f64) {

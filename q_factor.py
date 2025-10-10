@@ -39,7 +39,7 @@ def _load_data(folder, function):
             data.append(json_data[function])
             times.append(json_data['time'])
     return np.array(data), np.array(times)
-    
+
 
 
 if __name__ == "__main__":

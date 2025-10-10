@@ -1,5 +1,5 @@
 use crate::domain::field_vector::FieldVector;
-use crate::domain::{config::Config, constraints::Constraints};
+use crate::domain::{constraints::Constraints, simulation_config::SimulationConfig};
 use crate::use_cases::diff::{diff, diff2, dissipation, set_left_neumann_bc};
 use std::ops::{Add, Mul};
 
@@ -11,18 +11,18 @@ pub struct EquationsOfMotion {
 
 impl EquationsOfMotion {
     pub fn new(
-        config: &Config,
-        field: FieldVector,
-        conj_momentum: FieldVector,
+        config: &SimulationConfig,
+        field: &FieldVector,
+        conj_momentum: &FieldVector,
         constraints: &Constraints,
     ) -> Self {
-        let dt_field = Self::calculate_dt_field(&conj_momentum, &constraints)
-            + dissipation(&field, &config.grid);
-        let dt_conj_momentum = Self::calculate_dt_conj_momentum(config, &field, &constraints)
-            + dissipation(&conj_momentum, &config.grid);
+        let dt_field =
+            Self::calculate_dt_field(conj_momentum, constraints) + dissipation(field, &config.grid);
+        let dt_conj_momentum = Self::calculate_dt_conj_momentum(config, field, constraints)
+            + dissipation(conj_momentum, &config.grid);
         // The mass function is smooth, so no dissipation required.
         let dt_alternate_mass =
-            Self::calculate_dt_alternate_mass(config, &field, &conj_momentum, &constraints);
+            Self::calculate_dt_alternate_mass(config, field, conj_momentum, constraints);
 
         Self {
             dt_field,
@@ -44,36 +44,35 @@ impl EquationsOfMotion {
 
     fn calculate_dt_field(conj_momentum: &FieldVector, constraints: &Constraints) -> FieldVector {
         let mut result = &constraints.char_speed * conj_momentum;
-        result[0] = conj_momentum[0] / &constraints.lapse[0]; // L'Hopital's rule.
-        return result;
+        result[0] = conj_momentum[0] / constraints.lapse[0]; // L'Hopital's rule.
+        result
     }
 
     fn calculate_dt_conj_momentum(
-        config: &Config,
+        config: &SimulationConfig,
         field: &FieldVector,
         constraints: &Constraints,
     ) -> FieldVector {
-        let d2_field = diff2(&config.grid, &field);
+        let d2_field = diff2(&config.grid, field);
         let curvature = &constraints.char_speed * &d2_field;
         let divergence = (&constraints.radial_factor + 1.0)
             / (&config.grid.points * &constraints.lapse)
-            * diff(&config.grid, &field);
+            * diff(&config.grid, field);
         let mut result = curvature + divergence;
-        result[0] = 3.0 * &d2_field[0] / &constraints.lapse[0]; // L'Hopital's rule.
-        return result;
+        result[0] = 3.0 * &d2_field[0] / constraints.lapse[0]; // L'Hopital's rule.
+        result
     }
 
     fn calculate_dt_alternate_mass(
-        config: &Config,
+        config: &SimulationConfig,
         field: &FieldVector,
         conj_momentum: &FieldVector,
         constraints: &Constraints,
     ) -> FieldVector {
-        let radial_gradient = diff(&config.grid, &field);
-        return &config.grid.points.powi(2) * &constraints.radial_factor.powi(2)
-            / &constraints.lapse
+        let radial_gradient = diff(&config.grid, field);
+        &config.grid.points.powi(2) * &constraints.radial_factor.powi(2) / &constraints.lapse
             * &radial_gradient
-            * conj_momentum;
+            * conj_momentum
     }
 }
 

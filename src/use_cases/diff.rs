@@ -1,3 +1,4 @@
+use crate::domain::constants::DISSIPATION_FACTOR;
 use crate::domain::field_vector::FieldVector;
 use crate::domain::grid::Grid;
 
@@ -34,7 +35,7 @@ pub fn diff(grid: &Grid, vector: &FieldVector) -> FieldVector {
         + 25.0 * vector[n - 1])
         / (12.0 * h);
 
-    return diff;
+    diff
 }
 
 /// Standard 4th order finite difference operator for the second derivative.
@@ -75,7 +76,7 @@ pub fn diff2(grid: &Grid, vector: &FieldVector) -> FieldVector {
         - 10.0 * vector[n - 6])
         / (12.0 * h2);
 
-    return diff2;
+    diff2
 }
 
 /// Set the Neumann boundary condition for a vector using the above stencil.
@@ -114,5 +115,5 @@ pub fn dissipation(vector: &FieldVector, grid: &Grid) -> FieldVector {
             + vector[i - 6];
     });
 
-    return 0.01 / grid.delta / 64.0 * result;
+    DISSIPATION_FACTOR / grid.delta / 64.0 * result
 }

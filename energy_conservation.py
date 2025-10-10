@@ -29,7 +29,7 @@ def main(*folders: str):
 
     suffix = "_".join(folders)
     plt.savefig(f'results/energy_conservation_{suffix}.png')
-    
+
 
 
 if __name__ == "__main__":

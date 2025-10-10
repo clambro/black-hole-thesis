@@ -1,7 +1,7 @@
 use crate::domain::constraints::Constraints;
 use crate::domain::field_vector::FieldVector;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct State {
     pub time: f64,
     pub field: FieldVector,
@@ -11,11 +11,11 @@ pub struct State {
 }
 
 impl State {
-    pub fn get_black_hole_mass(&self) -> Option<f64> {
-        return self.constraints.get_black_hole_mass();
+    pub fn black_hole_mass(&self) -> Option<f64> {
+        self.constraints.black_hole_mass()
     }
 
-    pub fn get_total_energy(&self) -> f64 {
+    pub fn total_energy(&self) -> f64 {
         self.constraints.mass[self.constraints.mass.len() - 1]
     }
 }

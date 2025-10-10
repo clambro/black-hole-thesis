@@ -1,11 +1,17 @@
 /// Interfaces for the app files to inject dependencies into the use cases.
-use crate::domain::config::Config;
+use crate::domain::output_config::OutputConfig;
+use crate::domain::simulation_config::SimulationConfig;
 use crate::domain::simulation_output::SimulationOutput;
 use crate::domain::state::State;
 
 pub trait StateOutputCreator {
-    fn save_state(&self, state: &State, config: &Config);
-    fn save_final_results(&self, output: &SimulationOutput);
+    fn save_state(
+        &mut self,
+        state: &State,
+        out_config: &OutputConfig,
+        sim_config: &SimulationConfig,
+    );
+    fn save_final_results(&mut self, output: &SimulationOutput);
 }
 
 pub trait SimulationLogger {

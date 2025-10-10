@@ -1,3 +1,4 @@
+use std::iter::{FromIterator, IntoIterator};
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Range, RangeFrom, RangeFull, RangeTo, Sub};
 
 /// A vector type for field computations.
@@ -5,9 +6,35 @@ use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Range, RangeFrom, RangeFull,
 /// Supports element-wise operations, scalar arithmetic, and mathematical functions
 /// commonly needed for PDE solving. I tried using Rayon for parallelization, but
 /// it was slower than the built-in map function for these operations.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct FieldVector {
     data: Vec<f64>,
+}
+
+impl FromIterator<f64> for FieldVector {
+    fn from_iter<T: IntoIterator<Item = f64>>(iter: T) -> Self {
+        Self {
+            data: iter.into_iter().collect(),
+        }
+    }
+}
+
+impl IntoIterator for FieldVector {
+    type Item = f64;
+    type IntoIter = std::vec::IntoIter<f64>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.into_iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a FieldVector {
+    type Item = &'a f64;
+    type IntoIter = std::slice::Iter<'a, f64>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.iter()
+    }
 }
 
 impl FieldVector {
@@ -34,6 +61,7 @@ impl FieldVector {
     }
 
     /// Apply power function element-wise
+    #[must_use]
     pub fn powi(&self, power: i32) -> Self {
         Self {
             data: self.data.iter().map(|x| x.powi(power)).collect(),
@@ -41,6 +69,7 @@ impl FieldVector {
     }
 
     /// Apply exponential function element-wise
+    #[must_use]
     pub fn exp(&self) -> Self {
         Self {
             data: self.data.iter().map(|x| x.exp()).collect(),
@@ -48,6 +77,7 @@ impl FieldVector {
     }
 
     /// Apply tangent function element-wise
+    #[must_use]
     pub fn tan(&self) -> Self {
         Self {
             data: self.data.iter().map(|x| x.tan()).collect(),

@@ -1,4 +1,9 @@
-use crate::domain::{config::Config, state::State};
+use crate::domain::{
+    constants::{EPS, MAX_COURANT_SPEED, MIN_COURANT_SPEED},
+    output_config::OutputConfig,
+    simulation_config::SimulationConfig,
+    state::State,
+};
 
 pub struct TimeStep {
     pub delta: f64,
@@ -7,36 +12,34 @@ pub struct TimeStep {
 
 // Get the next time step, ensuring that we land on a frame boundary if it is within the base time step.
 impl TimeStep {
-    pub fn next(config: &Config, state: &State) -> Self {
+    pub fn next(sim_config: &SimulationConfig, out_config: &OutputConfig, state: &State) -> Self {
         let min_speed = state
             .constraints
             .char_speed
             .iter()
             .min_by(|a, b| a.total_cmp(b))
-            .unwrap()
-            .max(0.1) // Speed is in (0, 1], but don't go too slow.
-            .min(0.95); // Going to exactly 1 would be unstable, so aim a bit below.
+            .expect("Characteristic speed is empty.")
+            .clamp(MIN_COURANT_SPEED, MAX_COURANT_SPEED);
 
         // This is a Courant number of 1, but adjusted for the speed of the slowest point,
         // so it should be stable.
-        let base_time_step = config.grid.delta * min_speed;
+        let base_time_step = sim_config.grid.delta * min_speed;
 
         // Find the next frame boundary after the current time
-        let current_frame_index = (state.time / config.output_dt).floor();
-        let next_frame = (current_frame_index + 1.0) * config.output_dt;
+        let current_frame_index = (state.time / out_config.dt).floor();
+        let next_frame = (current_frame_index + 1.0) * out_config.dt;
         let time_to_next_frame = next_frame - state.time;
 
         // The first condition handles floating point errors if we're exactly at a frame boundary.
-        if time_to_next_frame <= 1e-12 || time_to_next_frame > base_time_step {
+        if time_to_next_frame <= EPS || time_to_next_frame > base_time_step {
             return TimeStep {
                 delta: base_time_step,
                 is_frame_boundary: false,
             };
-        } else {
-            return TimeStep {
-                delta: time_to_next_frame,
-                is_frame_boundary: true,
-            };
+        }
+        TimeStep {
+            delta: time_to_next_frame,
+            is_frame_boundary: true,
         }
     }
 }

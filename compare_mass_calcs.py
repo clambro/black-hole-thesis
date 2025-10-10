@@ -29,7 +29,7 @@ def main(*folders: str):
 
     suffix = "_".join(folders)
     plt.savefig(f'results/mass_equation_residuals_{suffix}.png')
-    
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Visualize mass equation residuals at different levels of discretization.')
