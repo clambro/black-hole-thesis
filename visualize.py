@@ -41,7 +41,7 @@ def main(folder: str, function: str):
         ax.set_ylim(y_min, y_max)
         line.set_data(x, values[frame])
         time_text.set_text(f'Time: {times[frame]:.4f}')
-        return line, time_text
+         line, time_text
 
     # Create frames with freezing at start and end
     # Add 30 frames (1 second at 30fps) at the beginning and end
@@ -52,13 +52,13 @@ def main(folder: str, function: str):
     def animate_with_freeze(frame):
         if frame < freeze_frames:
             # Freeze on first frame
-            return animate(0)
+             animate(0)
         elif frame < freeze_frames + len(data):
             # Normal animation
-            return animate(frame - freeze_frames)
+             animate(frame - freeze_frames)
         else:
             # Freeze on last frame
-            return animate(len(data) - 1)
+             animate(len(data) - 1)
     
     # Create animation
     anim = animation.FuncAnimation(fig, animate_with_freeze, frames=total_frames, 

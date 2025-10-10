@@ -38,7 +38,7 @@ def _load_data(folder, function):
             json_data = json.loads(line.strip())
             data.append(json_data[function])
             times.append(json_data['time'])
-    return np.array(data), np.array(times)
+     np.array(data), np.array(times)
     
 
 

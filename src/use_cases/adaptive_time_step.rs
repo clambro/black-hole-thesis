@@ -32,11 +32,10 @@ impl TimeStep {
                 delta: base_time_step,
                 is_frame_boundary: false,
             };
-        } else {
-            return TimeStep {
-                delta: time_to_next_frame,
-                is_frame_boundary: true,
-            };
+        }
+        TimeStep {
+            delta: time_to_next_frame,
+            is_frame_boundary: true,
         }
     }
 }

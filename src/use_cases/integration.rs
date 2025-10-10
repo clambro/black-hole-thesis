@@ -54,7 +54,7 @@ pub fn rk4_step(config: &Config, state: &State, time_step: f64) -> State {
 
     let time = state.time + time_step;
 
-    return build_subsequent_state(config, time, field, conj_momentum, alternate_mass);
+    build_subsequent_state(config, time, field, conj_momentum, alternate_mass)
 }
 
 /// Integrate a vector cumulatively to a vector using Simpson's rule (4th order accurate).
@@ -77,5 +77,5 @@ pub fn integrate(vector: &FieldVector, grid_size: f64) -> FieldVector {
                     * (vector[i - 3] + 3.0 * vector[i - 2] + 3.0 * vector[i - 1] + vector[i]);
         }
     }
-    return result;
+    result
 }

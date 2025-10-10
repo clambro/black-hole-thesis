@@ -13,18 +13,18 @@ impl Grid {
         let delta: f64 = 2_f64.powi(-(level as i32)); // Forcing 0 to 1 inclusive.
         let points: FieldVector =
             FieldVector::new((0..num_points).map(|i| i as f64 * delta).collect());
-        return Self {
+         Self {
             points,
             delta,
             level,
-        };
+        }
     }
 
     pub fn get_length(&self) -> usize {
-        return self.points.len();
+         self.points.len()
     }
 
     pub fn get_length_at_discretization(discretization: u32) -> usize {
-        return 2_usize.pow(discretization) + 1;
+         2_usize.pow(discretization) + 1
     }
 }

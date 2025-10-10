@@ -16,6 +16,6 @@ impl Constraints {
             return None;
         }
         let bh_radius_index = bh_radius_index.unwrap();
-        return Some(self.mass[bh_radius_index]);
+        Some(self.mass[bh_radius_index])
     }
 }

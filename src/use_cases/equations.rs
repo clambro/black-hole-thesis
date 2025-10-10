@@ -45,7 +45,7 @@ impl EquationsOfMotion {
     fn calculate_dt_field(conj_momentum: &FieldVector, constraints: &Constraints) -> FieldVector {
         let mut result = &constraints.char_speed * conj_momentum;
         result[0] = conj_momentum[0] / &constraints.lapse[0]; // L'Hopital's rule.
-        return result;
+        result
     }
 
     fn calculate_dt_conj_momentum(
@@ -60,7 +60,7 @@ impl EquationsOfMotion {
             * diff(&config.grid, &field);
         let mut result = curvature + divergence;
         result[0] = 3.0 * &d2_field[0] / &constraints.lapse[0]; // L'Hopital's rule.
-        return result;
+        result
     }
 
     fn calculate_dt_alternate_mass(
@@ -70,10 +70,9 @@ impl EquationsOfMotion {
         constraints: &Constraints,
     ) -> FieldVector {
         let radial_gradient = diff(&config.grid, &field);
-        return &config.grid.points.powi(2) * &constraints.radial_factor.powi(2)
-            / &constraints.lapse
+        &config.grid.points.powi(2) * &constraints.radial_factor.powi(2) / &constraints.lapse
             * &radial_gradient
-            * conj_momentum;
+            * conj_momentum
     }
 }
 

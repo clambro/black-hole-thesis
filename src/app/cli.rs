@@ -33,7 +33,8 @@ impl Args {
 
         let config = args.build_config_from_args();
         let state = build_initial_state(&config);
-        return (config, state);
+
+        (config, state)
     }
 
     fn validate(&self) {
@@ -56,12 +57,12 @@ impl Args {
     }
 
     fn build_config_from_args(&self) -> Config {
-        return Config {
+        Config {
             grid: Grid::from_level_of_discretization(self.level_of_discretization),
             initial_amplitude: self.amplitude,
             max_time: self.max_time,
             output_dt: self.output_dt,
             output_dx_level: self.output_dx_level,
-        };
+        }
     }
 }
