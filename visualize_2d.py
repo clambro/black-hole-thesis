@@ -104,7 +104,7 @@ def main(folder: str, function: str, gamma: float = 0.5):
     def animate(frame):
         img.set_array(all_frames[frame])
         time_text.set_text(f'Time: {times[frame]:.4f}')
-         img, time_text
+        return img, time_text
 
     # Create frames with freezing at start and end
     # Add 30 frames (1 second at 30fps) at the beginning and end
@@ -114,11 +114,11 @@ def main(folder: str, function: str, gamma: float = 0.5):
 
     def animate_with_freeze(frame):
         if frame < freeze_frames:
-             animate(0)
+             return animate(0)
         elif frame < freeze_frames + len(data):
-             animate(frame - freeze_frames)
+             return animate(frame - freeze_frames)
         else:
-             animate(len(data) - 1)
+             return animate(len(data) - 1)
 
     # Create animation
     anim = animation.FuncAnimation(fig, animate_with_freeze, frames=total_frames,
