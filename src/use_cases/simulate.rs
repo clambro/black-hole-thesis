@@ -1,3 +1,4 @@
+use crate::domain::constants::STEPS_PER_PROGRESS_UPDATE;
 use crate::domain::simulation_inputs::SimulationInputs;
 use crate::domain::simulation_output::SimulationOutput;
 use crate::use_cases::adaptive_time_step::TimeStep;
@@ -25,7 +26,7 @@ pub fn simulate(
         state = rk4_step(&inputs.sim_config, &state, time_step.delta);
         black_hole_mass = state.black_hole_mass();
 
-        if num_steps % 100 == 0 {
+        if num_steps % STEPS_PER_PROGRESS_UPDATE == 0 {
             let elapsed_seconds = start.elapsed().as_secs_f64();
             logger.log_progress(elapsed_seconds, num_steps, state.time);
         }

@@ -4,3 +4,4 @@ pub const MAX_COURANT_SPEED: f64 = 0.95;
 pub const EPS: f64 = 1e-12;
 pub const DISSIPATION_FACTOR: f64 = 0.01;
 pub const INITIAL_WAVE_EXPONENT: f64 = 64.0;
+pub const STEPS_PER_PROGRESS_UPDATE: i32 = 100;

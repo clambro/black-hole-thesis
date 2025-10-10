@@ -1,5 +1,5 @@
 pub mod adaptive_time_step;
-mod constraint_computer;
+pub mod constraint_computer;
 pub mod diff;
 pub mod equations;
 pub mod integration;
