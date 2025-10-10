@@ -2,7 +2,7 @@ use crate::domain::{
     field_vector::FieldVector, output_config::OutputConfig, simulation_config::SimulationConfig,
     state::State, state_output::StateOutput,
 };
-use crate::use_cases::diff::diff;
+use crate::use_cases::constraint_computer::compute_radial_gradient;
 
 pub fn build_state_output(
     state: &State,
@@ -10,7 +10,7 @@ pub fn build_state_output(
     simulation_config: &SimulationConfig,
 ) -> StateOutput {
     let level = output_config.dx_level;
-    let radial_gradient = diff(&simulation_config.grid, &state.field);
+    let radial_gradient = compute_radial_gradient(&state.field, simulation_config);
 
     StateOutput {
         time: state.time,

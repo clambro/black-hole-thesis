@@ -1,8 +1,9 @@
 use crate::domain::field_vector::FieldVector;
 use crate::domain::simulation_config::SimulationConfig;
 use crate::domain::state::State;
+use crate::use_cases::constraint_computer::compute_constraints;
 use crate::use_cases::equations::EquationsOfMotion;
-use crate::use_cases::state_builder::{build_subsequent_state, compute_constraints};
+use crate::use_cases::state_builder::build_subsequent_state;
 
 /// Perform a Runge-Kutta 4th order time step.
 pub fn rk4_step(config: &SimulationConfig, state: &State, time_step: f64) -> State {
