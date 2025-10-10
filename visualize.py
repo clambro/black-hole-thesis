@@ -48,7 +48,7 @@ def main(folder: str, function: str):
     fps = 30
     freeze_frames = fps
     total_frames = len(data) + 2 * freeze_frames
-    
+
     def animate_with_freeze(frame):
         if frame < freeze_frames:
             # Freeze on first frame
@@ -59,9 +59,9 @@ def main(folder: str, function: str):
         else:
             # Freeze on last frame
              animate(len(data) - 1)
-    
+
     # Create animation
-    anim = animation.FuncAnimation(fig, animate_with_freeze, frames=total_frames, 
+    anim = animation.FuncAnimation(fig, animate_with_freeze, frames=total_frames,
                                 interval=50, blit=True, repeat=True)
 
     # Save as MP4
