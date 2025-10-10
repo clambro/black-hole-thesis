@@ -13,7 +13,7 @@ pub fn simulate(
     let start = Instant::now();
 
     let mut num_steps: i32 = 0;
-    let mut black_hole_mass = inputs.initial_state.get_black_hole_mass();
+    let mut black_hole_mass = inputs.initial_state.black_hole_mass();
     let mut state = inputs.initial_state;
 
     state_output_creator.save_state(&state, &inputs.out_config, &inputs.sim_config); // Initial state
@@ -23,7 +23,7 @@ pub fn simulate(
         let time_step = TimeStep::next(&inputs.sim_config, &inputs.out_config, &state);
 
         state = rk4_step(&inputs.sim_config, &state, time_step.delta);
-        black_hole_mass = state.get_black_hole_mass();
+        black_hole_mass = state.black_hole_mass();
 
         if num_steps % 100 == 0 {
             let elapsed_seconds = start.elapsed().as_secs_f64();

@@ -8,10 +8,10 @@ use crate::use_cases::integration::integrate;
 use std::f64::consts::PI;
 
 pub fn build_initial_state(config: &SimulationConfig) -> State {
-    let n = config.grid.points.len();
+    let n = config.grid.len();
 
     let field = FieldVector::zeros(n);
-    let conj_momentum = get_initial_wave(config);
+    let conj_momentum = initial_wave_profile(config);
 
     let constraints = compute_constraints(&field, &conj_momentum, config);
     let alternate_mass = constraints.mass.clone();
@@ -68,7 +68,7 @@ fn compute_radial_gradient(field: &FieldVector, config: &SimulationConfig) -> Fi
     diff(&config.grid, field)
 }
 
-fn get_initial_wave(config: &SimulationConfig) -> FieldVector {
+fn initial_wave_profile(config: &SimulationConfig) -> FieldVector {
     let exponent = -INITIAL_WAVE_EXPONENT * (PI / 2.0 * &config.grid.points).tan().powi(2);
     config.initial_amplitude * exponent.exp()
 }

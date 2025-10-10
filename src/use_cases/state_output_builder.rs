@@ -22,15 +22,14 @@ pub fn build_state_output(
         lapse: reduce_spatial_resolution(&state.constraints.lapse, level),
         char_speed: reduce_spatial_resolution(&state.constraints.char_speed, level),
         energy_density: reduce_spatial_resolution(&state.constraints.energy_density, level),
-        total_energy: state.get_total_energy(),
+        total_energy: state.total_energy(),
         alternate_mass: reduce_spatial_resolution(&state.alternate_mass, level),
     }
 }
 
 fn reduce_spatial_resolution(field: &FieldVector, target_discretization: u32) -> Vec<f64> {
     let current_length = field.len();
-    let target_length =
-        crate::domain::grid::Grid::get_length_at_discretization(target_discretization);
+    let target_length = crate::domain::grid::Grid::length_at_discretization(target_discretization);
 
     if target_length > current_length {
         panic!("Target resolution is greater than the current resolution.");

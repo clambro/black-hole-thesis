@@ -11,11 +11,11 @@ pub struct State {
 }
 
 impl State {
-    pub fn get_black_hole_mass(&self) -> Option<f64> {
-        self.constraints.get_black_hole_mass()
+    pub fn black_hole_mass(&self) -> Option<f64> {
+        self.constraints.black_hole_mass()
     }
 
-    pub fn get_total_energy(&self) -> f64 {
+    pub fn total_energy(&self) -> f64 {
         self.constraints.mass[self.constraints.mass.len() - 1]
     }
 }

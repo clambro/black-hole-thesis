@@ -10,7 +10,7 @@ pub struct Constraints {
 }
 
 impl Constraints {
-    pub fn get_black_hole_mass(&self) -> Option<f64> {
+    pub fn black_hole_mass(&self) -> Option<f64> {
         let bh_radius_index = self
             .radial_factor
             .iter()
