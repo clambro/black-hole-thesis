@@ -7,13 +7,13 @@ repos:
       - id: check-merge-conflict
       - id: check-yaml
 
-  # - repo: https://github.com/doublify/pre-commit-rust
-  #   rev: v1.0
-  #   hooks:
-  #     - id: fmt
-  #     - id: cargo-check
-  #     - id: clippy
-  #       args: ['--', '-D', 'warnings']
+  - repo: https://github.com/doublify/pre-commit-rust
+    rev: v1.0
+    hooks:
+      - id: fmt
+      - id: cargo-check
+      - id: clippy
+        args: ['--', '-D', 'warnings']
 
   # Block pushes to main
   - repo: https://github.com/pre-commit/pre-commit-hooks
