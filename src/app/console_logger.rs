@@ -19,6 +19,13 @@ impl SimulationLogger for ConsoleLogger {
         io::stdout().flush().unwrap();
     }
 
+    fn log_timeout_warning(&self, max_time: f64) {
+        println!(
+            "WARNING: Simulation time exceeded the max time of {:.3}s without BH formation.",
+            max_time
+        );
+    }
+
     fn log_final_results(&self, output: &SimulationOutput) {
         println!(
             "\nEvolution completed in: {:.2?} seconds",

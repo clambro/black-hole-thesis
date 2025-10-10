@@ -34,14 +34,10 @@ pub fn simulate(
             state_output_creator.save_state(&state, config);
         }
         if state.time > config.max_time {
-            println!("WARNING: Simulation time exceeded max time without BH formation.");
+            logger.log_timeout_warning(config.max_time);
             break;
         }
     }
-
-    // TODO: Saving the final state messes with the frame rate. It should be saved as
-    // a separate metadata file.
-    state_output_creator.save_state(&state, config); // Final state
 
     let output = SimulationOutput {
         time_taken_seconds: start.elapsed().as_secs_f64(),
@@ -50,4 +46,5 @@ pub fn simulate(
         black_hole_mass,
     };
     logger.log_final_results(&output);
+    state_output_creator.save_final_results(&output);
 }
