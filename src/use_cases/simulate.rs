@@ -6,7 +6,7 @@ use crate::use_cases::ports::{SimulationLogger, StateOutputCreator};
 use std::time::Instant;
 
 pub fn simulate(
-    inputs: &ParsedInputs,
+    inputs: ParsedInputs,
     state_output_creator: &mut dyn StateOutputCreator,
     logger: &dyn SimulationLogger,
 ) {
@@ -14,7 +14,7 @@ pub fn simulate(
 
     let mut num_steps: i32 = 0;
     let mut black_hole_mass = inputs.initial_state.get_black_hole_mass();
-    let mut state = inputs.initial_state.clone();
+    let mut state = inputs.initial_state;
 
     state_output_creator.save_state(&state, &inputs.out_config); // Initial state
 

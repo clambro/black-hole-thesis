@@ -18,7 +18,7 @@ impl TimeStep {
             .char_speed
             .iter()
             .min_by(|a, b| a.total_cmp(b))
-            .unwrap_or_else(|| panic!("Characteristic speed is empty."))
+            .expect("Characteristic speed is empty.")
             .clamp(MIN_COURANT_SPEED, MAX_COURANT_SPEED);
 
         // This is a Courant number of 1, but adjusted for the speed of the slowest point,

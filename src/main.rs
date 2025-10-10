@@ -13,5 +13,5 @@ fn main() {
     let mut jsonl_output = JsonlStateOutputCreator::new(&inputs.sim_config);
     let logger = ConsoleLogger::new();
 
-    simulate(&inputs, &mut jsonl_output, &logger);
+    simulate(inputs, &mut jsonl_output, &logger);
 }
