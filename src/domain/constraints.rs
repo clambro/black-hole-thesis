@@ -1,4 +1,4 @@
-use crate::domain::field_vector::FieldVector;
+use crate::domain::{constants::BH_RADIAL_FACTOR_THRESHOLD, field_vector::FieldVector};
 
 #[derive(Debug, Clone)]
 pub struct Constraints {
@@ -11,7 +11,10 @@ pub struct Constraints {
 
 impl Constraints {
     pub fn get_black_hole_mass(&self) -> Option<f64> {
-        let bh_radius_index = self.radial_factor.iter().position(|x| x <= &0.01);
+        let bh_radius_index = self
+            .radial_factor
+            .iter()
+            .position(|x| x <= &BH_RADIAL_FACTOR_THRESHOLD);
 
         let bh_radius_index = bh_radius_index?;
 

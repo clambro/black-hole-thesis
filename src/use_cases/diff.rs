@@ -1,3 +1,4 @@
+use crate::domain::constants::DISSIPATION_FACTOR;
 use crate::domain::field_vector::FieldVector;
 use crate::domain::grid::Grid;
 
@@ -114,5 +115,5 @@ pub fn dissipation(vector: &FieldVector, grid: &Grid) -> FieldVector {
             + vector[i - 6];
     });
 
-    0.01 / grid.delta / 64.0 * result
+    DISSIPATION_FACTOR / grid.delta / 64.0 * result
 }

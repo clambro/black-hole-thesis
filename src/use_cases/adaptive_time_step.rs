@@ -1,5 +1,8 @@
 use crate::domain::{
-    output_config::OutputConfig, simulation_config::SimulationConfig, state::State,
+    constants::{EPS, MAX_COURANT_SPEED, MIN_COURANT_SPEED},
+    output_config::OutputConfig,
+    simulation_config::SimulationConfig,
+    state::State,
 };
 
 pub struct TimeStep {
@@ -16,7 +19,7 @@ impl TimeStep {
             .iter()
             .min_by(|a, b| a.total_cmp(b))
             .unwrap_or_else(|| panic!("Characteristic speed is empty."))
-            .clamp(0.1, 0.95); // Speed is in (0, 1], but don't go too slow or too fast.
+            .clamp(MIN_COURANT_SPEED, MAX_COURANT_SPEED);
 
         // This is a Courant number of 1, but adjusted for the speed of the slowest point,
         // so it should be stable.
@@ -28,7 +31,7 @@ impl TimeStep {
         let time_to_next_frame = next_frame - state.time;
 
         // The first condition handles floating point errors if we're exactly at a frame boundary.
-        if time_to_next_frame <= 1e-12 || time_to_next_frame > base_time_step {
+        if time_to_next_frame <= EPS || time_to_next_frame > base_time_step {
             return TimeStep {
                 delta: base_time_step,
                 is_frame_boundary: false,
