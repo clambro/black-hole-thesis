@@ -3,6 +3,7 @@ mod domain;
 mod use_cases;
 
 use app::cli::Args;
+use app::console_logger::ConsoleLogger;
 use app::file_output::JsonlStateOutputCreator;
 use use_cases::simulate::simulate;
 
@@ -10,24 +11,7 @@ fn main() {
     let (config, state) = Args::parse_args();
 
     let jsonl_output = JsonlStateOutputCreator::new(&config);
+    let logger = ConsoleLogger::new();
 
-    let output = simulate(&config, state, &jsonl_output);
-
-    println!(
-        "Evolution completed in: {:.2?} seconds",
-        output.time_taken_seconds
-    );
-    println!("Number of steps: {}", output.num_steps);
-    println!(
-        "Time per step: {:.2?} milliseconds",
-        output.time_taken_seconds / output.num_steps as f64 * 1000.0
-    );
-    match output.black_hole_mass {
-        Some(mass) => println!("Black hole mass: {:.4?}", mass),
-        None => println!("Black hole mass: None"),
-    }
-    println!(
-        "Final simulation time: {:.4?}",
-        output.final_simulation_time
-    );
+    simulate(&config, state, &jsonl_output, &logger);
 }

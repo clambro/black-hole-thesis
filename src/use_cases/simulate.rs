@@ -3,16 +3,17 @@ use crate::domain::simulation_output::SimulationOutput;
 use crate::domain::state::State;
 use crate::use_cases::adaptive_time_step::TimeStep;
 use crate::use_cases::integration::rk4_step;
-use crate::use_cases::ports::StateOutputCreator;
+use crate::use_cases::ports::{SimulationLogger, StateOutputCreator};
 use std::time::Instant;
 
 pub fn simulate(
     config: &Config,
     mut state: State,
     state_output_creator: &dyn StateOutputCreator,
-) -> SimulationOutput {
+    logger: &dyn SimulationLogger,
+) {
     let start = Instant::now();
-    let mut num_steps = 0;
+    let mut num_steps: i32 = 0;
     let mut black_hole_mass = state.get_black_hole_mass();
 
     state_output_creator.save_state(&state, config); // Initial state
@@ -23,6 +24,11 @@ pub fn simulate(
 
         state = rk4_step(&config, &state, time_step.delta);
         black_hole_mass = state.get_black_hole_mass();
+
+        if num_steps % 100 == 0 {
+            let elapsed_seconds = start.elapsed().as_secs_f64();
+            logger.log_progress(elapsed_seconds, num_steps, state.time);
+        }
 
         if time_step.is_frame_boundary {
             state_output_creator.save_state(&state, config);
@@ -43,5 +49,5 @@ pub fn simulate(
         final_simulation_time: state.time,
         black_hole_mass,
     };
-    return output;
+    logger.log_final_results(&output);
 }
