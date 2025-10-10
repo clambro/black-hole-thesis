@@ -47,7 +47,10 @@ impl Args {
             out_config,
             initial_state,
         };
-        inputs.validate();
+        let validation = inputs.validate();
+        if validation.is_err() {
+            panic!("{}", validation.err().unwrap());
+        }
         inputs
     }
 }
