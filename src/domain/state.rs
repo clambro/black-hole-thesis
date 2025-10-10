@@ -6,6 +6,7 @@ pub struct State {
     pub time: f64,
     pub field: FieldVector,
     pub conj_momentum: FieldVector,
+    pub radial_gradient: FieldVector,
     pub alternate_mass: FieldVector,
     pub constraints: Constraints,
 }

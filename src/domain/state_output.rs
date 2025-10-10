@@ -1,5 +1,4 @@
 use crate::domain::{config::Config, field_vector::FieldVector, grid::Grid, state::State};
-use crate::use_cases::state_builder::compute_radial_gradient;
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -24,10 +23,7 @@ impl StateOutput {
         Self {
             time: state.time,
             field: Self::reduce_spatial_resolution(&state.field, level),
-            radial_gradient: Self::reduce_spatial_resolution(
-                &compute_radial_gradient(&state.field, config),
-                level,
-            ),
+            radial_gradient: Self::reduce_spatial_resolution(&state.radial_gradient, level),
             conj_momentum: Self::reduce_spatial_resolution(&state.conj_momentum, level),
             mass: Self::reduce_spatial_resolution(&state.constraints.mass, level),
             compactness: Self::reduce_spatial_resolution(

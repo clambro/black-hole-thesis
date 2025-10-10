@@ -10,15 +10,18 @@ pub fn build_initial_state(config: &Config) -> State {
     let n = config.grid.points.len();
 
     let field = FieldVector::zeros(n);
+    let radial_gradient = FieldVector::zeros(n);
     let conj_momentum = get_initial_wave(config);
 
-    let constraints = compute_constraints(&field, &conj_momentum, config);
+    let constraints =
+        compute_constraints_from_radial_gradient(&radial_gradient, &conj_momentum, config);
     let alternate_mass = constraints.mass.clone();
 
     State {
         time: 0.0,
         field,
         conj_momentum,
+        radial_gradient,
         constraints,
         alternate_mass,
     }
@@ -31,12 +34,15 @@ pub fn build_subsequent_state(
     conj_momentum: FieldVector,
     alternate_mass: FieldVector,
 ) -> State {
-    let constraints = compute_constraints(&field, &conj_momentum, config);
+    let radial_gradient = compute_radial_gradient(&field, config);
+    let constraints =
+        compute_constraints_from_radial_gradient(&radial_gradient, &conj_momentum, config);
 
     State {
         time,
         field,
         conj_momentum,
+        radial_gradient,
         constraints,
         alternate_mass,
     }
@@ -48,8 +54,20 @@ pub fn compute_constraints(
     config: &Config,
 ) -> Constraints {
     let radial_gradient = compute_radial_gradient(field, config);
-    let lapse = compute_lapse(&radial_gradient, conj_momentum, config);
-    let energy_density = compute_energy_density(&radial_gradient, conj_momentum, config);
+    compute_constraints_from_radial_gradient(&radial_gradient, conj_momentum, config)
+}
+
+fn compute_radial_gradient(field: &FieldVector, config: &Config) -> FieldVector {
+    diff(&config.grid, field)
+}
+
+fn compute_constraints_from_radial_gradient(
+    radial_gradient: &FieldVector,
+    conj_momentum: &FieldVector,
+    config: &Config,
+) -> Constraints {
+    let lapse = compute_lapse(radial_gradient, conj_momentum, config);
+    let energy_density = compute_energy_density(radial_gradient, conj_momentum, config);
     let radial_factor = compute_radial_factor(&lapse, config);
     let mass = 0.5 * &config.grid.points * (1.0 - &radial_factor);
     let char_speed = &radial_factor / &lapse;
@@ -61,10 +79,6 @@ pub fn compute_constraints(
         lapse,
         char_speed,
     }
-}
-
-pub fn compute_radial_gradient(field: &FieldVector, config: &Config) -> FieldVector {
-    diff(&config.grid, field)
 }
 
 fn get_initial_wave(config: &Config) -> FieldVector {
