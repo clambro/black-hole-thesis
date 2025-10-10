@@ -20,9 +20,9 @@ pub fn simulate(
 
     while black_hole_mass.is_none() {
         num_steps += 1;
-        let time_step = TimeStep::next(&config, &state);
+        let time_step = TimeStep::next(config, &state);
 
-        state = rk4_step(&config, &state, time_step.delta);
+        state = rk4_step(config, &state, time_step.delta);
         black_hole_mass = state.get_black_hole_mass();
 
         if num_steps % 100 == 0 {

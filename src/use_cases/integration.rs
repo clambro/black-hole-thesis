@@ -7,7 +7,7 @@ use crate::use_cases::state_builder::{build_subsequent_state, compute_constraint
 /// Perform a Runge-Kutta 4th order time step.
 pub fn rk4_step(config: &Config, state: &State, time_step: f64) -> State {
     let u1 = EquationsOfMotion::new(
-        &config,
+        config,
         state.field.clone(),
         state.conj_momentum.clone(),
         &state.constraints,
@@ -18,7 +18,7 @@ pub fn rk4_step(config: &Config, state: &State, time_step: f64) -> State {
     let u1_constraints = compute_constraints(&u1_field, &u1_conj_momentum, config);
 
     let u2 = EquationsOfMotion::new(
-        &config,
+        config,
         u1_field.clone(),
         u1_conj_momentum.clone(),
         &u1_constraints,
@@ -29,7 +29,7 @@ pub fn rk4_step(config: &Config, state: &State, time_step: f64) -> State {
     let u2_constraints = compute_constraints(&u2_field, &u2_conj_momentum, config);
 
     let u3 = EquationsOfMotion::new(
-        &config,
+        config,
         u2_field.clone(),
         u2_conj_momentum.clone(),
         &u2_constraints,
@@ -40,7 +40,7 @@ pub fn rk4_step(config: &Config, state: &State, time_step: f64) -> State {
     let u3_constraints = compute_constraints(&u3_field, &u3_conj_momentum, config);
 
     let u4 = EquationsOfMotion::new(
-        &config,
+        config,
         u3_field.clone(),
         u3_conj_momentum.clone(),
         &u3_constraints,

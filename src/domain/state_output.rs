@@ -55,7 +55,7 @@ impl StateOutput {
 
         let step = (current_length - 1) / (target_length - 1); // Preserves grid points.
 
-         field
+        field
             .iter()
             .step_by(step)
             .copied()

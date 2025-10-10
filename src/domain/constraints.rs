@@ -12,9 +12,9 @@ pub struct Constraints {
 impl Constraints {
     pub fn get_black_hole_mass(&self) -> Option<f64> {
         let bh_radius_index = self.radial_factor.iter().position(|x| x <= &0.01);
-        if bh_radius_index.is_none() {
-            return None;
-        }
+
+        bh_radius_index?;
+
         let bh_radius_index = bh_radius_index.unwrap();
         Some(self.mass[bh_radius_index])
     }

@@ -14,8 +14,7 @@ impl TimeStep {
             .iter()
             .min_by(|a, b| a.total_cmp(b))
             .unwrap()
-            .max(0.1) // Speed is in (0, 1], but don't go too slow.
-            .min(0.95); // Going to exactly 1 would be unstable, so aim a bit below.
+            .clamp(0.1, 0.95); // Speed is in (0, 1], but don't go too slow or too fast.
 
         // This is a Courant number of 1, but adjusted for the speed of the slowest point,
         // so it should be stable.
