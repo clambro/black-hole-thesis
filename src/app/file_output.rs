@@ -28,14 +28,16 @@ impl JsonlStateOutputCreator {
 }
 
 impl StateOutputCreator for JsonlStateOutputCreator {
-    fn save_state(&self, state: &State, config: &OutputConfig) {
+    fn save_state(&mut self, state: &State, config: &OutputConfig) {
         let state_output = StateOutput::from_state(state, config);
         let json_str = serde_json::to_string(&state_output).expect("Could not serialize state");
         writeln!(&self.state_file, "{}", json_str).expect("Could not write to file");
+        self.state_file.flush().expect("Could not flush file");
     }
 
-    fn save_final_results(&self, output: &SimulationOutput) {
+    fn save_final_results(&mut self, output: &SimulationOutput) {
         let json_str = serde_json::to_string(&output).expect("Could not serialize output");
         writeln!(&self.results_file, "{}", json_str).expect("Could not write to file");
+        self.results_file.flush().expect("Could not flush file");
     }
 }

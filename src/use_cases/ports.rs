@@ -4,8 +4,8 @@ use crate::domain::simulation_output::SimulationOutput;
 use crate::domain::state::State;
 
 pub trait StateOutputCreator {
-    fn save_state(&self, state: &State, config: &OutputConfig);
-    fn save_final_results(&self, output: &SimulationOutput);
+    fn save_state(&mut self, state: &State, config: &OutputConfig);
+    fn save_final_results(&mut self, output: &SimulationOutput);
 }
 
 pub trait SimulationLogger {

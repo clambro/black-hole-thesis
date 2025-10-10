@@ -10,8 +10,8 @@ use use_cases::simulate::simulate;
 fn main() {
     let inputs = Args::parse_args();
 
-    let jsonl_output = JsonlStateOutputCreator::new(&inputs.sim_config);
+    let mut jsonl_output = JsonlStateOutputCreator::new(&inputs.sim_config);
     let logger = ConsoleLogger::new();
 
-    simulate(&inputs, &jsonl_output, &logger);
+    simulate(&inputs, &mut jsonl_output, &logger);
 }

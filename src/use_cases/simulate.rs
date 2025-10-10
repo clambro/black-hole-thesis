@@ -7,7 +7,7 @@ use std::time::Instant;
 
 pub fn simulate(
     inputs: &ParsedInputs,
-    state_output_creator: &dyn StateOutputCreator,
+    state_output_creator: &mut dyn StateOutputCreator,
     logger: &dyn SimulationLogger,
 ) {
     let start = Instant::now();
