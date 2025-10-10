@@ -1,5 +1,5 @@
 use crate::domain::field_vector::FieldVector;
-use crate::domain::{config::Config, constraints::Constraints};
+use crate::domain::{constraints::Constraints, simulation_config::SimulationConfig};
 use crate::use_cases::diff::{diff, diff2, dissipation, set_left_neumann_bc};
 use std::ops::{Add, Mul};
 
@@ -11,18 +11,18 @@ pub struct EquationsOfMotion {
 
 impl EquationsOfMotion {
     pub fn new(
-        config: &Config,
-        field: FieldVector,
-        conj_momentum: FieldVector,
+        config: &SimulationConfig,
+        field: &FieldVector,
+        conj_momentum: &FieldVector,
         constraints: &Constraints,
     ) -> Self {
-        let dt_field = Self::calculate_dt_field(&conj_momentum, constraints)
-            + dissipation(&field, &config.grid);
-        let dt_conj_momentum = Self::calculate_dt_conj_momentum(config, &field, constraints)
-            + dissipation(&conj_momentum, &config.grid);
+        let dt_field =
+            Self::calculate_dt_field(conj_momentum, constraints) + dissipation(field, &config.grid);
+        let dt_conj_momentum = Self::calculate_dt_conj_momentum(config, field, constraints)
+            + dissipation(conj_momentum, &config.grid);
         // The mass function is smooth, so no dissipation required.
         let dt_alternate_mass =
-            Self::calculate_dt_alternate_mass(config, &field, &conj_momentum, constraints);
+            Self::calculate_dt_alternate_mass(config, field, conj_momentum, constraints);
 
         Self {
             dt_field,
@@ -49,7 +49,7 @@ impl EquationsOfMotion {
     }
 
     fn calculate_dt_conj_momentum(
-        config: &Config,
+        config: &SimulationConfig,
         field: &FieldVector,
         constraints: &Constraints,
     ) -> FieldVector {
@@ -64,7 +64,7 @@ impl EquationsOfMotion {
     }
 
     fn calculate_dt_alternate_mass(
-        config: &Config,
+        config: &SimulationConfig,
         field: &FieldVector,
         conj_momentum: &FieldVector,
         constraints: &Constraints,

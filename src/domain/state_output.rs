@@ -1,4 +1,6 @@
-use crate::domain::{config::Config, field_vector::FieldVector, grid::Grid, state::State};
+use crate::domain::{
+    field_vector::FieldVector, grid::Grid, output_config::OutputConfig, state::State,
+};
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -17,8 +19,8 @@ pub struct StateOutput {
 }
 
 impl StateOutput {
-    pub fn from_state(state: &State, config: &Config) -> Self {
-        let level = config.output_dx_level;
+    pub fn from_state(state: &State, config: &OutputConfig) -> Self {
+        let level = config.dx_level;
 
         Self {
             time: state.time,

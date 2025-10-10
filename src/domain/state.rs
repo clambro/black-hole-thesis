@@ -1,7 +1,7 @@
 use crate::domain::constraints::Constraints;
 use crate::domain::field_vector::FieldVector;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct State {
     pub time: f64,
     pub field: FieldVector,

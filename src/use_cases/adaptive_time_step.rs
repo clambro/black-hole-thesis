@@ -1,4 +1,6 @@
-use crate::domain::{config::Config, state::State};
+use crate::domain::{
+    output_config::OutputConfig, simulation_config::SimulationConfig, state::State,
+};
 
 pub struct TimeStep {
     pub delta: f64,
@@ -7,7 +9,7 @@ pub struct TimeStep {
 
 // Get the next time step, ensuring that we land on a frame boundary if it is within the base time step.
 impl TimeStep {
-    pub fn next(config: &Config, state: &State) -> Self {
+    pub fn next(sim_config: &SimulationConfig, out_config: &OutputConfig, state: &State) -> Self {
         let min_speed = state
             .constraints
             .char_speed
@@ -18,11 +20,11 @@ impl TimeStep {
 
         // This is a Courant number of 1, but adjusted for the speed of the slowest point,
         // so it should be stable.
-        let base_time_step = config.grid.delta * min_speed;
+        let base_time_step = sim_config.grid.delta * min_speed;
 
         // Find the next frame boundary after the current time
-        let current_frame_index = (state.time / config.output_dt).floor();
-        let next_frame = (current_frame_index + 1.0) * config.output_dt;
+        let current_frame_index = (state.time / out_config.dt).floor();
+        let next_frame = (current_frame_index + 1.0) * out_config.dt;
         let time_to_next_frame = next_frame - state.time;
 
         // The first condition handles floating point errors if we're exactly at a frame boundary.

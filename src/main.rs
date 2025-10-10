@@ -8,10 +8,10 @@ use app::file_output::JsonlStateOutputCreator;
 use use_cases::simulate::simulate;
 
 fn main() {
-    let (config, state) = Args::parse_args();
+    let inputs = Args::parse_args();
 
-    let jsonl_output = JsonlStateOutputCreator::new(&config);
+    let jsonl_output = JsonlStateOutputCreator::new(&inputs.sim_config);
     let logger = ConsoleLogger::new();
 
-    simulate(&config, state, &jsonl_output, &logger);
+    simulate(&inputs, &jsonl_output, &logger);
 }

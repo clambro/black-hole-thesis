@@ -1,6 +1,6 @@
 use crate::domain::field_vector::FieldVector;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Constraints {
     pub energy_density: FieldVector, // E
     pub mass: FieldVector,           // m

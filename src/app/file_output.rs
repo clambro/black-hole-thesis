@@ -1,4 +1,5 @@
-use crate::domain::config::Config;
+use crate::domain::output_config::OutputConfig;
+use crate::domain::simulation_config::SimulationConfig;
 use crate::domain::simulation_output::SimulationOutput;
 use crate::domain::state::State;
 use crate::domain::state_output::StateOutput;
@@ -12,7 +13,7 @@ pub struct JsonlStateOutputCreator {
 }
 
 impl JsonlStateOutputCreator {
-    pub fn new(config: &Config) -> Self {
+    pub fn new(config: &SimulationConfig) -> Self {
         let folder = format!("results/{}_{}", config.initial_amplitude, config.grid.level);
         std::fs::create_dir_all(&folder).expect("Could not create folder");
         let state_file =
@@ -27,7 +28,7 @@ impl JsonlStateOutputCreator {
 }
 
 impl StateOutputCreator for JsonlStateOutputCreator {
-    fn save_state(&self, state: &State, config: &Config) {
+    fn save_state(&self, state: &State, config: &OutputConfig) {
         let state_output = StateOutput::from_state(state, config);
         let json_str = serde_json::to_string(&state_output).expect("Could not serialize state");
         writeln!(&self.state_file, "{}", json_str).expect("Could not write to file");

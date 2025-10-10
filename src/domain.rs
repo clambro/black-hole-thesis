@@ -1,7 +1,9 @@
-pub mod config;
 pub mod constraints;
 pub mod field_vector;
 pub mod grid;
+pub mod output_config;
+pub mod parsed_inputs;
+pub mod simulation_config;
 pub mod simulation_output;
 pub mod state;
 pub mod state_output;
