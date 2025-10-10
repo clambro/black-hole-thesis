@@ -13,7 +13,7 @@ impl TimeStep {
             .char_speed
             .iter()
             .min_by(|a, b| a.total_cmp(b))
-            .unwrap()
+            .unwrap_or_else(|| panic!("Characteristic speed is empty."))
             .clamp(0.1, 0.95); // Speed is in (0, 1], but don't go too slow or too fast.
 
         // This is a Courant number of 1, but adjusted for the speed of the slowest point,
