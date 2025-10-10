@@ -16,7 +16,7 @@ pub fn simulate(
     let mut black_hole_mass = inputs.initial_state.get_black_hole_mass();
     let mut state = inputs.initial_state;
 
-    state_output_creator.save_state(&state, &inputs.out_config); // Initial state
+    state_output_creator.save_state(&state, &inputs.out_config, &inputs.sim_config); // Initial state
 
     while black_hole_mass.is_none() {
         num_steps += 1;
@@ -31,7 +31,7 @@ pub fn simulate(
         }
 
         if time_step.is_frame_boundary {
-            state_output_creator.save_state(&state, &inputs.out_config);
+            state_output_creator.save_state(&state, &inputs.out_config, &inputs.sim_config);
         }
         if state.time > inputs.sim_config.max_time {
             logger.log_timeout_warning(inputs.sim_config.max_time);
