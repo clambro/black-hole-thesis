@@ -43,13 +43,30 @@ def main(folder: str, function: str):
         time_text.set_text(f'Time: {times[frame]:.4f}')
         return line, time_text
 
+    # Create frames with freezing at start and end
+    # Add 30 frames (1 second at 30fps) at the beginning and end
+    fps = 30
+    freeze_frames = fps
+    total_frames = len(data) + 2 * freeze_frames
+    
+    def animate_with_freeze(frame):
+        if frame < freeze_frames:
+            # Freeze on first frame
+            return animate(0)
+        elif frame < freeze_frames + len(data):
+            # Normal animation
+            return animate(frame - freeze_frames)
+        else:
+            # Freeze on last frame
+            return animate(len(data) - 1)
+    
     # Create animation
-    anim = animation.FuncAnimation(fig, animate, frames=len(data), 
+    anim = animation.FuncAnimation(fig, animate_with_freeze, frames=total_frames, 
                                 interval=50, blit=True, repeat=True)
 
     # Save as MP4
     print("Saving animation...")
-    anim.save(f'results/{folder}/{function}.mp4', writer='ffmpeg', fps=30, bitrate=1000, extra_args=['-vcodec', 'libx264'])
+    anim.save(f'results/{folder}/{function}.mp4', writer='ffmpeg', fps=fps, bitrate=1000, extra_args=['-vcodec', 'libx264'])
     print(f"Animation saved as {folder}/{function}.mp4")
 
 
