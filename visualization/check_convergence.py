@@ -31,7 +31,8 @@ def main(*folders: str, check_type: CheckType) -> None:
         else:
             values = _calculate_mass_residual(states)
 
-        values = np.log(np.abs(values) + 1e-12) / np.log(16)
+        with np.errstate(divide="ignore"):  # Ignore log(0). We want those to be NaN.
+            values = np.log(np.abs(values)) / np.log(16)
 
         ax.plot(times, values, linewidth=2, label=f"level={folder.split('_')[1]}")
         ax.legend()
