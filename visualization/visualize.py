@@ -3,22 +3,78 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import animation
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.text import Text
 
+from schemas import StateOutput
 from utils import load_state_outputs
+
+FPS = 30
 
 
 def main(folder: str, function: str) -> None:
     """Visualize the wave simulation."""
     states = load_state_outputs(folder)
+    times, values, radius = _extract_data(states, function)
+
+    anim = _create_animation(function, times, values, radius, states)
+    _save_animation(anim, folder, function)
+
+
+def _extract_data(
+    states: list[StateOutput],
+    function: str,
+) -> tuple[list[float], np.ndarray, np.ndarray]:
+    """Extract time and field data from states."""
     times = [state.time for state in states]
     values = np.array([getattr(state, function) for state in states])
+    radius = np.linspace(0, 1, len(values[0]))
+    return times, values, radius
 
-    n_points = len(values[0])
-    x = np.linspace(0, 1, n_points)
 
-    fig, ax = plt.subplots(figsize=(10, 6))
+def _create_animation(
+    function: str,
+    times: list[float],
+    values: np.ndarray,
+    radius: np.ndarray,
+    states: list[StateOutput],
+) -> animation.FuncAnimation:
+    """Create the animation with freeze frames."""
+    fig, ax, line, time_text = _setup_plot(function, values)
+    freeze_seconds = 1
+    freeze_frames = freeze_seconds * FPS
+
+    def animate(frame: int) -> tuple[Line2D, Text]:
+        """Animate a single frame."""
+        prev_y_min, prev_y_max = ax.get_ylim()
+        y_min = min(prev_y_min, np.min(values[frame]) * 1.1)
+        y_max = max(prev_y_max, np.max(values[frame]) * 1.1)
+
+        ax.set_ylim(y_min, y_max)
+        line.set_data(radius, values[frame])
+        time_text.set_text(f"Time: {times[frame]:.4f}")
+        return line, time_text
+
+    def animate_with_freeze(frame: int) -> tuple[Line2D, Text]:
+        """Create frames with freezing at start and end."""
+        if frame < freeze_frames:
+            return animate(0)
+        if frame < freeze_frames + len(states):
+            return animate(frame - freeze_frames)
+        return animate(len(states) - 1)
+
+    total_frames = len(states) + 2 * freeze_seconds * FPS
+
+    return animation.FuncAnimation(
+        fig, animate_with_freeze, frames=total_frames, interval=50, blit=True, repeat=True
+    )
+
+
+def _setup_plot(function: str, values: np.ndarray) -> tuple[Figure, Axes, Line2D, Text]:
+    """Set up the plot with axes, labels, and initial elements."""
+    fig, ax = plt.subplots(figsize=(10, 6), dpi=150)
     ax.grid(visible=True, alpha=0.3)
     ax.set_xlim(0, 1)
     ax.set_ylim(np.min(values[0]) * 1.1, np.max(values[0]) * 1.1)
@@ -36,38 +92,16 @@ def main(folder: str, function: str) -> None:
         bbox={"boxstyle": "round", "facecolor": "wheat", "alpha": 0.8},
     )
 
-    def animate(frame: int) -> tuple[Line2D, Text]:
-        """Create a frame with freezing at start and end."""
-        prev_y_min, prev_y_max = ax.get_ylim()
+    return fig, ax, line, time_text
 
-        y_min = min(prev_y_min, np.min(values[frame]) * 1.1)
-        y_max = max(prev_y_max, np.max(values[frame]) * 1.1)
 
-        ax.set_ylim(y_min, y_max)
-        line.set_data(x, values[frame])
-        time_text.set_text(f"Time: {times[frame]:.4f}")
-        return line, time_text
-
-    fps = 30
-    freeze_frames = fps
-    total_frames = len(states) + 2 * freeze_frames
-
-    def animate_with_freeze(frame: int) -> tuple[Line2D, Text]:
-        """Create a frames with freezing at start and end."""
-        if frame < freeze_frames:
-            return animate(0)
-        if frame < freeze_frames + len(states):
-            return animate(frame - freeze_frames)
-        return animate(len(states) - 1)
-
-    anim = animation.FuncAnimation(
-        fig, animate_with_freeze, frames=total_frames, interval=50, blit=True, repeat=True
-    )
+def _save_animation(anim: animation.FuncAnimation, folder: str, function: str) -> None:
+    """Save the animation to file."""
     anim.save(
-        f"results/{folder}/{function}.mp4",
+        f"../results/{folder}/{function}.mp4",
         writer="ffmpeg",
-        fps=fps,
-        bitrate=1000,
+        fps=FPS,
+        bitrate=2000,
         extra_args=["-vcodec", "libx264"],
     )
 
