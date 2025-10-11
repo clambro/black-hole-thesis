@@ -3,13 +3,18 @@ use crate::domain::{constraints::Constraints, simulation_config::SimulationConfi
 use crate::use_cases::diff::{diff, diff2, dissipation, set_left_neumann_bc};
 use std::ops::{Add, Mul};
 
+/// Time derivatives of the field variables.
 pub struct EquationsOfMotion {
+    /// Time derivative of the scalar field.
     pub dt_field: FieldVector,
+    /// Time derivative of the conjugate momentum.
     pub dt_conj_momentum: FieldVector,
+    /// Time derivative of the alternate mass function.
     pub dt_alternate_mass: FieldVector,
 }
 
 impl EquationsOfMotion {
+    /// Create equations of motion from current state.
     pub fn new(
         config: &SimulationConfig,
         field: &FieldVector,
@@ -31,6 +36,7 @@ impl EquationsOfMotion {
         }
     }
 
+    /// Apply boundary conditions to the fields.
     pub fn apply_bcs(field: &mut FieldVector, conj_momentum: &mut FieldVector) {
         // Neumann BCs at the origin maintain regularity.
         set_left_neumann_bc(field);
@@ -42,12 +48,14 @@ impl EquationsOfMotion {
         conj_momentum[n - 1] = 0.0;
     }
 
+    /// Calculate the time derivative of the scalar field.
     fn calculate_dt_field(conj_momentum: &FieldVector, constraints: &Constraints) -> FieldVector {
         let mut result = &constraints.char_speed * conj_momentum;
         result[0] = conj_momentum[0] / constraints.lapse[0]; // L'Hopital's rule.
         result
     }
 
+    /// Calculate the time derivative of the conjugate momentum.
     fn calculate_dt_conj_momentum(
         config: &SimulationConfig,
         field: &FieldVector,
@@ -63,6 +71,7 @@ impl EquationsOfMotion {
         result
     }
 
+    /// Calculate the time derivative of the alternate mass function.
     fn calculate_dt_alternate_mass(
         config: &SimulationConfig,
         field: &FieldVector,

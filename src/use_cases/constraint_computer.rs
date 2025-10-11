@@ -4,6 +4,7 @@ use crate::domain::simulation_config::SimulationConfig;
 use crate::use_cases::diff::diff;
 use crate::use_cases::integration::integrate;
 
+/// Compute all constraint variables from field data.
 pub fn compute_constraints(
     field: &FieldVector,
     conj_momentum: &FieldVector,
@@ -25,10 +26,12 @@ pub fn compute_constraints(
     }
 }
 
+/// Compute the radial gradient of the field.
 pub fn compute_radial_gradient(field: &FieldVector, config: &SimulationConfig) -> FieldVector {
     diff(&config.grid, field)
 }
 
+/// Compute the energy density field.
 fn compute_energy_density(
     radial_gradient: &FieldVector,
     conj_momentum: &FieldVector,
@@ -37,6 +40,7 @@ fn compute_energy_density(
     0.5 * &config.grid.points.powi(2) * (&radial_gradient.powi(2) + &conj_momentum.powi(2))
 }
 
+/// Compute the radial metric factor A.
 fn compute_radial_factor(lapse: &FieldVector, config: &SimulationConfig) -> FieldVector {
     let indefinite_integral = integrate(&lapse.powi(-1), config.grid.delta);
     let mut radial_factor =
@@ -45,6 +49,7 @@ fn compute_radial_factor(lapse: &FieldVector, config: &SimulationConfig) -> Fiel
     radial_factor
 }
 
+/// Compute the lapse function N.
 fn compute_lapse(
     radial_gradient: &FieldVector,
     conj_momentum: &FieldVector,
