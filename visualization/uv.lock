@@ -32,7 +32,7 @@ dev = [
 requires-dist = [
     { name = "matplotlib", specifier = ">=3.10.7,<4" },
     { name = "numpy", specifier = ">=2.3.3,<3" },
-    { name = "pydantic", specifier = ">=2.12.0" },
+    { name = "pydantic", specifier = ">=2.12.0,<3" },
     { name = "scipy", specifier = ">=1.16.2,<2" },
 ]
 

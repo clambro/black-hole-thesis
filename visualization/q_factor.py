@@ -31,7 +31,7 @@ def main(low_folder: str, mid_folder: str, high_folder: str, function: str) -> N
     ax.hlines(16, times[0], times[-1], "r", "--", linewidth=2)
 
     suffix = f"{high_folder}_{mid_folder}_{low_folder}"
-    plt.savefig(f"results/q_factor_{suffix}_{function}.png")
+    plt.savefig(f"../results/q_factor_{suffix}_{function}.png")
 
 
 def _load_data(folder: str, function: str) -> tuple[np.ndarray, np.ndarray]:
