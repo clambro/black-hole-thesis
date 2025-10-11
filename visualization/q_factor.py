@@ -1,14 +1,18 @@
+import argparse
 import json
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
-import argparse
 
-def main(low_folder, mid_folder, high_folder, function):
+
+def main(low_folder: str, mid_folder: str, high_folder: str, function: str) -> None:
+    """Visualize Q-factor for a given function at different levels of discretization."""
     # Set up the figure and axis
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.set_xlabel('Time', fontsize=14)
-    ax.set_ylabel('Q-factor', fontsize=14)
-    ax.set_title(f'Q-factor for {function.replace("_", " ").capitalize()}', fontsize=16)
+    ax.set_xlabel("Time", fontsize=14)
+    ax.set_ylabel("Q-factor", fontsize=14)
+    ax.set_title(f"Q-factor for {function.replace('_', ' ').capitalize()}", fontsize=16)
 
     high_data, times = _load_data(high_folder, function)
     mid_data, _ = _load_data(mid_folder, function)
@@ -20,31 +24,40 @@ def main(low_folder, mid_folder, high_folder, function):
     low_data = low_data[:max_len]
     times = times[:max_len]
 
-    q_factor = np.linalg.norm(mid_data - low_data, axis=1) / np.linalg.norm(high_data - mid_data, axis=1)
+    q_factor = np.linalg.norm(mid_data - low_data, axis=1) / np.linalg.norm(
+        high_data - mid_data, axis=1
+    )
     q_factor = np.clip(q_factor, 0, 32)
 
-    ax.plot(times, q_factor, 'b-', linewidth=2)
-    ax.hlines(16, times[0], times[-1], 'r', '--', linewidth=2)
+    ax.plot(times, q_factor, "b-", linewidth=2)
+    ax.hlines(16, times[0], times[-1], "r", "--", linewidth=2)
 
-    suffix = "_".join([high_folder, mid_folder, low_folder])
-    plt.savefig(f'results/q_factor_{suffix}_{function}.png')
+    suffix = f"{high_folder}_{mid_folder}_{low_folder}"
+    plt.savefig(f"results/q_factor_{suffix}_{function}.png")
 
 
-def _load_data(folder, function):
+def _load_data(folder: str, function: str) -> tuple[np.ndarray, np.ndarray]:
+    """Load data from a given folder and function."""
     data = []
     times = []
-    with open(f'results/{folder}/states.jsonl', 'r') as f:
+    with Path(f"results/{folder}/states.jsonl").open() as f:
         for line in f:
             json_data = json.loads(line.strip())
             data.append(json_data[function])
-            times.append(json_data['time'])
+            times.append(json_data["time"])
     return np.array(data), np.array(times)
 
 
-
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Visualize conservation of energy at different levels of discretization.')
-    parser.add_argument('folders', type=str, help='The three folders to visualize, in order of lowest to highest resolution.', nargs=3)
-    parser.add_argument('function', type=str, help='The function to visualize.')
+    parser = argparse.ArgumentParser(
+        description="Visualize conservation of energy at different levels of discretization."
+    )
+    parser.add_argument(
+        "folders",
+        type=str,
+        help="The three folders to visualize, in order of lowest to highest resolution.",
+        nargs=3,
+    )
+    parser.add_argument("function", type=str, help="The function to visualize.")
     args = parser.parse_args()
-    main(*args.folders, args.function)
+    main(args.folders[0], args.folders[1], args.folders[2], args.function)
