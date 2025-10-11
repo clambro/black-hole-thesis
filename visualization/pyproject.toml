@@ -1,0 +1,60 @@
+[project]
+name = "black-hole-thesis-visualization"
+version = "0.1.0"
+description = ""
+authors = [{ name = "Costa Lambrinoudis", email = "clambro.git@gmail.com" }]
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "matplotlib>=3.10.7,<4",
+    "numpy>=2.3.3,<3",
+    "pydantic>=2.12.0,<3",
+    "scipy>=1.16.2,<2",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.3.0,<5",
+    "ruff>=0.14.0,<0.15",
+]
+
+[tool.uv]
+package = false
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "D100",  # Missing docstring in public module
+    "D104",  # Missing docstring in public package
+    "D105",  # Missing docstring in magic method
+    "D106",  # Missing docstring in public nested class
+    "D107",  # Missing docstring in __init__
+    "D203",  # 1 blank line required before class docstring
+    "D205",  # 1 blank line required between summary line and description
+    "D212",  # Multi-line docstring summary should start at the first line
+    "D401",  # First line of docstring should be in imperative mood: "{first_line}"
+    "INP001",  # File {filename} is part of an implicit namespace package. Add an __init__.py.
+    "COM812",  # Enforce trailing commas (handled by the formatter).
+    "EM101",  # Raw string in exception.
+    "EM102",  # f-string in exception.
+    "TRY003",  # Avoid specifying long messages outside the exception class
+    "FIX002",  # Line contains TODO
+    "TD002",   # Missing author in TODO `# TODO(<author_name>): ...`
+    "TD003",   # Missing TODO link
+]
+
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = "double"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 20
+
+[tool.ruff.lint.pep8-naming]
+classmethod-decorators = ["validator"]

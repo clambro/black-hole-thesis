@@ -42,6 +42,8 @@ pub fn simulate(
     }
 
     let output = SimulationOutput {
+        initial_amplitude: inputs.sim_config.initial_amplitude,
+        grid_level: inputs.sim_config.grid.level,
         time_taken_seconds: start.elapsed().as_secs_f64(),
         num_steps,
         final_simulation_time: state.time,
