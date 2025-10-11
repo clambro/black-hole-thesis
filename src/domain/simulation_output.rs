@@ -3,6 +3,10 @@ use serde::Serialize;
 /// Final results of a simulation run.
 #[derive(Serialize)]
 pub struct SimulationOutput {
+    /// The initial amplitude of the wave.
+    pub initial_amplitude: f64,
+    /// The level of the grid.
+    pub grid_level: u32,
     /// Wall-clock time taken for the simulation.
     pub time_taken_seconds: f64,
     /// Number of time steps completed.
