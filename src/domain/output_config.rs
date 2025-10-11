@@ -4,4 +4,6 @@ pub struct OutputConfig {
     pub dt: f64,
     /// Discretization level for output data.
     pub dx_level: u32,
+    /// Whether to skip the state output.
+    pub skip_state_output: bool,
 }

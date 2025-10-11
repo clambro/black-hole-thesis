@@ -27,6 +27,14 @@ impl TimeStep {
         // This is a Courant number of up to MAX_COURANT_NUMBER, adjusted for the speed of the slowest point.
         let base_time_step = sim_config.grid.delta * min_speed;
 
+        // Frame boundaries don't matter if we're skipping the state output.
+        if out_config.skip_state_output {
+            return TimeStep {
+                delta: base_time_step,
+                is_frame_boundary: false,
+            };
+        }
+
         // Find the next frame boundary after the current time
         let current_frame_index = (state.time / out_config.dt).floor();
         let next_frame = (current_frame_index + 1.0) * out_config.dt;
