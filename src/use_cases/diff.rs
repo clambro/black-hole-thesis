@@ -116,5 +116,7 @@ pub fn dissipation(vector: &FieldVector, grid: &Grid) -> FieldVector {
             + vector[i - 6];
     });
 
-    DISSIPATION_FACTOR / grid.delta / 64.0 * result
+    let dissipation = DISSIPATION_FACTOR / grid.delta / 64.0 * result;
+    let radial_correction = 1.0 - &grid.points; // High frequency noise is at the origin.
+    radial_correction * dissipation
 }

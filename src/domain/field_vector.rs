@@ -83,6 +83,14 @@ impl FieldVector {
             data: self.data.iter().map(|x| x.tan()).collect(),
         }
     }
+
+    /// Apply absolute value function element-wise
+    #[must_use]
+    pub fn abs(&self) -> Self {
+        Self {
+            data: self.data.iter().map(|x| x.abs()).collect(),
+        }
+    }
 }
 
 // =============================================================================
@@ -238,6 +246,13 @@ impl Add<FieldVector> for &FieldVector {
     type Output = FieldVector;
     fn add(self, other: FieldVector) -> FieldVector {
         self + &other
+    }
+}
+
+impl Add<FieldVector> for f64 {
+    type Output = FieldVector;
+    fn add(self, other: FieldVector) -> FieldVector {
+        other + self
     }
 }
 

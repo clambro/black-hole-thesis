@@ -13,7 +13,7 @@ pub const MAX_COURANT_NUMBER: f64 = 0.95;
 pub const EPS: f64 = 1e-12;
 
 /// Dissipation factor.
-pub const DISSIPATION_FACTOR: f64 = 0.01;
+pub const DISSIPATION_FACTOR: f64 = 1.0;
 
 /// The steepness of the initial wave profile.
 pub const INITIAL_WAVE_STEEPNESS: f64 = 64.0;
