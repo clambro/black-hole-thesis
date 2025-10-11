@@ -1,3 +1,8 @@
+//! Domain layer for the black hole reflection simulation.
+//!
+//! This module contains the core business entities and value objects that
+//! represent the physics and mathematics of the simulation.
+
 pub mod constants;
 pub mod constraints;
 pub mod field_vector;
