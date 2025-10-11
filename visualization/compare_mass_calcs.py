@@ -8,8 +8,7 @@ from utils import load_state_outputs
 
 def main(*folders: str) -> None:
     """Visualize mass equation residuals at different levels of discretization."""
-    # Set up the figure and axis
-    fig, ax = plt.subplots(figsize=(10, 6))
+    _, ax = plt.subplots(figsize=(10, 6))
     ax.set_xlabel("Time", fontsize=14)
     ax.set_ylabel(r"$\log_{16}(|P_{flux}|)$", fontsize=14)
     ax.set_title("Mass Equation Residuals", fontsize=16)
@@ -28,7 +27,7 @@ def main(*folders: str) -> None:
         ax.grid(visible=True, which="major", linestyle="--", color="gray", alpha=0.5)
 
     suffix = "_".join(folders)
-    plt.savefig(f"results/mass_equation_residuals_{suffix}.png")
+    plt.savefig(f"../results/mass_equation_residuals_{suffix}.png")
 
 
 if __name__ == "__main__":

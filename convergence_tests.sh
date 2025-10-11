@@ -7,4 +7,3 @@ python3 visualization/q_factor.py 30_11 30_12 30_13 conj_momentum
 python3 visualization/q_factor.py 30_11 30_12 30_13 energy_density
 python3 visualization/energy_conservation.py 30_11 30_12 30_13
 python3 visualization/compare_mass_calcs.py 30_11 30_12 30_13
-python3 visualization/initial_conditions.py 30_13

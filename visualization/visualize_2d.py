@@ -13,29 +13,23 @@ from utils import load_state_outputs
 
 def main(folder: str, function: str, gamma: float) -> None:
     """Visualize the wave simulation in 2D."""
-    # Load state data using Pydantic schemas
     states = load_state_outputs(folder)
-    # Extract times and values
     times = [state.time for state in states]
     values = np.array([getattr(state, function) for state in states])
 
-    # Create radial grid (assuming uniform grid from 0 to 1)
+    # Create radial grid
     n_points = 2 * len(values[0])
-    r = np.linspace(0, 1, len(values[0]))  # Keep original radial grid for interpolation
+    r = np.linspace(0, 1, len(values[0]))
 
     # Create 2D grid for visualization
-    # We'll use a square grid and map radial coordinates to it
     x_2d = np.linspace(-1, 1, n_points)
     y_2d = np.linspace(-1, 1, n_points)
-    x_grid, y_grid = np.meshgrid(x_2d, y_2d)
 
-    # Calculate radial distance from center for each point
+    x_grid, y_grid = np.meshgrid(x_2d, y_2d)
     r_grid = np.sqrt(x_grid**2 + y_grid**2)
 
-    # Create mask for points inside the circular domain (r <= 1)
     inside_domain = r_grid <= 1.0
 
-    # Set up the figure and axis
     fig, ax = plt.subplots(figsize=(10, 10))
     ax.set_xlim(-1, 1)
     ax.set_ylim(-1, 1)
@@ -44,7 +38,6 @@ def main(folder: str, function: str, gamma: float) -> None:
     ax.set_ylabel("Y")
     ax.set_title("Confined Space Simulation")
 
-    # Initialize the image
     img = ax.imshow(
         np.zeros((n_points, n_points)),
         extent=(-1, 1, -1, 1),
@@ -54,13 +47,11 @@ def main(folder: str, function: str, gamma: float) -> None:
         vmax=np.nanmax(values),
     )
 
-    # Colorbar with the same height as the axes
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size="4%", pad=0.06)
     cbar = fig.colorbar(img, cax=cax)
     cbar.set_label(function.replace("_", " ").capitalize())
 
-    # Add time text
     time_text = ax.text(
         0.02,
         0.98,
@@ -79,9 +70,7 @@ def main(folder: str, function: str, gamma: float) -> None:
 
     # Flatten r to interpolate all points at once
     r_flat = r_grid.flatten()
-
-    # Interpolate all frames and all points in one vectorized operation
-    all_frames_flat = interpolator(r_flat)  # Shape: (n_frames, n_points^2)
+    all_frames_flat = interpolator(r_flat)
     all_frames = all_frames_flat.reshape(len(states), n_points, n_points)
 
     all_frames = np.where(inside_domain, all_frames, np.nan)
@@ -101,8 +90,6 @@ def main(folder: str, function: str, gamma: float) -> None:
             return animate(frame - freeze_frames)
         return animate(len(states) - 1)
 
-    # Create frames with freezing at start and end
-    # Add 30 frames (1 second at 30fps) at the beginning and end
     fps = 30
     freeze_frames = fps
     total_frames = len(states) + 2 * freeze_frames

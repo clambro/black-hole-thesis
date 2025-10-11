@@ -8,8 +8,7 @@ from utils import load_state_outputs
 
 def main(low_folder: str, mid_folder: str, high_folder: str, function: str) -> None:
     """Visualize Q-factor for a given function at different levels of discretization."""
-    # Set up the figure and axis
-    fig, ax = plt.subplots(figsize=(10, 6))
+    _, ax = plt.subplots(figsize=(10, 6))
     ax.set_xlabel("Time", fontsize=14)
     ax.set_ylabel("Q-factor", fontsize=14)
     ax.set_title(f"Q-factor for {function.replace('_', ' ').capitalize()}", fontsize=16)
@@ -24,10 +23,9 @@ def main(low_folder: str, mid_folder: str, high_folder: str, function: str) -> N
     low_data = low_data[:max_len]
     times = times[:max_len]
 
-    q_factor = np.linalg.norm(mid_data - low_data, axis=1) / np.linalg.norm(
-        high_data - mid_data, axis=1
-    )
-    q_factor = np.clip(q_factor, 0, 32)
+    num = np.linalg.norm(mid_data - low_data, axis=1)
+    denom = np.linalg.norm(high_data - mid_data, axis=1)
+    q_factor = np.clip(num / denom, 0, 32)  # Clip noisy spikes near BH formation.
 
     ax.plot(times, q_factor, "b-", linewidth=2)
     ax.hlines(16, times[0], times[-1], "r", "--", linewidth=2)

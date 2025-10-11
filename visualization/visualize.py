@@ -11,17 +11,13 @@ from utils import load_state_outputs
 
 def main(folder: str, function: str) -> None:
     """Visualize the wave simulation."""
-    # Load state data using Pydantic schemas
     states = load_state_outputs(folder)
-    # Extract times and values
     times = [state.time for state in states]
     values = np.array([getattr(state, function) for state in states])
 
-    # Create x-axis (assuming uniform grid from 0 to 1)
     n_points = len(values[0])
     x = np.linspace(0, 1, n_points)
 
-    # Set up the figure and axis
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.grid(visible=True, alpha=0.3)
     ax.set_xlim(0, 1)
@@ -41,7 +37,7 @@ def main(folder: str, function: str) -> None:
     )
 
     def animate(frame: int) -> tuple[Line2D, Text]:
-        """Create a frames with freezing at start and end."""
+        """Create a frame with freezing at start and end."""
         prev_y_min, prev_y_max = ax.get_ylim()
 
         y_min = min(prev_y_min, np.min(values[frame]) * 1.1)
@@ -52,8 +48,6 @@ def main(folder: str, function: str) -> None:
         time_text.set_text(f"Time: {times[frame]:.4f}")
         return line, time_text
 
-    # Create frames with freezing at start and end
-    # Add 30 frames (1 second at 30fps) at the beginning and end
     fps = 30
     freeze_frames = fps
     total_frames = len(states) + 2 * freeze_frames
@@ -61,20 +55,14 @@ def main(folder: str, function: str) -> None:
     def animate_with_freeze(frame: int) -> tuple[Line2D, Text]:
         """Create a frames with freezing at start and end."""
         if frame < freeze_frames:
-            # Freeze on first frame
             return animate(0)
         if frame < freeze_frames + len(states):
-            # Normal animation
             return animate(frame - freeze_frames)
-        # Freeze on last frame
         return animate(len(states) - 1)
 
-    # Create animation
     anim = animation.FuncAnimation(
         fig, animate_with_freeze, frames=total_frames, interval=50, blit=True, repeat=True
     )
-
-    # Save as MP4
     anim.save(
         f"results/{folder}/{function}.mp4",
         writer="ffmpeg",
