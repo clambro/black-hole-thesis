@@ -13,7 +13,7 @@ use clap::Parser;
 #[command(about = "A black hole reflection simulation.")]
 pub struct Args {
     /// Level of spatial discretization for the simulation grid.
-    #[arg(long, default_value = "13")]
+    #[arg(long, default_value = "14")]
     pub level_of_discretization: u32,
 
     /// Initial amplitude of the scalar field perturbation.
