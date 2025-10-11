@@ -1,17 +1,20 @@
 use crate::domain::{
-    constants::{EPS, MAX_COURANT_SPEED, MIN_COURANT_SPEED},
+    constants::{EPS, MAX_COURANT_NUMBER, MIN_COURANT_NUMBER},
     output_config::OutputConfig,
     simulation_config::SimulationConfig,
     state::State,
 };
 
+/// Adaptive time step with frame boundary detection.
 pub struct TimeStep {
+    /// Time step size.
     pub delta: f64,
+    /// Whether this step lands on a frame boundary.
     pub is_frame_boundary: bool,
 }
 
-// Get the next time step, ensuring that we land on a frame boundary if it is within the base time step.
 impl TimeStep {
+    // Get the next time step, ensuring that we land on a frame boundary if it is within the base time step.
     pub fn next(sim_config: &SimulationConfig, out_config: &OutputConfig, state: &State) -> Self {
         let min_speed = state
             .constraints
@@ -19,10 +22,9 @@ impl TimeStep {
             .iter()
             .min_by(|a, b| a.total_cmp(b))
             .expect("Characteristic speed is empty.")
-            .clamp(MIN_COURANT_SPEED, MAX_COURANT_SPEED);
+            .clamp(MIN_COURANT_NUMBER, MAX_COURANT_NUMBER);
 
-        // This is a Courant number of 1, but adjusted for the speed of the slowest point,
-        // so it should be stable.
+        // This is a Courant number of up to MAX_COURANT_NUMBER, adjusted for the speed of the slowest point.
         let base_time_step = sim_config.grid.delta * min_speed;
 
         // Find the next frame boundary after the current time

@@ -1,10 +1,11 @@
-use crate::domain::constants::INITIAL_WAVE_EXPONENT;
+use crate::domain::constants::INITIAL_WAVE_STEEPNESS;
 use crate::domain::field_vector::FieldVector;
 use crate::domain::simulation_config::SimulationConfig;
 use crate::domain::state::State;
 use crate::use_cases::constraint_computer::compute_constraints;
 use std::f64::consts::PI;
 
+/// Build the initial state with a Gaussian wave profile.
 pub fn build_initial_state(config: &SimulationConfig) -> State {
     let n = config.grid.len();
 
@@ -23,6 +24,7 @@ pub fn build_initial_state(config: &SimulationConfig) -> State {
     }
 }
 
+/// Build a subsequent state from evolved field data.
 pub fn build_subsequent_state(
     config: &SimulationConfig,
     time: f64,
@@ -41,7 +43,8 @@ pub fn build_subsequent_state(
     }
 }
 
+/// Create the initial Gaussian wave profile.
 fn initial_wave_profile(config: &SimulationConfig) -> FieldVector {
-    let exponent = -INITIAL_WAVE_EXPONENT * (PI / 2.0 * &config.grid.points).tan().powi(2);
+    let exponent = -INITIAL_WAVE_STEEPNESS * (PI / 2.0 * &config.grid.points).tan().powi(2);
     config.initial_amplitude * exponent.exp()
 }

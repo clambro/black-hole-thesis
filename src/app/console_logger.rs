@@ -1,16 +1,21 @@
+//! Console logging for the black hole reflection simulation.
+
 use crate::domain::simulation_output::SimulationOutput;
 use crate::use_cases::ports::SimulationLogger;
 use std::io::{self, Write};
 
+/// Console-based logger for simulation progress and results.
 pub struct ConsoleLogger;
 
 impl ConsoleLogger {
+    /// Create a new console logger instance.
     pub fn new() -> Self {
         Self
     }
 }
 
 impl SimulationLogger for ConsoleLogger {
+    /// Log simulation progress information.
     fn log_progress(&self, elapsed_seconds: f64, num_steps: i32, simulation_time: f64) {
         print!(
             "\rReal time: {:.2}s, Simulation time: {:.3}s, Steps: {}",
@@ -22,6 +27,7 @@ impl SimulationLogger for ConsoleLogger {
         };
     }
 
+    /// Log a timeout warning when simulation exceeds maximum time.
     fn log_timeout_warning(&self, max_time: f64) {
         println!(
             "WARNING: Simulation time exceeded the max time of {:.3}s without BH formation.",
@@ -29,6 +35,7 @@ impl SimulationLogger for ConsoleLogger {
         );
     }
 
+    /// Log the final simulation results.
     fn log_final_results(&self, output: &SimulationOutput) {
         println!(
             "\nEvolution completed in: {:.2?} seconds",

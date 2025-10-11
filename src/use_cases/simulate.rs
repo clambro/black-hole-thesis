@@ -6,6 +6,7 @@ use crate::use_cases::integration::rk4_step;
 use crate::use_cases::ports::{SimulationLogger, StateOutputCreator};
 use std::time::Instant;
 
+/// Run the complete simulation until black hole formation or timeout.
 pub fn simulate(
     inputs: SimulationInputs,
     state_output_creator: &mut dyn StateOutputCreator,

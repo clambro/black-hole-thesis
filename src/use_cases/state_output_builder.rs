@@ -6,6 +6,7 @@ use crate::domain::state::State;
 use crate::domain::state_output::StateOutput;
 use crate::use_cases::constraint_computer::compute_radial_gradient;
 
+/// Build a serializable state output from the simulation state.
 pub fn build_state_output(
     state: &State,
     output_config: &OutputConfig,
@@ -29,6 +30,7 @@ pub fn build_state_output(
     }
 }
 
+/// Reduce spatial resolution for output data.
 fn reduce_spatial_resolution(field: &FieldVector, target_discretization: u32) -> Vec<f64> {
     let current_length = field.len();
     let target_length = Grid::length_at_discretization(target_discretization);

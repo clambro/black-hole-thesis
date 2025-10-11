@@ -39,6 +39,7 @@ pub fn diff(grid: &Grid, vector: &FieldVector) -> FieldVector {
 }
 
 /// Standard 4th order finite difference operator for the second derivative.
+/// From https://web.media.mit.edu/~crtaylor/calculator.html
 pub fn diff2(grid: &Grid, vector: &FieldVector) -> FieldVector {
     let mut diff2 = FieldVector::zeros(vector.len());
     let n = vector.len();
@@ -79,14 +80,14 @@ pub fn diff2(grid: &Grid, vector: &FieldVector) -> FieldVector {
     diff2
 }
 
-/// Set the Neumann boundary condition for a vector using the above stencil.
+/// Set the Neumann boundary condition for a vector using the 4th order stencil.
 pub fn set_left_neumann_bc(vector: &mut FieldVector) {
     vector[0] = (48.0 * vector[1] - 36.0 * vector[2] + 16.0 * vector[3] - 3.0 * vector[4]) / 25.0;
 }
 
 /// Apply a 5th order Kreiss-Oliger dissipation operator.
 /// This smooths out high frequency noise at the 5th order level without affecting our 4th order accuracy.
-/// Stencils also from https://web.media.mit.edu/~crtaylor/calculator.html
+/// From https://web.media.mit.edu/~crtaylor/calculator.html
 pub fn dissipation(vector: &FieldVector, grid: &Grid) -> FieldVector {
     let mut result = FieldVector::zeros(vector.len());
     let n = vector.len();
