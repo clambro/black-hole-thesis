@@ -65,13 +65,13 @@ def _create_plots(results: list[SimulationOutput], output_path: Path) -> None:
     _, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
 
     # Top plot: BH Mass vs epsilon
-    ax1.scatter(amplitudes, bh_masses, s=20, alpha=0.7, color="blue")
+    ax1.scatter(amplitudes, bh_masses, s=10, alpha=0.7, color="blue")
     ax1.set_ylabel("Black Hole Mass")
     ax1.set_ylim(0, max(bh_masses) * 1.1 if bh_masses else 0.02)
     ax1.grid(visible=True, alpha=0.3)
 
     # Bottom plot: Formation Time vs epsilon
-    ax2.scatter(amplitudes, formation_times, s=20, alpha=0.7, color="blue")
+    ax2.scatter(amplitudes, formation_times, s=10, alpha=0.7, color="blue")
     ax2.set_xlabel("Initial Amplitude")
     ax2.set_ylabel("Formation Time")
     ax2.set_ylim(0, max(formation_times) * 1.1 if formation_times else 15)

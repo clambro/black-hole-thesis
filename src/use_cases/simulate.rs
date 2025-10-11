@@ -29,7 +29,12 @@ pub fn simulate(
 
         if num_steps % STEPS_PER_PROGRESS_UPDATE == 0 {
             let elapsed_seconds = start.elapsed().as_secs_f64();
-            logger.log_progress(elapsed_seconds, num_steps, state.time);
+            logger.log_progress(
+                inputs.sim_config.initial_amplitude,
+                elapsed_seconds,
+                num_steps,
+                state.time,
+            );
         }
 
         if time_step.is_frame_boundary {

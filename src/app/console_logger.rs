@@ -16,10 +16,16 @@ impl ConsoleLogger {
 
 impl SimulationLogger for ConsoleLogger {
     /// Log simulation progress information.
-    fn log_progress(&self, elapsed_seconds: f64, num_steps: i32, simulation_time: f64) {
+    fn log_progress(
+        &self,
+        amplitude: f64,
+        elapsed_seconds: f64,
+        num_steps: i32,
+        simulation_time: f64,
+    ) {
         print!(
-            "\rReal time: {:.2}s, Simulation time: {:.3}s, Steps: {}",
-            elapsed_seconds, simulation_time, num_steps
+            "\rAmplitude: {:.3}, Real time: {:.2}s, Simulation time: {:.3}, Steps: {}",
+            amplitude, elapsed_seconds, simulation_time, num_steps
         );
         match io::stdout().flush() {
             Ok(_) => (),
