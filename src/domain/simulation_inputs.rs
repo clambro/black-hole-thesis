@@ -3,13 +3,18 @@ use crate::domain::output_config::OutputConfig;
 use crate::domain::simulation_config::SimulationConfig;
 use crate::domain::state::State;
 
+/// Complete set of inputs for starting a simulation.
 pub struct SimulationInputs {
+    /// Simulation configuration.
     pub sim_config: SimulationConfig,
+    /// Output configuration.
     pub out_config: OutputConfig,
+    /// Initial state.
     pub initial_state: State,
 }
 
 impl SimulationInputs {
+    /// Validate the simulation inputs for consistency.
     pub fn validate(&self) -> Result<(), &'static str> {
         if self.sim_config.grid.level < 5 {
             return Err("Level of discretization must be greater than 5.");

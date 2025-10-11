@@ -1,4 +1,4 @@
-use crate::domain::constants::INITIAL_WAVE_EXPONENT;
+use crate::domain::constants::INITIAL_WAVE_STEEPNESS;
 use crate::domain::field_vector::FieldVector;
 use crate::domain::simulation_config::SimulationConfig;
 use crate::domain::state::State;
@@ -42,6 +42,6 @@ pub fn build_subsequent_state(
 }
 
 fn initial_wave_profile(config: &SimulationConfig) -> FieldVector {
-    let exponent = -INITIAL_WAVE_EXPONENT * (PI / 2.0 * &config.grid.points).tan().powi(2);
+    let exponent = -INITIAL_WAVE_STEEPNESS * (PI / 2.0 * &config.grid.points).tan().powi(2);
     config.initial_amplitude * exponent.exp()
 }

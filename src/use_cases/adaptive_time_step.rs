@@ -1,5 +1,5 @@
 use crate::domain::{
-    constants::{EPS, MAX_COURANT_SPEED, MIN_COURANT_SPEED},
+    constants::{EPS, MAX_COURANT_NUMBER, MIN_COURANT_NUMBER},
     output_config::OutputConfig,
     simulation_config::SimulationConfig,
     state::State,
@@ -19,7 +19,7 @@ impl TimeStep {
             .iter()
             .min_by(|a, b| a.total_cmp(b))
             .expect("Characteristic speed is empty.")
-            .clamp(MIN_COURANT_SPEED, MAX_COURANT_SPEED);
+            .clamp(MIN_COURANT_NUMBER, MAX_COURANT_NUMBER);
 
         // This is a Courant number of 1, but adjusted for the speed of the slowest point,
         // so it should be stable.
