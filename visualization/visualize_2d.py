@@ -1,6 +1,4 @@
 import argparse
-import json
-from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,17 +8,16 @@ from matplotlib.text import Text
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy.interpolate import interp1d
 
+from utils import load_state_outputs
+
 
 def main(folder: str, function: str, gamma: float) -> None:
     """Visualize the wave simulation in 2D."""
-    # Read the JSONL file
-    data = []
-    with Path(f"{folder}/states.jsonl").open() as f:
-        data.extend(json.loads(line.strip()) for line in f)
-
+    # Load state data using Pydantic schemas
+    states = load_state_outputs(folder)
     # Extract times and values
-    times = [d["time"] for d in data]
-    values = np.array([d[function] for d in data])
+    times = [state.time for state in states]
+    values = np.array([getattr(state, function) for state in states])
 
     # Create radial grid (assuming uniform grid from 0 to 1)
     n_points = 2 * len(values[0])
@@ -85,7 +82,7 @@ def main(folder: str, function: str, gamma: float) -> None:
 
     # Interpolate all frames and all points in one vectorized operation
     all_frames_flat = interpolator(r_flat)  # Shape: (n_frames, n_points^2)
-    all_frames = all_frames_flat.reshape(len(data), n_points, n_points)
+    all_frames = all_frames_flat.reshape(len(states), n_points, n_points)
 
     all_frames = np.where(inside_domain, all_frames, np.nan)
     all_frames = _apply_gamma_correction(all_frames, gamma)
@@ -100,15 +97,15 @@ def main(folder: str, function: str, gamma: float) -> None:
         """Create a frames with freezing at start and end."""
         if frame < freeze_frames:
             return animate(0)
-        if frame < freeze_frames + len(data):
+        if frame < freeze_frames + len(states):
             return animate(frame - freeze_frames)
-        return animate(len(data) - 1)
+        return animate(len(states) - 1)
 
     # Create frames with freezing at start and end
     # Add 30 frames (1 second at 30fps) at the beginning and end
     fps = 30
     freeze_frames = fps
-    total_frames = len(data) + 2 * freeze_frames
+    total_frames = len(states) + 2 * freeze_frames
 
     anim = animation.FuncAnimation(
         fig, animate_with_freeze, frames=total_frames, interval=50, blit=True, repeat=True

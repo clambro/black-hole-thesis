@@ -1,6 +1,4 @@
 import argparse
-import json
-from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -8,17 +6,16 @@ from matplotlib import animation
 from matplotlib.lines import Line2D
 from matplotlib.text import Text
 
+from utils import load_state_outputs
+
 
 def main(folder: str, function: str) -> None:
     """Visualize the wave simulation."""
-    # Read the JSONL file
-    data = []
-    with Path(f"results/{folder}/states.jsonl").open() as f:
-        data.extend(json.loads(line.strip()) for line in f)
-
+    # Load state data using Pydantic schemas
+    states = load_state_outputs(folder)
     # Extract times and values
-    times = [d["time"] for d in data]
-    values = np.array([d[function] for d in data])
+    times = [state.time for state in states]
+    values = np.array([getattr(state, function) for state in states])
 
     # Create x-axis (assuming uniform grid from 0 to 1)
     n_points = len(values[0])
@@ -59,18 +56,18 @@ def main(folder: str, function: str) -> None:
     # Add 30 frames (1 second at 30fps) at the beginning and end
     fps = 30
     freeze_frames = fps
-    total_frames = len(data) + 2 * freeze_frames
+    total_frames = len(states) + 2 * freeze_frames
 
     def animate_with_freeze(frame: int) -> tuple[Line2D, Text]:
         """Create a frames with freezing at start and end."""
         if frame < freeze_frames:
             # Freeze on first frame
             return animate(0)
-        if frame < freeze_frames + len(data):
+        if frame < freeze_frames + len(states):
             # Normal animation
             return animate(frame - freeze_frames)
         # Freeze on last frame
-        return animate(len(data) - 1)
+        return animate(len(states) - 1)
 
     # Create animation
     anim = animation.FuncAnimation(

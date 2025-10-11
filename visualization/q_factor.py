@@ -1,9 +1,9 @@
 import argparse
-import json
-from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+
+from utils import load_state_outputs
 
 
 def main(low_folder: str, mid_folder: str, high_folder: str, function: str) -> None:
@@ -38,13 +38,9 @@ def main(low_folder: str, mid_folder: str, high_folder: str, function: str) -> N
 
 def _load_data(folder: str, function: str) -> tuple[np.ndarray, np.ndarray]:
     """Load data from a given folder and function."""
-    data = []
-    times = []
-    with Path(f"results/{folder}/states.jsonl").open() as f:
-        for line in f:
-            json_data = json.loads(line.strip())
-            data.append(json_data[function])
-            times.append(json_data["time"])
+    states = load_state_outputs(folder)
+    data = [getattr(state, function) for state in states]
+    times = [state.time for state in states]
     return np.array(data), np.array(times)
 
 

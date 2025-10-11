@@ -1,9 +1,9 @@
 import argparse
-import json
-from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+
+from utils import load_state_outputs
 
 
 def main(*folders: str) -> None:
@@ -15,14 +15,11 @@ def main(*folders: str) -> None:
     ax.set_title("Conservation of Energy", fontsize=16)
 
     for folder in folders:
-        data = []
-        with Path(f"results/{folder}/states.jsonl").open() as f:
-            data.extend(json.loads(line.strip()) for line in f)
+        states = load_state_outputs(folder)
+        initial_energy = states[0].total_energy
 
-        initial_energy = data[0]["total_energy"]
-
-        times = [d["time"] for d in data]
-        values = [d["total_energy"] - initial_energy for d in data]
+        times = [state.time for state in states]
+        values = [state.total_energy - initial_energy for state in states]
         values = np.log(np.abs(values)) / np.log(16)
 
         ax.plot(times, values, linewidth=2, label=f"level={folder.split('_')[1]}")

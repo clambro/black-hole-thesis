@@ -1,20 +1,22 @@
 import argparse
-import json
-from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 
+from utils import load_state_outputs
+
 
 def main(folder: str, time: float) -> None:
     """Visualize initial conditions from state output."""
-    # Read the first line of the JSONL file (initial condition)
-    with Path(f"results/{folder}/states.jsonl").open() as f:
-        while True:
-            json_data = json.loads(f.readline().strip())
-            if json_data["time"] >= time:
-                break
-        initial_state = json_data
+    # Load state data and find the state at the specified time
+    states = load_state_outputs(folder)
+    initial_state = None
+    for state in states:
+        if state.time >= time:
+            initial_state = state
+            break
+    if initial_state is None:
+        raise ValueError(f"No state found at time {time} or later")
 
     # Define all the fields to visualize
     fields = [
@@ -29,12 +31,12 @@ def main(folder: str, time: float) -> None:
     ]
 
     # Create x-axis (uniform grid from 0 to 1)
-    n_points = len(initial_state["radial_gradient"])
+    n_points = len(initial_state.radial_gradient)
     x = np.linspace(0, 1, n_points)
 
     # Create subplots - 3 rows, 3 columns
     fig, axes = plt.subplots(3, 3, figsize=(15, 12))
-    fig.suptitle(f"Initial Conditions (t={initial_state['time']:.4f})", fontsize=16)
+    fig.suptitle(f"Initial Conditions (t={initial_state.time:.4f})", fontsize=16)
 
     # Flatten axes for easier indexing
     axes = axes.flatten()
@@ -42,7 +44,7 @@ def main(folder: str, time: float) -> None:
     # Plot each field
     for i, field in enumerate(fields):
         ax = axes[i]
-        values = initial_state[field]
+        values = getattr(initial_state, field)
 
         ax.plot(x, values, "b-", linewidth=2)
         ax.set_xlabel("Radius")

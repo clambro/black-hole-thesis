@@ -1,9 +1,9 @@
 import argparse
-import json
-from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+
+from utils import load_state_outputs
 
 
 def main(*folders: str) -> None:
@@ -15,13 +15,10 @@ def main(*folders: str) -> None:
     ax.set_title("Mass Equation Residuals", fontsize=16)
 
     for folder in folders:
-        data = []
-        with Path(f"results/{folder}/states.jsonl").open() as f:
-            data.extend(json.loads(line.strip()) for line in f)
-
-        times = [d["time"] for d in data]
-        mass_values = np.array([d["mass"] for d in data])
-        alternate_mass_values = np.array([d["alternate_mass"] for d in data])
+        states = load_state_outputs(folder)
+        times = [state.time for state in states]
+        mass_values = np.array([state.mass for state in states])
+        alternate_mass_values = np.array([state.alternate_mass for state in states])
 
         diff = np.linalg.norm(mass_values - alternate_mass_values, axis=1)
         diff = np.log(np.abs(diff)) / np.log(16)
