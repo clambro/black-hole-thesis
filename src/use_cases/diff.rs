@@ -85,38 +85,52 @@ pub fn set_left_neumann_bc(vector: &mut FieldVector) {
     vector[0] = (48.0 * vector[1] - 36.0 * vector[2] + 16.0 * vector[3] - 3.0 * vector[4]) / 25.0;
 }
 
-/// Apply a 5th order Kreiss-Oliger dissipation operator.
+/// Apply a 5th order Kreiss-Oliger dissipation operator with a radial correction.
 /// This smooths out high frequency noise at the 5th order level without affecting our 4th order accuracy.
-/// From https://web.media.mit.edu/~crtaylor/calculator.html
 pub fn dissipation(vector: &FieldVector, grid: &Grid) -> FieldVector {
-    let mut result = FieldVector::zeros(vector.len());
+    let half_dissipation = diff3_unnormalized(vector);
+
+    // High frequency noise is at the origin, so dampen the dissipation elsewhere.
+    // To ensure positive semi-definiteness, the correction must be applied like
+    // D(c*Du), not D^2(c*u), and not cD^2(u).
+    let radial_correction = (1.0 - &grid.points.powi(2)).powi(4);
+
+    let dissipation = diff3_unnormalized(&(radial_correction * half_dissipation));
+
+    DISSIPATION_FACTOR / grid.delta / 64.0 * dissipation
+}
+
+/// Fourth order finite difference operator for the third derivative, without normalization by the grid spacing.
+/// From https://web.media.mit.edu/~crtaylor/calculator.html
+fn diff3_unnormalized(vector: &FieldVector) -> FieldVector {
+    let mut diff3 = FieldVector::zeros(vector.len());
     let n = vector.len();
 
     // Left boundary.
     (0..3).for_each(|i| {
-        result[i] = vector[i] - 6.0 * vector[i + 1] + 15.0 * vector[i + 2] - 20.0 * vector[i + 3]
-            + 15.0 * vector[i + 4]
-            - 6.0 * vector[i + 5]
-            + vector[i + 6];
+        diff3[i] = (vector[i] - 8.0 * vector[i + 1] + 13.0 * vector[i + 2] - 13.0 * vector[i + 4]
+            + 8.0 * vector[i + 5]
+            - vector[i + 6])
+            / 8.0;
     });
 
     // Interior points.
     (3..n - 3).for_each(|i| {
-        result[i] = vector[i + 3] - 6.0 * vector[i + 2] + 15.0 * vector[i + 1] - 20.0 * vector[i]
-            + 15.0 * vector[i - 1]
-            - 6.0 * vector[i - 2]
-            + vector[i - 3];
+        diff3[i] = (vector[i - 3] - 8.0 * vector[i - 2] + 13.0 * vector[i - 1]
+            - 13.0 * vector[i + 1]
+            + 8.0 * vector[i + 2]
+            - vector[i + 3])
+            / 8.0;
     });
 
     // Right boundary.
-    ((n - 3)..n).for_each(|i| {
-        result[i] = vector[i] - 6.0 * vector[i - 1] + 15.0 * vector[i - 2] - 20.0 * vector[i - 3]
-            + 15.0 * vector[i - 4]
-            - 6.0 * vector[i - 5]
-            + vector[i - 6];
+    (n - 3..n).for_each(|i| {
+        diff3[i] = (vector[i - 6] - 8.0 * vector[i - 5] + 13.0 * vector[i - 4]
+            - 13.0 * vector[i - 2]
+            + 8.0 * vector[i - 1]
+            - vector[i])
+            / 8.0;
     });
 
-    let dissipation = DISSIPATION_FACTOR / grid.delta / 64.0 * result;
-    let radial_correction = 1.0 - &grid.points; // High frequency noise is at the origin.
-    radial_correction * dissipation
+    diff3
 }

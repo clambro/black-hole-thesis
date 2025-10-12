@@ -3,6 +3,7 @@ use crate::domain::field_vector::FieldVector;
 use crate::domain::simulation_config::SimulationConfig;
 use crate::domain::state::State;
 use crate::use_cases::constraint_computer::compute_constraints;
+use crate::use_cases::diff::{dissipation, set_left_neumann_bc};
 use std::f64::consts::PI;
 
 /// Build the initial state with a Gaussian wave profile.
@@ -11,6 +12,10 @@ pub fn build_initial_state(config: &SimulationConfig) -> State {
 
     let field = FieldVector::zeros(n);
     let conj_momentum = initial_wave_profile(config);
+
+    // Dissipation to reduce high frequency noise from analytic ICs at the initial time.
+    let mut conj_momentum = &conj_momentum + &dissipation(&conj_momentum, &config.grid);
+    set_left_neumann_bc(&mut conj_momentum);
 
     let constraints = compute_constraints(&field, &conj_momentum, config);
     let alternate_mass = constraints.mass.clone();
