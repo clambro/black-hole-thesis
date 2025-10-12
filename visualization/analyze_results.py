@@ -1,3 +1,4 @@
+import json
 import re
 from collections import defaultdict
 from dataclasses import dataclass
@@ -37,7 +38,8 @@ class FitResult:
     """Results from fitting a power law to a family."""
 
     gamma: float
-    gamma_uncertainty: float
+    gamma_min_95: float
+    gamma_max_95: float
     amp_star: float
     amp_star_min: float
     amp_star_max: float
@@ -52,13 +54,15 @@ def main() -> None:
     script_dir = Path(__file__).parent
     project_root = script_dir.parent
     results_dir = project_root / "results"
-    output_path = results_dir / "result.png"
+    output_img_path = results_dir / "result.png"
+    output_fit_results_path = results_dir / "fit_results.jsonl"
 
     all_results = _load_results(results_dir)
     data_points = _deduplicate_and_format_results(all_results)
     families = _group_into_families(data_points)
     fit_results = _fit_families(families)
-    _create_plots(data_points, fit_results, output_path)
+    _create_plots(data_points, fit_results, output_img_path)
+    _save_fit_results(fit_results, output_fit_results_path)
 
 
 def _load_results(results_dir: Path) -> list[SimulationOutput]:
@@ -135,58 +139,37 @@ def _create_family(points: list[DataPoint]) -> Family:
     )
 
 
+def _fit_families(families: list[Family]) -> list[FitResult | None]:
+    """Fit power law curves to each family (except the first)."""
+    fit_results: list[FitResult | None] = []
+
+    for i in range(1, len(families)):
+        family = families[i]
+        prev_family = families[i - 1]
+
+        amp_star_min = prev_family.max_amplitude
+        amp_star_max = family.min_amplitude
+
+        monotonic_points = _get_monotonic_increasing_portion(family.points)
+
+        fit_result = _fit_power_law_with_bootstrap(monotonic_points, amp_star_min, amp_star_max)
+        fit_results.append(fit_result)
+
+    return fit_results
+
+
 def _get_monotonic_increasing_portion(points: list[DataPoint]) -> list[DataPoint]:
     """Extract the monotonically increasing portion of points (by amplitude vs mass)."""
-    min_points = 2  # Minimum number of points required for fitting
-
-    # Sort by amplitude
     sorted_points = sorted(points, key=lambda p: p.amplitude)
 
-    if len(sorted_points) < min_points:
-        return []
-
-    # Find the longest monotonically increasing subsequence
     monotonic = [sorted_points[0]]
     for point in sorted_points[1:]:
         if point.bh_mass >= monotonic[-1].bh_mass:
             monotonic.append(point)
         else:
-            # Once we hit a decrease, stop (we want the initial increasing part)
             break
 
     return monotonic
-
-
-def _fit_families(families: list[Family]) -> list[FitResult | None]:
-    """Fit power law curves to each family (except the first)."""
-    min_points_for_fit = 2
-    fit_results: list[FitResult | None] = []
-
-    for i, family in enumerate(families):
-        if i == 0:
-            # Skip the first family (lowest energy)
-            fit_results.append(None)
-            continue
-
-        # Get amp* bounds: between max of previous family and min of current family
-        amp_star_min = families[i - 1].max_amplitude
-        amp_star_max = family.min_amplitude
-
-        if amp_star_min <= amp_star_max:
-            # Get monotonic increasing portion
-            monotonic_points = _get_monotonic_increasing_portion(family.points)
-
-            if len(monotonic_points) >= min_points_for_fit:
-                fit_result = _fit_power_law_with_bootstrap(
-                    monotonic_points, amp_star_min, amp_star_max
-                )
-                fit_results.append(fit_result)
-            else:
-                fit_results.append(None)
-        else:
-            fit_results.append(None)
-
-    return fit_results
 
 
 def _fit_power_law_with_bootstrap(
@@ -198,52 +181,58 @@ def _fit_power_law_with_bootstrap(
     """Fit power law with bootstrapping to estimate uncertainty."""
     amplitudes = np.array([p.amplitude for p in points])
     masses = np.array([p.bh_mass for p in points])
+    n_points = len(amplitudes)
 
     gamma_samples = []
     amp_star_samples = []
+    fitted_masses_all = []
+
+    amp_range_max = float(amplitudes.max())
 
     for _ in range(n_bootstrap):
         amp_star = RNG.uniform(amp_star_min, amp_star_max)
+        amp_star_samples.append(amp_star)
 
         log_x = np.log(amplitudes - amp_star)
         log_y = np.log(masses)
 
-        # Linear regression
-        design_matrix = np.vstack([log_x, np.ones(len(log_x))]).T
-        gamma, _ = np.linalg.lstsq(design_matrix, log_y, rcond=None)[0]
+        design_matrix = np.vstack([log_x, np.ones(n_points)]).T
+        coeffs, residuals, _, _ = np.linalg.lstsq(design_matrix, log_y, rcond=None)
+        gamma = coeffs[0]
+        intercept = coeffs[1]
 
-        gamma_samples.append(gamma)
-        amp_star_samples.append(amp_star)
+        # Standard error of gamma coefficient
+        mse = residuals[0] / (n_points - 2)
+        x_centered = log_x - log_x.mean()
+        se_gamma = np.sqrt(mse / (x_centered @ x_centered))
+
+        # Sample gamma from its distribution (accounting for within-fit uncertainty)
+        gamma_with_noise = RNG.normal(gamma, se_gamma)
+        gamma_samples.append(gamma_with_noise)
+
+        # Generate fitted masses for this bootstrap iteration
+        amp_range_sample = np.linspace(amp_star, amp_range_max, 100)
+        masses_sample = np.exp(intercept) * (amp_range_sample - amp_star) ** gamma_with_noise
+        fitted_masses_all.append(masses_sample)
 
     gamma_mean = float(np.mean(gamma_samples))
     amp_star_mean = float(np.mean(amp_star_samples))
-
-    gamma_uncertainty = float(1.96 * np.std(gamma_samples))  # Approximate 95% CI.
+    gamma_min_95 = float(np.percentile(gamma_samples, 2.5))
+    gamma_max_95 = float(np.percentile(gamma_samples, 97.5))
 
     # Generate fitted curve using mean values
-    amp_range = np.linspace(amp_star_mean, amplitudes.max(), 100)
+    amp_range = np.linspace(amp_star_mean, amp_range_max, 100)
     fitted_masses_mean = (amp_range - amp_star_mean) ** gamma_mean
 
-    # Calculate confidence intervals
-    # We need to account for both gamma and amp_star uncertainty
-    fitted_masses_all = []
-    for gamma_s, amp_star_s in zip(gamma_samples, amp_star_samples, strict=False):
-        amp_range_s = np.linspace(amp_star_s, amplitudes.max(), 100)
-        masses_s = (amp_range_s - amp_star_s) ** gamma_s
-        # Interpolate to common amp_range for combining
-        fitted_masses_all.append(np.interp(amp_range, amp_range_s, masses_s))
-
-    if fitted_masses_all:
-        fitted_masses_all_array = np.array(fitted_masses_all)
-        fitted_masses_lower = np.percentile(fitted_masses_all_array, 2.5, axis=0)
-        fitted_masses_upper = np.percentile(fitted_masses_all_array, 97.5, axis=0)
-    else:
-        fitted_masses_lower = fitted_masses_mean
-        fitted_masses_upper = fitted_masses_mean
+    # Calculate confidence intervals from all bootstrap samples
+    fitted_masses_all_array = np.array(fitted_masses_all)
+    fitted_masses_lower = np.percentile(fitted_masses_all_array, 2.5, axis=0)
+    fitted_masses_upper = np.percentile(fitted_masses_all_array, 97.5, axis=0)
 
     return FitResult(
         gamma=gamma_mean,
-        gamma_uncertainty=gamma_uncertainty,
+        gamma_min_95=gamma_min_95,
+        gamma_max_95=gamma_max_95,
         amp_star=amp_star_mean,
         amp_star_min=amp_star_min,
         amp_star_max=amp_star_max,
@@ -270,30 +259,27 @@ def _create_plots(
 
     colors = cm.rainbow(np.linspace(0, 1, len(fit_results)))  # type: ignore[attr-defined]
     for fit_result, color in zip(fit_results, colors, strict=False):
-        if fit_result is not None:
-            label = (
-                f"ϵ = {fit_result.amp_star:.3f};"
-                f" γ = {fit_result.gamma:.3f} ± {fit_result.gamma_uncertainty:.3f}"  # noqa: RUF001
-            )
-            ax1.plot(
-                fit_result.fitted_amplitudes,
-                fit_result.fitted_masses,
-                color=color,
-                linewidth=2,
-                label=label,
-                zorder=2,
-            )
-            # Add confidence interval
-            ax1.fill_between(
-                fit_result.fitted_amplitudes,
-                fit_result.fitted_masses_lower,
-                fit_result.fitted_masses_upper,
-                color=color,
-                alpha=0.2,
-                zorder=1,
-            )
+        if fit_result is None:
+            continue
+        label = rf"$\epsilon$ = {fit_result.amp_star:.3f}; $\gamma$ = {fit_result.gamma:.3f}"
+        ax1.plot(
+            fit_result.fitted_amplitudes,
+            fit_result.fitted_masses,
+            color=color,
+            linewidth=1,
+            label=label,
+            zorder=2,
+        )
+        ax1.fill_between(
+            fit_result.fitted_amplitudes,
+            fit_result.fitted_masses_lower,
+            fit_result.fitted_masses_upper,
+            color=color,
+            alpha=0.2,
+            zorder=1,
+        )
 
-    ax1.set_ylabel("BH Mass")
+    ax1.set_ylabel("Black Hole Mass")
     ax1.set_ylim(0, max(bh_masses) * 1.1 if bh_masses else 0.02)
     ax1.grid(visible=True, alpha=0.3)
     ax1.legend(loc="upper left", fontsize=8)
@@ -311,6 +297,17 @@ def _create_plots(
 
     plt.tight_layout()
     plt.savefig(output_path, dpi=300, bbox_inches="tight")
+
+
+def _save_fit_results(fit_results: list[FitResult | None], output_path: Path) -> None:
+    """Save the fit results to a JSON file."""
+    keys = ["gamma", "gamma_min_95", "gamma_max_95", "amp_star", "amp_star_min", "amp_star_max"]
+    with Path(output_path).open("w") as f:
+        for result in fit_results:
+            if result is None:
+                continue
+            json.dump({key: getattr(result, key) for key in keys}, f)
+            f.write("\n")
 
 
 if __name__ == "__main__":
