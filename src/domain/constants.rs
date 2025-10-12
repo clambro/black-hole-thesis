@@ -3,11 +3,9 @@
 /// Threshold for the radial factor to determine if a black hole has formed.
 pub const BH_RADIAL_FACTOR_THRESHOLD: f64 = 0.02;
 
-/// Minimum Courant number for the time step.
-pub const MIN_COURANT_NUMBER: f64 = 0.02;
-
-/// Maximum Courant number for the time step.
-pub const MAX_COURANT_NUMBER: f64 = 0.95;
+/// Courant number for calculating the time step. Must be less than 1.
+/// I'm shocked at how high this is. No adaptivity is needed.
+pub const COURANT_NUMBER: f64 = 0.95;
 
 /// Epsilon for floating point comparisons.
 pub const EPS: f64 = 1e-12;

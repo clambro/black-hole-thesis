@@ -13,10 +13,6 @@ pub fn build_initial_state(config: &SimulationConfig) -> State {
     let field = FieldVector::zeros(n);
     let conj_momentum = initial_wave_profile(config);
 
-    // Dissipation to reduce high frequency noise from analytic ICs at the initial time.
-    let mut conj_momentum = &conj_momentum + &dissipation(&conj_momentum, &config.grid);
-    set_left_neumann_bc(&mut conj_momentum);
-
     let constraints = compute_constraints(&field, &conj_momentum, config);
     let alternate_mass = constraints.mass.clone();
 
@@ -51,5 +47,11 @@ pub fn build_subsequent_state(
 /// Create the initial Gaussian wave profile.
 fn initial_wave_profile(config: &SimulationConfig) -> FieldVector {
     let exponent = -INITIAL_WAVE_STEEPNESS * (PI / 2.0 * &config.grid.points).tan().powi(2);
-    config.initial_amplitude * exponent.exp()
+    let mut wave = config.initial_amplitude * exponent.exp();
+
+    // Dissipation to reduce high frequency noise from analytic ICs at the initial time.
+    wave = &wave + &dissipation(&wave, &config.grid);
+    set_left_neumann_bc(&mut wave);
+
+    wave
 }
