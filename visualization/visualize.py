@@ -53,8 +53,9 @@ def _create_animation(
     def animate(frame: int) -> tuple[Line2D, Text]:
         """Animate a single frame."""
         prev_y_min, prev_y_max = ax.get_ylim()
-        y_min = min(prev_y_min, np.min(values[frame]) * 1.1)
-        y_max = max(prev_y_max, np.max(values[frame]) * 1.1)
+        new_y_min, new_y_max = _get_extrema(values[frame])
+        y_min = min(prev_y_min, new_y_min)
+        y_max = max(prev_y_max, new_y_max)
 
         ax.set_ylim(y_min, y_max)
         line.set_data(radius, values[frame])
@@ -82,7 +83,7 @@ def _setup_plot(function: str, values: np.ndarray) -> tuple[Figure, Axes, Line2D
     fig, ax = plt.subplots(figsize=(10, 6), dpi=150)
     ax.grid(visible=True, alpha=0.3)
     ax.set_xlim(0, 1)
-    ax.set_ylim(np.min(values[0]) * 1.1, np.max(values[0]) * 1.1)
+    ax.set_ylim(_get_extrema(values[0]))
     ax.set_xlabel("Position")
     ax.set_ylabel(function.replace("_", " ").capitalize())
     ax.set_title("Confined Space Simulation")
@@ -98,6 +99,15 @@ def _setup_plot(function: str, values: np.ndarray) -> tuple[Figure, Axes, Line2D
     )
 
     return fig, ax, line, time_text
+
+
+def _get_extrema(values: np.ndarray) -> tuple[float, float]:
+    """Get the extremum of the values with some buffer for the axes limits."""
+    min_value = np.min(values)
+    max_value = np.max(values)
+    min_value = np.sign(min_value) * np.abs(min_value) * 0.9
+    max_value = np.sign(max_value) * np.abs(max_value) * 1.1
+    return min_value, max_value
 
 
 def _save_animation(anim: animation.FuncAnimation, folder: str, function: str) -> None:
