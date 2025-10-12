@@ -13,6 +13,8 @@ pub fn compute_constraints(
     let radial_gradient = compute_radial_gradient(field, config);
     let lapse = compute_lapse(&radial_gradient, conj_momentum, config);
     let energy_density = compute_energy_density(&radial_gradient, conj_momentum, config);
+    // Note that doing this the other way around by computing mass from energy density
+    // and then computing A destroys conservation of energy. I'm not sure why.
     let radial_factor = compute_radial_factor(&lapse, config);
     let mass = 0.5 * &config.grid.points * (1.0 - &radial_factor);
     let char_speed = &radial_factor / &lapse;

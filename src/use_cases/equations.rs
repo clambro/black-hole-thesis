@@ -21,11 +21,13 @@ impl EquationsOfMotion {
         conj_momentum: &FieldVector,
         constraints: &Constraints,
     ) -> Self {
-        let dt_field =
+        let mut dt_field =
             Self::calculate_dt_field(conj_momentum, constraints) + dissipation(field, &config.grid);
+        Self::apply_bcs(&mut dt_field);
+
         let dt_conj_momentum = Self::calculate_dt_conj_momentum(config, field, constraints)
             + dissipation(conj_momentum, &config.grid);
-        // The mass function is smooth, so no dissipation required.
+
         let dt_alternate_mass =
             Self::calculate_dt_alternate_mass(config, field, conj_momentum, constraints);
 
@@ -36,15 +38,15 @@ impl EquationsOfMotion {
         }
     }
 
-    /// Apply boundary conditions to the fields.
-    pub fn apply_bcs(field: &mut FieldVector, conj_momentum: &mut FieldVector) {
+    /// Apply boundary conditions to the field.
+    /// The conjugate momentum is free (constrained only by the field itself).
+    pub fn apply_bcs(field: &mut FieldVector) {
         // Neumann BCs at the origin maintain regularity.
         set_left_neumann_bc(field);
 
         // On the right we have a Dirichlet BC to create the reflection.
         let n = field.len();
         field[n - 1] = 0.0;
-        conj_momentum[n - 1] = 0.0;
     }
 
     /// Calculate the time derivative of the scalar field.
