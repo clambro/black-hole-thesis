@@ -27,7 +27,7 @@ Dynamical variables
 **Evolution (second-order in space Klein–Gordon).**
 [
 \partial_t\phi=\frac{A}{N}\Pi,\qquad
-\partial_t\Pi=\frac{A}{N}\partial_r^2\phi + \frac{2}{r}\frac{A}{N}\partial_r\phi.
+\partial_t\Pi=\frac{A}{N}\partial_r^2\phi + \frac{A+1}{r}\frac{1}{N}\partial_r\phi.
 ]
 
 **Constraints (solved on each time slice).** Let (m:=\tfrac12 r(1-A)). Then
