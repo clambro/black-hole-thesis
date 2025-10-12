@@ -13,8 +13,8 @@ pub fn compute_constraints(
     let radial_gradient = compute_radial_gradient(field, config);
     let lapse = compute_lapse(&radial_gradient, conj_momentum, config);
     let energy_density = compute_energy_density(&radial_gradient, conj_momentum, config);
-    let mass = integrate(&energy_density, config.grid.delta);
-    let radial_factor = compute_radial_factor(&mass, &config.grid.points);
+    let radial_factor = compute_radial_factor(&lapse, config);
+    let mass = 0.5 * &config.grid.points * (1.0 - &radial_factor);
     let char_speed = &radial_factor / &lapse;
 
     Constraints {
@@ -41,9 +41,11 @@ fn compute_energy_density(
 }
 
 /// Compute the radial metric factor A.
-fn compute_radial_factor(mass: &FieldVector, r: &FieldVector) -> FieldVector {
-    let mut radial_factor = 1.0 - 2.0 * mass / r;
-    radial_factor[0] = 1.0;
+fn compute_radial_factor(lapse: &FieldVector, config: &SimulationConfig) -> FieldVector {
+    let indefinite_integral = integrate(&lapse.powi(-1), config.grid.delta);
+    let mut radial_factor =
+        lapse / &config.grid.points * (&indefinite_integral - indefinite_integral[0]);
+    radial_factor[0] = 1.0; // The mass is O(r^3) at the left boundary, so A(0) = 1.
     radial_factor
 }
 
