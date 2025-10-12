@@ -139,9 +139,9 @@ def _create_family(points: list[DataPoint]) -> Family:
     )
 
 
-def _fit_families(families: list[Family]) -> list[FitResult | None]:
+def _fit_families(families: list[Family]) -> list[FitResult]:
     """Fit power law curves to each family (except the first)."""
-    fit_results: list[FitResult | None] = []
+    fit_results: list[FitResult] = []
 
     for i in range(1, len(families)):
         family = families[i]
@@ -185,6 +185,7 @@ def _fit_power_law_with_bootstrap(
 
     gamma_samples = []
     amp_star_samples = []
+    intercept_samples = []
     fitted_masses_all = []
 
     amp_range_max = float(amplitudes.max())
@@ -201,28 +202,34 @@ def _fit_power_law_with_bootstrap(
         gamma = coeffs[0]
         intercept = coeffs[1]
 
-        # Standard error of gamma coefficient
+        # Calculate covariance matrix of coefficients
         mse = residuals[0] / (n_points - 2)
-        x_centered = log_x - log_x.mean()
-        se_gamma = np.sqrt(mse / (x_centered @ x_centered))
+        cov_matrix = mse * np.linalg.inv(design_matrix.T @ design_matrix)
 
-        # Sample gamma from its distribution (accounting for within-fit uncertainty)
-        gamma_with_noise = RNG.normal(gamma, se_gamma)
+        # Sample from bivariate normal (accounting for within-fit uncertainty and covariance)
+        sampled_coeffs = RNG.multivariate_normal([gamma, intercept], cov_matrix)
+        gamma_with_noise = sampled_coeffs[0]
+        intercept_with_noise = sampled_coeffs[1]
+
         gamma_samples.append(gamma_with_noise)
+        intercept_samples.append(intercept_with_noise)
 
         # Generate fitted masses for this bootstrap iteration
         amp_range_sample = np.linspace(amp_star, amp_range_max, 100)
-        masses_sample = np.exp(intercept) * (amp_range_sample - amp_star) ** gamma_with_noise
+        masses_sample = (
+            np.exp(intercept_with_noise) * (amp_range_sample - amp_star) ** gamma_with_noise
+        )
         fitted_masses_all.append(masses_sample)
 
     gamma_mean = float(np.mean(gamma_samples))
     amp_star_mean = float(np.mean(amp_star_samples))
+    intercept_mean = float(np.mean(intercept_samples))
     gamma_min_95 = float(np.percentile(gamma_samples, 2.5))
     gamma_max_95 = float(np.percentile(gamma_samples, 97.5))
 
     # Generate fitted curve using mean values
     amp_range = np.linspace(amp_star_mean, amp_range_max, 100)
-    fitted_masses_mean = (amp_range - amp_star_mean) ** gamma_mean
+    fitted_masses_mean = np.exp(intercept_mean) * (amp_range - amp_star_mean) ** gamma_mean
 
     # Calculate confidence intervals from all bootstrap samples
     fitted_masses_all_array = np.array(fitted_masses_all)
@@ -245,7 +252,7 @@ def _fit_power_law_with_bootstrap(
 
 def _create_plots(
     data_points: list[DataPoint],
-    fit_results: list[FitResult | None],
+    fit_results: list[FitResult],
     output_path: Path,
 ) -> None:
     """Create the dual plot showing BH Mass and Formation Time vs epsilon."""
@@ -259,8 +266,6 @@ def _create_plots(
 
     colors = cm.rainbow(np.linspace(0, 1, len(fit_results)))  # type: ignore[attr-defined]
     for fit_result, color in zip(fit_results, colors, strict=False):
-        if fit_result is None:
-            continue
         label = rf"$\epsilon$ = {fit_result.amp_star:.3f}; $\gamma$ = {fit_result.gamma:.3f}"
         ax1.plot(
             fit_result.fitted_amplitudes,
@@ -299,13 +304,11 @@ def _create_plots(
     plt.savefig(output_path, dpi=300, bbox_inches="tight")
 
 
-def _save_fit_results(fit_results: list[FitResult | None], output_path: Path) -> None:
+def _save_fit_results(fit_results: list[FitResult], output_path: Path) -> None:
     """Save the fit results to a JSON file."""
     keys = ["gamma", "gamma_min_95", "gamma_max_95", "amp_star", "amp_star_min", "amp_star_max"]
     with Path(output_path).open("w") as f:
         for result in fit_results:
-            if result is None:
-                continue
             json.dump({key: getattr(result, key) for key in keys}, f)
             f.write("\n")
 
