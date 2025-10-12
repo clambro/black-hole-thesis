@@ -65,6 +65,32 @@ python q_factor.py <low_folder> <mid_folder> <high_folder> <function>
 - `high_folder`: Highest resolution folder (e.g., "38_10")
 - `function`: Field to analyze (e.g., "field", "mass", "energy_density")
 
+### `analyze_results.py` - Critical Scaling Analysis
+
+Analyzes black hole formation across multiple initial amplitudes, identifying families of solutions and fitting power-law scaling relationships.
+
+**Usage:**
+
+```bash
+python analyze_results.py
+```
+
+**Features:**
+
+- **Family Grouping**: Automatically groups simulation results into families based on formation times (within 1 time unit)
+- **Power Law Fitting**: Fits curves of the form `M = C × (ε - ε*)^γ` to each family
+- **Uncertainty Quantification**: Uses 10,000 bootstrap iterations with proper accounting for:
+  - Variability across different critical amplitudes (ε\*)
+  - Within-fit uncertainty from regression residuals
+  - Covariance between γ and intercept coefficients
+- **95% Confidence Intervals**: Displays uncertainty bands on fitted curves
+- **Monotonic Filtering**: Only fits the monotonically increasing portion of each family
+
+**Output:**
+
+- `results/result.png`: Dual plot showing BH mass and formation time vs. initial amplitude with fitted curves
+- `results/fit_results.jsonl`: JSON Lines file containing fit parameters (γ, ε\*, confidence intervals)
+
 ## Data Structure
 
 The scripts expect simulation results in the following structure:
