@@ -150,26 +150,12 @@ def _fit_families(families: list[Family]) -> list[FitResult]:
         amp_star_min = prev_family.max_amplitude
         amp_star_max = family.min_amplitude
 
-        monotonic_points = _get_monotonic_increasing_portion(family.points)
+        fit_points = [p for p in family.points if p.amplitude < amp_star_max * 1.05]
 
-        fit_result = _fit_power_law_with_bootstrap(monotonic_points, amp_star_min, amp_star_max)
+        fit_result = _fit_power_law_with_bootstrap(fit_points, amp_star_min, amp_star_max)
         fit_results.append(fit_result)
 
     return fit_results
-
-
-def _get_monotonic_increasing_portion(points: list[DataPoint]) -> list[DataPoint]:
-    """Extract the monotonically increasing portion of points (by amplitude vs mass)."""
-    sorted_points = sorted(points, key=lambda p: p.amplitude)
-
-    monotonic = [sorted_points[0]]
-    for point in sorted_points[1:]:
-        if point.bh_mass >= monotonic[-1].bh_mass:
-            monotonic.append(point)
-        else:
-            break
-
-    return monotonic
 
 
 def _fit_power_law_with_bootstrap(
@@ -274,14 +260,6 @@ def _create_plots(
             linewidth=1,
             label=label,
             zorder=2,
-        )
-        ax1.fill_between(
-            fit_result.fitted_amplitudes,
-            fit_result.fitted_masses_lower,
-            fit_result.fitted_masses_upper,
-            color=color,
-            alpha=0.2,
-            zorder=1,
         )
 
     ax1.set_ylabel("Black Hole Mass")
