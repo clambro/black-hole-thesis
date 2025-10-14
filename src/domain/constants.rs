@@ -1,7 +1,7 @@
 //! Constants for the black hole reflection simulation.
 
 /// Threshold for the radial factor to determine if a black hole has formed.
-pub const BH_RADIAL_FACTOR_THRESHOLD: f64 = 0.02;
+pub const BH_RADIAL_FACTOR_THRESHOLD: f64 = 0.01;
 
 /// Courant number for calculating the time step. Must be less than 1.
 /// I'm shocked at how high this is. No adaptivity is needed.
