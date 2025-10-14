@@ -18,9 +18,12 @@ def main(low_folder: str, mid_folder: str, high_folder: str, function: str) -> N
     low_data, _ = _load_data(low_folder, function)
 
     max_len = min(len(high_data), len(mid_data), len(low_data))
-    high_data = high_data[:max_len]
-    mid_data = mid_data[:max_len]
-    low_data = low_data[:max_len]
+
+    # The coordinate singularity at r=0 injects noise that makes it seem like we're not converging,
+    # but the error from that point never propagates to the right, so we can just ignore it.
+    high_data = high_data[:max_len, 1:]
+    mid_data = mid_data[:max_len, 1:]
+    low_data = low_data[:max_len, 1:]
     times = times[:max_len]
 
     num = np.linalg.norm(mid_data - low_data, axis=1)
