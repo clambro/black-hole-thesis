@@ -14,29 +14,29 @@ pub fn rk4_step(config: &SimulationConfig, state: &State, time_step: f64) -> Sta
         &state.constraints,
     );
     let mut u1_field = &state.field + 0.5 * time_step * &u1.dt_field;
-    let u1_conj_momentum = &state.conj_momentum + 0.5 * time_step * &u1.dt_conj_momentum;
-    EquationsOfMotion::apply_bcs(&mut u1_field);
+    let mut u1_conj_momentum = &state.conj_momentum + 0.5 * time_step * &u1.dt_conj_momentum;
+    EquationsOfMotion::apply_bcs(&mut u1_field, &mut u1_conj_momentum);
     let u1_constraints = compute_constraints(&u1_field, &u1_conj_momentum, config);
 
     let u2 = EquationsOfMotion::new(config, &u1_field, &u1_conj_momentum, &u1_constraints);
     let mut u2_field = &state.field + 0.5 * time_step * &u2.dt_field;
-    let u2_conj_momentum = &state.conj_momentum + 0.5 * time_step * &u2.dt_conj_momentum;
-    EquationsOfMotion::apply_bcs(&mut u2_field);
+    let mut u2_conj_momentum = &state.conj_momentum + 0.5 * time_step * &u2.dt_conj_momentum;
+    EquationsOfMotion::apply_bcs(&mut u2_field, &mut u2_conj_momentum);
     let u2_constraints = compute_constraints(&u2_field, &u2_conj_momentum, config);
 
     let u3 = EquationsOfMotion::new(config, &u2_field, &u2_conj_momentum, &u2_constraints);
     let mut u3_field = &state.field + time_step * &u3.dt_field;
-    let u3_conj_momentum = &state.conj_momentum + time_step * &u3.dt_conj_momentum;
-    EquationsOfMotion::apply_bcs(&mut u3_field);
+    let mut u3_conj_momentum = &state.conj_momentum + time_step * &u3.dt_conj_momentum;
+    EquationsOfMotion::apply_bcs(&mut u3_field, &mut u3_conj_momentum);
     let u3_constraints = compute_constraints(&u3_field, &u3_conj_momentum, config);
 
     let u4 = EquationsOfMotion::new(config, &u3_field, &u3_conj_momentum, &u3_constraints);
     let rk4: EquationsOfMotion = (u1 + u2 * 2.0 + u3 * 2.0 + u4) * (time_step / 6.0);
 
     let mut field = &state.field + &rk4.dt_field;
-    let conj_momentum = &state.conj_momentum + &rk4.dt_conj_momentum;
+    let mut conj_momentum = &state.conj_momentum + &rk4.dt_conj_momentum;
     let alternate_mass = &state.alternate_mass + &rk4.dt_alternate_mass;
-    EquationsOfMotion::apply_bcs(&mut field);
+    EquationsOfMotion::apply_bcs(&mut field, &mut conj_momentum);
 
     let time = state.time + time_step;
 

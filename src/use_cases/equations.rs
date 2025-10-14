@@ -21,9 +21,8 @@ impl EquationsOfMotion {
         conj_momentum: &FieldVector,
         constraints: &Constraints,
     ) -> Self {
-        let mut dt_field =
+        let dt_field =
             Self::calculate_dt_field(conj_momentum, constraints) + dissipation(field, &config.grid);
-        Self::apply_bcs(&mut dt_field);
 
         let dt_conj_momentum = Self::calculate_dt_conj_momentum(config, field, constraints)
             + dissipation(conj_momentum, &config.grid);
@@ -40,13 +39,15 @@ impl EquationsOfMotion {
 
     /// Apply boundary conditions to the field.
     /// The conjugate momentum is free (constrained only by the field itself).
-    pub fn apply_bcs(field: &mut FieldVector) {
+    pub fn apply_bcs(field: &mut FieldVector, conj_momentum: &mut FieldVector) {
         // Neumann BCs at the origin maintain regularity.
         set_left_neumann_bc(field);
+        set_left_neumann_bc(conj_momentum);
 
         // On the right we have a Dirichlet BC to create the reflection.
         let n = field.len();
         field[n - 1] = 0.0;
+        conj_momentum[n - 1] = 0.0;
     }
 
     /// Calculate the time derivative of the scalar field.
@@ -61,10 +62,12 @@ impl EquationsOfMotion {
         constraints: &Constraints,
     ) -> FieldVector {
         let d2_field = diff2(&config.grid, field);
+
         let curvature = &constraints.char_speed * &d2_field;
-        let divergence = (&constraints.radial_factor + 1.0)
-            / (&config.grid.points * &constraints.lapse)
-            * diff(&config.grid, field);
+
+        let divergence = (&constraints.radial_factor + 1.0) * diff(&config.grid, field)
+            / (&config.grid.points * &constraints.lapse);
+
         let mut result = curvature + divergence;
         result[0] = 3.0 * &d2_field[0] / constraints.lapse[0]; // L'Hopital's rule.
         result
