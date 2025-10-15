@@ -91,6 +91,16 @@ impl FieldVector {
             data: self.data.iter().map(|x| x.abs()).collect(),
         }
     }
+
+    /// Return the minimum value in the vector
+    #[must_use]
+    pub fn min(&self) -> f64 {
+        self.data
+            .iter()
+            .min_by(|a, b| a.total_cmp(b))
+            .copied()
+            .unwrap()
+    }
 }
 
 // =============================================================================

@@ -1,5 +1,5 @@
 use crate::domain::{
-    constants::{COURANT_NUMBER, EPS},
+    constants::{BH_RADIAL_FACTOR_TRACKING, BH_SLOWDOWN_FACTOR, COURANT_NUMBER, EPS},
     output_config::OutputConfig,
     simulation_config::SimulationConfig,
     state::State,
@@ -16,7 +16,12 @@ pub struct TimeStep {
 impl TimeStep {
     // Get the next time step, ensuring that we land on a frame boundary if it is within the base time step.
     pub fn next(sim_config: &SimulationConfig, out_config: &OutputConfig, state: &State) -> Self {
-        let base_time_step = sim_config.grid.delta * COURANT_NUMBER;
+        let mut base_time_step = sim_config.grid.delta * COURANT_NUMBER;
+
+        if state.constraints.radial_factor.min() < BH_RADIAL_FACTOR_TRACKING {
+            // Slow down if we're near a black hole.
+            base_time_step *= BH_SLOWDOWN_FACTOR;
+        }
 
         // Frame boundaries don't matter if we're skipping the state output.
         if out_config.skip_state_output {
