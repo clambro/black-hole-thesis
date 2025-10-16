@@ -14,6 +14,9 @@ from utils import load_simulation_output
 
 RNG = np.random.default_rng(2112)
 
+# Values within this multiple of each critical amplitude are considered for fitting.
+CRITICAL_SCALING_FACTOR = 1.03
+
 
 @dataclass
 class DataPoint:
@@ -45,8 +48,6 @@ class FitResult:
     amp_star_max: float
     fitted_amplitudes: np.ndarray
     fitted_masses: np.ndarray
-    fitted_masses_lower: np.ndarray
-    fitted_masses_upper: np.ndarray
 
 
 def main() -> None:
@@ -150,7 +151,9 @@ def _fit_families(families: list[Family]) -> list[FitResult]:
         amp_star_min = prev_family.max_amplitude
         amp_star_max = family.min_amplitude
 
-        fit_points = [p for p in family.points if p.amplitude < amp_star_max * 1.05]
+        fit_points = [
+            p for p in family.points if p.amplitude < amp_star_max * CRITICAL_SCALING_FACTOR
+        ]
 
         fit_result = _fit_power_law_with_bootstrap(fit_points, amp_star_min, amp_star_max)
         fit_results.append(fit_result)
@@ -172,7 +175,6 @@ def _fit_power_law_with_bootstrap(
     gamma_samples = []
     amp_star_samples = []
     intercept_samples = []
-    fitted_masses_all = []
 
     amp_range_max = float(amplitudes.max())
 
@@ -194,18 +196,8 @@ def _fit_power_law_with_bootstrap(
 
         # Sample from bivariate normal (accounting for within-fit uncertainty and covariance)
         sampled_coeffs = RNG.multivariate_normal([gamma, intercept], cov_matrix)
-        gamma_with_noise = sampled_coeffs[0]
-        intercept_with_noise = sampled_coeffs[1]
-
-        gamma_samples.append(gamma_with_noise)
-        intercept_samples.append(intercept_with_noise)
-
-        # Generate fitted masses for this bootstrap iteration
-        amp_range_sample = np.linspace(amp_star, amp_range_max, 100)
-        masses_sample = (
-            np.exp(intercept_with_noise) * (amp_range_sample - amp_star) ** gamma_with_noise
-        )
-        fitted_masses_all.append(masses_sample)
+        gamma_samples.append(sampled_coeffs[0])
+        intercept_samples.append(sampled_coeffs[1])
 
     gamma_mean = float(np.mean(gamma_samples))
     amp_star_mean = float(np.mean(amp_star_samples))
@@ -217,11 +209,6 @@ def _fit_power_law_with_bootstrap(
     amp_range = np.linspace(amp_star_mean, amp_range_max, 100)
     fitted_masses_mean = np.exp(intercept_mean) * (amp_range - amp_star_mean) ** gamma_mean
 
-    # Calculate confidence intervals from all bootstrap samples
-    fitted_masses_all_array = np.array(fitted_masses_all)
-    fitted_masses_lower = np.percentile(fitted_masses_all_array, 2.5, axis=0)
-    fitted_masses_upper = np.percentile(fitted_masses_all_array, 97.5, axis=0)
-
     return FitResult(
         gamma=gamma_mean,
         gamma_min_95=gamma_min_95,
@@ -231,8 +218,6 @@ def _fit_power_law_with_bootstrap(
         amp_star_max=amp_star_max,
         fitted_amplitudes=amp_range,
         fitted_masses=fitted_masses_mean,
-        fitted_masses_lower=fitted_masses_lower,
-        fitted_masses_upper=fitted_masses_upper,
     )
 
 
@@ -248,7 +233,7 @@ def _create_plots(
 
     _, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
 
-    ax1.scatter(amplitudes, bh_masses, s=10, alpha=0.7, color="blue", zorder=3)
+    ax1.scatter(amplitudes, bh_masses, s=5, alpha=0.7, color="blue", zorder=2)
 
     colors = cm.rainbow(np.linspace(0, 1, len(fit_results)))  # type: ignore[attr-defined]
     for fit_result, color in zip(fit_results, colors, strict=False):
@@ -259,7 +244,7 @@ def _create_plots(
             color=color,
             linewidth=1,
             label=label,
-            zorder=2,
+            zorder=1,
         )
 
     ax1.set_ylabel("Black Hole Mass")
@@ -267,7 +252,7 @@ def _create_plots(
     ax1.grid(visible=True, alpha=0.3)
     ax1.legend(loc="upper left", fontsize=8)
 
-    ax2.scatter(amplitudes, formation_times, s=10, alpha=0.7, color="blue")
+    ax2.scatter(amplitudes, formation_times, s=5, alpha=0.7, color="blue")
     ax2.set_xlabel("Initial Amplitude")
     ax2.set_ylabel("Formation Time")
     ax2.set_ylim(0, max(formation_times) * 1.1 if formation_times else 15)

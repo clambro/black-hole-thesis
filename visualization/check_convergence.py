@@ -17,7 +17,7 @@ class CheckType(StrEnum):
 
 def main(*folders: str, check_type: CheckType) -> None:
     """Visualize convergence checks at different levels of discretization."""
-    fig, ax = plt.subplots(figsize=(10, 6))
+    _, ax = plt.subplots(figsize=(10, 6))
     ax.set_xlabel("Time", fontsize=14)
     ax.set_ylabel(_get_ylabel(check_type), fontsize=14)
     ax.set_title(_get_title(check_type), fontsize=16)
