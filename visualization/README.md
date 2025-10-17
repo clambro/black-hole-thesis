@@ -77,19 +77,16 @@ python analyze_results.py
 
 **Features:**
 
-- **Family Grouping**: Automatically groups simulation results into families based on formation times (within 1 time unit)
-- **Power Law Fitting**: Fits curves of the form `M = C × (ε - ε*)^γ` to each family
-- **Uncertainty Quantification**: Uses 10,000 bootstrap iterations with proper accounting for:
-  - Variability across different critical amplitudes (ε\*)
-  - Within-fit uncertainty from regression residuals
-  - Covariance between γ and intercept coefficients
-- **95% Confidence Intervals**: Displays uncertainty bands on fitted curves
-- **Monotonic Filtering**: Only fits the monotonically increasing portion of each family
+- **Family Grouping**: Automatically groups simulation results into families based on formation times
+- **Nonlinear Power Law Fitting**: Fits curves of the form `M = C (ε - ε*)^γ` using nonlinear optimization
+- **Critical Amplitude Bounds**: Constrains the critical amplitude (ε*) within bounds determined by adjacent families
+- **Data Deduplication**: Keeps only the highest resolution result for each initial amplitude
+- **Scaling Factor Filtering**: Only fits points near the critical amplitude for each family
 
 **Output:**
 
 - `results/result.png`: Dual plot showing BH mass and formation time vs. initial amplitude with fitted curves
-- `results/fit_results.jsonl`: JSON Lines file containing fit parameters (γ, ε\*, confidence intervals)
+- `results/fit_results.jsonl`: JSON Lines file containing fit parameters (γ, ε*, intercept, bounds)
 
 ## Data Structure
 
