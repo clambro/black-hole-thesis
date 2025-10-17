@@ -32,7 +32,6 @@ pub fn build_subsequent_state(
     conj_momentum: FieldVector,
     alternate_mass: FieldVector,
 ) -> State {
-    // Panic if any field values are NaN
     if field.iter().any(|&x| x.is_nan()) {
         panic!("Field contains NaN values");
     }

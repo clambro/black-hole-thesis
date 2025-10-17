@@ -38,7 +38,6 @@ impl EquationsOfMotion {
     }
 
     /// Apply boundary conditions to the field.
-    /// The conjugate momentum is free (constrained only by the field itself).
     pub fn apply_bcs(field: &mut FieldVector, conj_momentum: &mut FieldVector) {
         // Neumann BCs at the origin maintain regularity.
         set_left_neumann_bc(field);
