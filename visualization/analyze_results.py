@@ -17,7 +17,7 @@ RNG = np.random.default_rng(2112)
 
 # Values within this multiple of each critical amplitude are considered for fitting.
 # Critical scaling is a local phenomenon.
-CRITICAL_SCALING_FACTOR = 1.02
+CRITICAL_SCALING_FACTOR = 1.03
 
 
 @dataclass
