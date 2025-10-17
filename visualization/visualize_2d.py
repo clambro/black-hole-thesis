@@ -8,6 +8,7 @@ from matplotlib.image import AxesImage
 from matplotlib.text import Text
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy.interpolate import interp1d
+from tqdm import tqdm
 
 from schemas import StateOutput
 from utils import load_state_outputs
@@ -46,22 +47,26 @@ def _create_2d_animation(
 
     freeze_seconds = 1
     freeze_frames = freeze_seconds * FPS
+    total_frames = len(states) + 2 * freeze_seconds * FPS
+
+    pbar = tqdm(total=total_frames, desc="Generating 2D animation", unit="frames")
 
     def animate(frame: int) -> tuple[AxesImage, Text]:
         """Animate a single frame."""
         img.set_array(all_frames[frame])
         time_text.set_text(f"Time: {times[frame]:.4f}")
+        pbar.update(1)
         return img, time_text
 
     def animate_with_freeze(frame: int) -> tuple[AxesImage, Text]:
         """Create frames with freezing at start and end."""
         if frame < freeze_frames:
-            return animate(0)
-        if frame < freeze_frames + len(states):
-            return animate(frame - freeze_frames)
-        return animate(len(states) - 1)
-
-    total_frames = len(states) + 2 * freeze_seconds * FPS
+            result = animate(0)
+        elif frame < freeze_frames + len(states):
+            result = animate(frame - freeze_frames)
+        else:
+            result = animate(len(states) - 1)
+        return result
 
     return animation.FuncAnimation(
         fig, animate_with_freeze, frames=total_frames, interval=50, blit=True, repeat=True

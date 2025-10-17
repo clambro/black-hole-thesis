@@ -5,7 +5,7 @@ from schemas import SimulationOutput, StateOutput
 
 def load_simulation_output(folder: str) -> SimulationOutput:
     """Load simulation output from a folder."""
-    with Path(f"../results/{folder}/simulation_output.json").open() as f:
+    with Path(f"../results/{folder}/results.json").open() as f:
         return SimulationOutput.model_validate_json(f.read())
 
 

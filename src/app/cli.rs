@@ -13,7 +13,7 @@ use clap::Parser;
 #[command(about = "A black hole reflection simulation.")]
 pub struct Args {
     /// Level of spatial discretization for the simulation grid.
-    #[arg(long, default_value = "13")]
+    #[arg(long, default_value = "15")]
     pub level_of_discretization: u32,
 
     /// Initial amplitude of the scalar field perturbation.
@@ -33,6 +33,10 @@ pub struct Args {
     /// The simulation should end with BH formation, but this is here as a safety.
     #[arg(long, default_value = "15.0")]
     pub max_time: f64,
+
+    /// Skip the state output to save space. The final results will still be saved.
+    #[arg(long, default_value = "false")]
+    pub skip_state_output: bool,
 }
 
 impl Args {
@@ -48,6 +52,7 @@ impl Args {
         let out_config = OutputConfig {
             dt: args.output_dt,
             dx_level: args.output_dx_level,
+            skip_state_output: args.skip_state_output,
         };
         let initial_state = build_initial_state(&sim_config);
 

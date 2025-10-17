@@ -32,6 +32,10 @@ pub fn build_subsequent_state(
     conj_momentum: FieldVector,
     alternate_mass: FieldVector,
 ) -> State {
+    if field.iter().any(|&x| x.is_nan()) {
+        panic!("Field contains NaN values");
+    }
+
     let constraints = compute_constraints(&field, &conj_momentum, config);
 
     State {

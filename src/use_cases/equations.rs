@@ -23,9 +23,10 @@ impl EquationsOfMotion {
     ) -> Self {
         let dt_field =
             Self::calculate_dt_field(conj_momentum, constraints) + dissipation(field, &config.grid);
+
         let dt_conj_momentum = Self::calculate_dt_conj_momentum(config, field, constraints)
             + dissipation(conj_momentum, &config.grid);
-        // The mass function is smooth, so no dissipation required.
+
         let dt_alternate_mass =
             Self::calculate_dt_alternate_mass(config, field, conj_momentum, constraints);
 
@@ -36,7 +37,7 @@ impl EquationsOfMotion {
         }
     }
 
-    /// Apply boundary conditions to the fields.
+    /// Apply boundary conditions to the field.
     pub fn apply_bcs(field: &mut FieldVector, conj_momentum: &mut FieldVector) {
         // Neumann BCs at the origin maintain regularity.
         set_left_neumann_bc(field);
@@ -50,9 +51,7 @@ impl EquationsOfMotion {
 
     /// Calculate the time derivative of the scalar field.
     fn calculate_dt_field(conj_momentum: &FieldVector, constraints: &Constraints) -> FieldVector {
-        let mut result = &constraints.char_speed * conj_momentum;
-        result[0] = conj_momentum[0] / constraints.lapse[0]; // L'Hopital's rule.
-        result
+        &constraints.char_speed * conj_momentum
     }
 
     /// Calculate the time derivative of the conjugate momentum.
@@ -62,10 +61,12 @@ impl EquationsOfMotion {
         constraints: &Constraints,
     ) -> FieldVector {
         let d2_field = diff2(&config.grid, field);
+
         let curvature = &constraints.char_speed * &d2_field;
-        let divergence = (&constraints.radial_factor + 1.0)
-            / (&config.grid.points * &constraints.lapse)
-            * diff(&config.grid, field);
+
+        let divergence = (&constraints.radial_factor + 1.0) * diff(&config.grid, field)
+            / (&config.grid.points * &constraints.lapse);
+
         let mut result = curvature + divergence;
         result[0] = 3.0 * &d2_field[0] / constraints.lapse[0]; // L'Hopital's rule.
         result

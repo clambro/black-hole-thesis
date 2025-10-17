@@ -1,5 +1,5 @@
 use crate::domain::{
-    constants::{EPS, MAX_COURANT_NUMBER, MIN_COURANT_NUMBER},
+    constants::{BH_RADIAL_FACTOR_TRACKING, BH_SLOWDOWN_FACTOR, COURANT_NUMBER, EPS},
     output_config::OutputConfig,
     simulation_config::SimulationConfig,
     state::State,
@@ -16,16 +16,20 @@ pub struct TimeStep {
 impl TimeStep {
     // Get the next time step, ensuring that we land on a frame boundary if it is within the base time step.
     pub fn next(sim_config: &SimulationConfig, out_config: &OutputConfig, state: &State) -> Self {
-        let min_speed = state
-            .constraints
-            .char_speed
-            .iter()
-            .min_by(|a, b| a.total_cmp(b))
-            .expect("Characteristic speed is empty.")
-            .clamp(MIN_COURANT_NUMBER, MAX_COURANT_NUMBER);
+        let mut base_time_step = sim_config.grid.delta * COURANT_NUMBER;
 
-        // This is a Courant number of up to MAX_COURANT_NUMBER, adjusted for the speed of the slowest point.
-        let base_time_step = sim_config.grid.delta * min_speed;
+        if state.constraints.radial_factor.min() < BH_RADIAL_FACTOR_TRACKING {
+            // Slow down if we're near a black hole.
+            base_time_step *= BH_SLOWDOWN_FACTOR;
+        }
+
+        // Frame boundaries don't matter if we're skipping the state output.
+        if out_config.skip_state_output {
+            return TimeStep {
+                delta: base_time_step,
+                is_frame_boundary: false,
+            };
+        }
 
         // Find the next frame boundary after the current time
         let current_frame_index = (state.time / out_config.dt).floor();

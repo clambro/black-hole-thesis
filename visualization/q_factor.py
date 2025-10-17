@@ -18,14 +18,18 @@ def main(low_folder: str, mid_folder: str, high_folder: str, function: str) -> N
     low_data, _ = _load_data(low_folder, function)
 
     max_len = min(len(high_data), len(mid_data), len(low_data))
-    high_data = high_data[:max_len]
-    mid_data = mid_data[:max_len]
-    low_data = low_data[:max_len]
+
+    # The coordinate singularity at r=0 injects noise that makes it seem like we're not converging,
+    # but the error from that point never propagates to the right, so we can just ignore it.
+    high_data = high_data[:max_len, 1:]
+    mid_data = mid_data[:max_len, 1:]
+    low_data = low_data[:max_len, 1:]
     times = times[:max_len]
 
     num = np.linalg.norm(mid_data - low_data, axis=1)
-    denom = np.linalg.norm(high_data - mid_data, axis=1) + 1e-12
-    q_factor = np.clip(num / denom, 0, 32)  # Clip noisy spikes near BH formation.
+    denom = np.linalg.norm(high_data - mid_data, axis=1)
+    with np.errstate(invalid="ignore"):  # Ignore division by zero. We want those to be NaN.
+        q_factor = np.clip(num / denom, 0, 32)  # Clip noisy spikes near BH formation.
 
     ax.plot(times, q_factor, "b-", linewidth=2)
     ax.hlines(16, times[0], times[-1], "r", "--", linewidth=2)

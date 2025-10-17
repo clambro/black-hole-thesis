@@ -83,6 +83,24 @@ impl FieldVector {
             data: self.data.iter().map(|x| x.tan()).collect(),
         }
     }
+
+    /// Apply absolute value function element-wise
+    #[must_use]
+    pub fn abs(&self) -> Self {
+        Self {
+            data: self.data.iter().map(|x| x.abs()).collect(),
+        }
+    }
+
+    /// Return the minimum value in the vector
+    #[must_use]
+    pub fn min(&self) -> f64 {
+        self.data
+            .iter()
+            .min_by(|a, b| a.total_cmp(b))
+            .copied()
+            .unwrap()
+    }
 }
 
 // =============================================================================
@@ -238,6 +256,13 @@ impl Add<FieldVector> for &FieldVector {
     type Output = FieldVector;
     fn add(self, other: FieldVector) -> FieldVector {
         self + &other
+    }
+}
+
+impl Add<FieldVector> for f64 {
+    type Output = FieldVector;
+    fn add(self, other: FieldVector) -> FieldVector {
+        other + self
     }
 }
 
