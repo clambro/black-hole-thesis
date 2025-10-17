@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import cm
 from pydantic import ValidationError
+from scipy.optimize import curve_fit
 
 from schemas import SimulationOutput
 from utils import load_simulation_output
@@ -41,11 +42,10 @@ class FitResult:
     """Results from fitting a power law to a family."""
 
     gamma: float
-    gamma_min_95: float
-    gamma_max_95: float
     amp_star: float
     amp_star_min: float
     amp_star_max: float
+    intercept: float
     fitted_amplitudes: np.ndarray
     fitted_masses: np.ndarray
 
@@ -155,69 +155,49 @@ def _fit_families(families: list[Family]) -> list[FitResult]:
             p for p in family.points if p.amplitude < amp_star_max * CRITICAL_SCALING_FACTOR
         ]
 
-        fit_result = _fit_power_law_with_bootstrap(fit_points, amp_star_min, amp_star_max)
+        fit_result = _fit_power_law_nonlinear(fit_points, amp_star_min, amp_star_max)
         fit_results.append(fit_result)
 
     return fit_results
 
 
-def _fit_power_law_with_bootstrap(
+def _fit_power_law_nonlinear(
     points: list[DataPoint],
     amp_star_min: float,
     amp_star_max: float,
-    n_bootstrap: int = 10000,
 ) -> FitResult:
-    """Fit power law with bootstrapping to estimate uncertainty."""
+    """Fit power law using nonlinear optimization for amp*, gamma, and intercept."""
     amplitudes = np.array([p.amplitude for p in points])
     masses = np.array([p.bh_mass for p in points])
-    n_points = len(amplitudes)
 
-    gamma_samples = []
-    amp_star_samples = []
-    intercept_samples = []
+    amp_star_guess = (amp_star_min + amp_star_max) / 2
+    bounds = ((amp_star_min, 0, -np.inf), (amp_star_max, 1, np.inf))
 
-    amp_range_max = float(amplitudes.max())
+    def power_law_func(amp: float, amp_star: float, gamma: float, intercept: float) -> float:
+        """Power law function: mass = exp(intercept) * (amp - amp_star)^gamma."""
+        return np.exp(intercept) * (amp - amp_star) ** gamma
 
-    for _ in range(n_bootstrap):
-        amp_star = RNG.uniform(amp_star_min, amp_star_max)
-        amp_star_samples.append(amp_star)
+    popt, _ = curve_fit(
+        power_law_func,
+        amplitudes,
+        masses,
+        p0=[amp_star_guess, 0.4, 0],
+        bounds=bounds,
+        maxfev=10000,
+    )
+    amp_star_fit, gamma_fit, intercept_fit = popt
 
-        log_x = np.log(amplitudes - amp_star)
-        log_y = np.log(masses)
-
-        design_matrix = np.vstack([log_x, np.ones(n_points)]).T
-        coeffs, residuals, _, _ = np.linalg.lstsq(design_matrix, log_y, rcond=None)
-        gamma = coeffs[0]
-        intercept = coeffs[1]
-
-        # Calculate covariance matrix of coefficients
-        mse = residuals[0] / (n_points - 2)
-        cov_matrix = mse * np.linalg.inv(design_matrix.T @ design_matrix)
-
-        # Sample from bivariate normal (accounting for within-fit uncertainty and covariance)
-        sampled_coeffs = RNG.multivariate_normal([gamma, intercept], cov_matrix)
-        gamma_samples.append(sampled_coeffs[0])
-        intercept_samples.append(sampled_coeffs[1])
-
-    gamma_mean = float(np.mean(gamma_samples))
-    amp_star_mean = float(np.mean(amp_star_samples))
-    intercept_mean = float(np.mean(intercept_samples))
-    gamma_min_95 = float(np.percentile(gamma_samples, 2.5))
-    gamma_max_95 = float(np.percentile(gamma_samples, 97.5))
-
-    # Generate fitted curve using mean values
-    amp_range = np.linspace(amp_star_mean, amp_range_max, 100)
-    fitted_masses_mean = np.exp(intercept_mean) * (amp_range - amp_star_mean) ** gamma_mean
+    amp_range = np.linspace(amp_star_fit, float(amplitudes.max()), 100)
+    fitted_masses = np.exp(intercept_fit) * (amp_range - amp_star_fit) ** gamma_fit
 
     return FitResult(
-        gamma=gamma_mean,
-        gamma_min_95=gamma_min_95,
-        gamma_max_95=gamma_max_95,
-        amp_star=amp_star_mean,
+        gamma=gamma_fit,
+        amp_star=amp_star_fit,
         amp_star_min=amp_star_min,
         amp_star_max=amp_star_max,
+        intercept=intercept_fit,
         fitted_amplitudes=amp_range,
-        fitted_masses=fitted_masses_mean,
+        fitted_masses=fitted_masses,
     )
 
 
@@ -237,7 +217,7 @@ def _create_plots(
 
     colors = cm.rainbow(np.linspace(0, 1, len(fit_results)))  # type: ignore[attr-defined]
     for fit_result, color in zip(fit_results, colors, strict=False):
-        label = rf"$\epsilon$ = {fit_result.amp_star:.3f}; $\gamma$ = {fit_result.gamma:.3f}"
+        label = rf"$\epsilon^*$ = {fit_result.amp_star:.3f}; $\gamma$ = {fit_result.gamma:.3f}"
         ax1.plot(
             fit_result.fitted_amplitudes,
             fit_result.fitted_masses,
@@ -269,7 +249,7 @@ def _create_plots(
 
 def _save_fit_results(fit_results: list[FitResult], output_path: Path) -> None:
     """Save the fit results to a JSON file."""
-    keys = ["gamma", "gamma_min_95", "gamma_max_95", "amp_star", "amp_star_min", "amp_star_max"]
+    keys = ["gamma", "amp_star", "amp_star_min", "amp_star_max", "intercept"]
     with Path(output_path).open("w") as f:
         for result in fit_results:
             json.dump({key: getattr(result, key) for key in keys}, f)
