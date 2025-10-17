@@ -6,11 +6,7 @@ A detailed (and not too technical) explanation of this process is provided here 
 
 Here is a visualization of the energy reflecting off the boundary and forming a black hole on its second try:
 
-<div align="center">
-  <video width="600" controls>
-    <source src="docs/images/reflection_animation.mp4" type="video/mp4" alt="A video of black hole formation after one reflection">
-  </video>
-</div>
+https://github.com/user-attachments/assets/601c7019-c6a1-4c7f-a1bf-5c406eabda35
 
 Here is the pattern of black hole mass and formation time vs initial pulse amplitude. The animation above is at amplitude 32.
 
