@@ -8,7 +8,9 @@ A detailed (and not too technical) explanation of this process is provided here 
 
 Here is the pattern of black hole mass and formation time vs initial pulse amplitude:
 
-(add final graph)
+<div align="center">
+  <img src="docs/images/final_results.png" alt="The relationship between initial amplitude, black hole mass, and formation time" width="800">
+</div>
 
 ## Project Structure
 
