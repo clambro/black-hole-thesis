@@ -16,7 +16,8 @@ from utils import load_simulation_output
 RNG = np.random.default_rng(2112)
 
 # Values within this multiple of each critical amplitude are considered for fitting.
-CRITICAL_SCALING_FACTOR = 1.03
+# Critical scaling is a local phenomenon.
+CRITICAL_SCALING_FACTOR = 1.02
 
 
 @dataclass
@@ -218,7 +219,7 @@ def _create_plots(
 
     _, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
 
-    ax1.scatter(amplitudes, black_hole_masses, s=5, alpha=0.7, color="blue", zorder=2)
+    ax1.scatter(amplitudes, black_hole_masses, s=5, color="blue", zorder=2)
 
     colors = cm.rainbow(np.linspace(0, 1, len(fit_results)))  # type: ignore[attr-defined]
     for fit_result, color in zip(fit_results, colors, strict=False):
@@ -227,7 +228,8 @@ def _create_plots(
             fit_result.fitted_amplitudes,
             fit_result.fitted_masses,
             color=color,
-            linewidth=2,
+            alpha=0.7,
+            linewidth=3,
             label=label,
             zorder=1,
         )
@@ -236,7 +238,7 @@ def _create_plots(
     ax1.grid(visible=True, alpha=0.3)
     ax1.legend(loc="upper left", fontsize=8)
 
-    ax2.scatter(amplitudes, formation_times, s=5, alpha=0.7, color="blue")
+    ax2.scatter(amplitudes, formation_times, s=5, color="blue")
     ax2.set_xlabel("Initial Amplitude")
     ax2.set_ylabel("Formation Time")
     ax2.grid(visible=True, alpha=0.3)
