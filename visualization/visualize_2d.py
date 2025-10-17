@@ -89,7 +89,7 @@ def _create_2d_grid(
 
 def _setup_2d_plot(function: str, values: np.ndarray) -> tuple[Figure, AxesImage, Text]:
     """Set up the 2D plot with axes, colorbar, and initial elements."""
-    fig, ax = plt.subplots(figsize=(10, 10), dpi=150)
+    fig, ax = plt.subplots(figsize=(7, 6), dpi=150)
     ax.set_xlim(-1, 1)
     ax.set_ylim(-1, 1)
     ax.set_aspect("equal")
