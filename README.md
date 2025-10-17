@@ -1,98 +1,45 @@
-# black-hole-thesis
+# Black Hole Formation Simulation
 
-Simulating black hole formation in Rust. A redo of my undergraduate thesis.
+This is a redo of my undergraduate thesis in Rust. Briefly and non-technically, we are simulating the evolution of a pulse of energy in a confined region of space. If the pulse has enough energy to begin with, it will immediately collapse into a black hole (thus ending the simulation). If it does not have enough energy, it will start dispersing out to the boundary of our simulation, at which point it will be redirected back towards the center. The idea is that every time the pulse collapses through the center, its own self-gravity focuses it to be denser and denser, until it inevtiably forms a black hole.
 
-Brifely and non-technically, we are simulating the evolution of a bubble of energy in a confined region of space. The idea is that no matter how weak the initial bubble of energy starts, it gets denser and denser under its own self-gravity as it bounces around inside the region, and eventually forms a black hole.
+A detailed (and not too technical) explanation of this process is provided here (link here when ready).
 
-More info/documentation/blogging to come soon. This is still an early WIP.
+Here is a visualization of the energy reflecting off the boundary and forming a black hole on its second try:
+
+https://github.com/user-attachments/assets/601c7019-c6a1-4c7f-a1bf-5c406eabda35
+
+Here is the pattern of black hole mass and formation time vs initial pulse amplitude. The animation above is at amplitude 32.
+
+<div align="center">
+  <img src="docs/images/final_results.png" alt="The relationship between initial amplitude, black hole mass, and formation time" width="600">
+</div>
+
+## Project Structure
+
+- `src/` - The main simulation code in Rust.
+- `visualization/` - A small Python library for visualizing the results of the simulation.
+- `docs/` - Accompanying documentation for the project.
 
 
----
+## Running the Simulation
 
-## AI Summary:
+```bash
+# Build the project
+# Release mode is strongly recommended. It runs much faster.
+cargo build --release
 
-Here's the high-level picture first: we evolve a spherically symmetric massless scalar field in a finite cavity (r\in[0,1]) coupled to Einstein's equations in polar-areal gauge. We use a second-order in space formulation of the wave equation; the constraints are solved on each time slice; and the cavity is perfectly reflecting. Regularity at the center and a Dirichlet wall at the outer boundary are enforced via clean parity/characteristic boundary conditions.
+# Run the default simulation
+cargo run --release
 
----
+# Run with custom parameters
+cargo run --release -- --amplitude 50.0 --max-time 20.0
+```
 
-**Domain and fields.** (r\in[0,1]), (t\ge 0). Metric
-[
-ds^2=-\frac{A}{N^2},dt^2+\frac{dr^2}{A}+r^2 d\Omega .
-]
-Dynamical variables
-[
-\phi,\qquad \Pi:=\frac{A}{N},\partial_t\phi .
-]
+### Command Line Parameters
 
-**Evolution (second-order in space Klein–Gordon).**
-[
-\partial_t\phi=\frac{A}{N}\Pi,\qquad
-\partial_t\Pi=\frac{A}{N}\partial_r^2\phi + \frac{A+1}{r}\frac{1}{N}\partial_r\phi.
-]
-
-**Constraints (solved on each time slice).** Let (m:=\tfrac12 r(1-A)). Then
-[
-\frac{N'}{N}=-,r\left((\partial_r\phi)^2+\Pi^2\right),\qquad
-m'=\tfrac12 r^2\left((\partial_r\phi)^2+\Pi^2\right),\qquad
-A=1-\frac{2m}{r}.
-]
-The identity
-[
-\partial_t m=\frac{A^2}{N},r^2,(\partial_r\phi),\Pi
-]
-is monitored as a diagnostic (not used to evolve).
-
-## Boundary conditions
-
-### Left boundary (r=0) — regularity
-
-Continuum conditions:
-[
-\partial_r\phi(0,t)=0,\qquad \partial_r\Pi(0,t)=0,\qquad m(0,t)=0,\qquad A(0,t)=1.
-]
-Numerical parity (ghost fills about (r=0)): (\phi,\Pi,A,N) even; (m) odd.
-
-### Right boundary (r=1) — perfectly reflecting wall
-
-Dirichlet wall for the scalar:
-[
-\phi(1,t)=0,\qquad \Pi(1,t)=0.
-]
-Parity conditions for ghost cells (to compute spatial derivatives near the boundary):
-
-* **Parity form (ghost-cell friendly):**
-  [
-  \phi(1+\delta,t)=-\phi(1-\delta,t),\quad
-  \Pi(1+\delta,t)=-\Pi(1-\delta,t).
-  ]
-  This makes (\phi) and (\Pi) odd at the wall.
-
-Gauge choice at the wall:
-[
-N(1,t)=1.
-]
-
-## Initial data
-
-Example smooth data used in the confined problem:
-[
-\phi(r,0)=0,\qquad
-\Pi(r,0)=\varepsilon,\exp!\left[-64,\tan^2!\Big(\frac{\pi r}{2}\Big)\right].
-]
-Given (\phi(\cdot,0),\Pi(\cdot,0)), obtain (m(\cdot,0)) and (N(\cdot,0)) by integrating the constraints with
-[
-m(0,0)=0,\qquad N(1,0)=1.
-]
-That is,
-[
-m(r,0)=\frac12\int_{0}^{r}s^2!\left((\partial_s\phi)^2+\Pi^2\right)!(s,0),ds,\qquad
-N(r,0)=\exp!\left(-\int_{r}^{1}s,\left((\partial_s\phi)^2+\Pi^2\right)!(s,0),ds\right).
-]
-
-## Diagnostics
-
-Total mass inside the cavity:
-[
-m(1,t)=\frac12\int_{0}^{1}r^2\left((\partial_r\phi)^2+\Pi^2\right),dr.
-]
-Energy flux at the wall vanishes under the reflecting BCs because (\Pi(1,t)=0), so the cavity is lossless and the mass (m(1,t)) is conserved up to numerical error.
+- `--level-of-discretization` (default: 15) - Spatial resolution of the simulation grid
+- `--amplitude` (default: 30.0) - Initial amplitude of the energy perturbation
+- `--output-dt` (default: 0.0067) - Time between output frames (affects animation smoothness)
+- `--output-dx-level` (default: 9) - Resolution for output data
+- `--max-time` (default: 15.0) - Maximum simulation time before timeout
+- `--skip-state-output` (default: false) - Skip the temporal state output to save space
