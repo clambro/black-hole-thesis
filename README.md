@@ -8,7 +8,7 @@ Here is a visualization of the energy reflecting off the boundary and forming a 
 
 <div align="center">
   <video width="600" controls>
-    <source src="docs/images/reflection_animation.mp4" type="video/mp4" alt="A video of black hole formation after one reflection">
+    <source src="docs/images/reflection_animation.mp4" type="video/webm" alt="A video of black hole formation after one reflection">
   </video>
 </div>
 
