@@ -24,7 +24,7 @@ class DataPoint:
     """Single data point from simulation results."""
 
     amplitude: float
-    bh_mass: float
+    black_hole_mass: float
     formation_time: float
 
 
@@ -45,7 +45,7 @@ class FitResult:
     amp_star: float
     amp_star_min: float
     amp_star_max: float
-    intercept: float
+    constant: float
     fitted_amplitudes: np.ndarray
     fitted_masses: np.ndarray
 
@@ -95,7 +95,7 @@ def _deduplicate_and_format_results(results: list[SimulationOutput]) -> list[Dat
     return [
         DataPoint(
             amplitude=result.initial_amplitude,
-            bh_mass=result.black_hole_mass,
+            black_hole_mass=result.black_hole_mass,
             formation_time=result.final_simulation_time,
         )
         for result in results
@@ -115,7 +115,7 @@ def _group_into_families(data_points: list[DataPoint]) -> list[Family]:
     current_family: list[DataPoint] = [sorted_points[0]]
 
     for point in sorted_points[1:]:
-        # Check if this point is within 1 unit of any point in current family
+        # Check if this point is within 1 unit of any point in the current family.
         if any(abs(point.formation_time - p.formation_time) <= 1.0 for p in current_family):
             current_family.append(point)
         else:
@@ -166,36 +166,41 @@ def _fit_power_law_nonlinear(
     amp_star_min: float,
     amp_star_max: float,
 ) -> FitResult:
-    """Fit power law using nonlinear optimization for amp*, gamma, and intercept."""
+    """Fit power law using nonlinear optimization for amp*, gamma, and constant."""
     amplitudes = np.array([p.amplitude for p in points])
-    masses = np.array([p.bh_mass for p in points])
+    masses = np.array([p.black_hole_mass for p in points])
 
     amp_star_guess = (amp_star_min + amp_star_max) / 2
     bounds = ((amp_star_min, 0, -np.inf), (amp_star_max, 1, np.inf))
 
     def power_law_func(amp: float, amp_star: float, gamma: float, intercept: float) -> float:
-        """Power law function: mass = exp(intercept) * (amp - amp_star)^gamma."""
-        return np.exp(intercept) * (amp - amp_star) ** gamma
+        """
+        Power law function: mass = constant * (amp - amp_star)^gamma.
+
+        Fitting the log is more stable and ensures the bounds are respected.
+        """
+        return intercept + gamma * np.log(amp - amp_star)
 
     popt, _ = curve_fit(
         power_law_func,
         amplitudes,
-        masses,
-        p0=[amp_star_guess, 0.4, 0],
+        np.log(masses),
+        p0=[amp_star_guess, 0.4, -3],
         bounds=bounds,
         maxfev=10000,
     )
     amp_star_fit, gamma_fit, intercept_fit = popt
+    constant_fit = np.exp(intercept_fit)
 
     amp_range = np.linspace(amp_star_fit, float(amplitudes.max()), 100)
-    fitted_masses = np.exp(intercept_fit) * (amp_range - amp_star_fit) ** gamma_fit
+    fitted_masses = constant_fit * (amp_range - amp_star_fit) ** gamma_fit
 
     return FitResult(
         gamma=gamma_fit,
         amp_star=amp_star_fit,
         amp_star_min=amp_star_min,
         amp_star_max=amp_star_max,
-        intercept=intercept_fit,
+        constant=constant_fit,
         fitted_amplitudes=amp_range,
         fitted_masses=fitted_masses,
     )
@@ -208,12 +213,12 @@ def _create_plots(
 ) -> None:
     """Create the dual plot showing BH Mass and Formation Time vs epsilon."""
     amplitudes = [p.amplitude for p in data_points]
-    bh_masses = [p.bh_mass for p in data_points]
+    black_hole_masses = [p.black_hole_mass for p in data_points]
     formation_times = [p.formation_time for p in data_points]
 
     _, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
 
-    ax1.scatter(amplitudes, bh_masses, s=5, alpha=0.7, color="blue", zorder=2)
+    ax1.scatter(amplitudes, black_hole_masses, s=5, alpha=0.7, color="blue", zorder=2)
 
     colors = cm.rainbow(np.linspace(0, 1, len(fit_results)))  # type: ignore[attr-defined]
     for fit_result, color in zip(fit_results, colors, strict=False):
@@ -222,20 +227,18 @@ def _create_plots(
             fit_result.fitted_amplitudes,
             fit_result.fitted_masses,
             color=color,
-            linewidth=1,
+            linewidth=2,
             label=label,
             zorder=1,
         )
 
     ax1.set_ylabel("Black Hole Mass")
-    ax1.set_ylim(0, max(bh_masses) * 1.1 if bh_masses else 0.02)
     ax1.grid(visible=True, alpha=0.3)
     ax1.legend(loc="upper left", fontsize=8)
 
     ax2.scatter(amplitudes, formation_times, s=5, alpha=0.7, color="blue")
     ax2.set_xlabel("Initial Amplitude")
     ax2.set_ylabel("Formation Time")
-    ax2.set_ylim(0, max(formation_times) * 1.1 if formation_times else 15)
     ax2.grid(visible=True, alpha=0.3)
 
     min_amp = min(amplitudes) if amplitudes else 18
@@ -249,7 +252,7 @@ def _create_plots(
 
 def _save_fit_results(fit_results: list[FitResult], output_path: Path) -> None:
     """Save the fit results to a JSON file."""
-    keys = ["gamma", "amp_star", "amp_star_min", "amp_star_max", "intercept"]
+    keys = ["gamma", "amp_star", "amp_star_min", "amp_star_max", "constant"]
     with Path(output_path).open("w") as f:
         for result in fit_results:
             json.dump({key: getattr(result, key) for key in keys}, f)
