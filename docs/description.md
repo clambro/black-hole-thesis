@@ -11,7 +11,7 @@ The kind of energy we're going to be working with is called a "massless scalar f
 <div align="center">
   <img src="images/gravitational_wave.jpg" alt="A cartoon depicting a scalar field analogy" width="600">
 
-  Figure 1: The rubber sheet is our spacetime. The weight of the planets warps it, and the scalar field is like someone hitting the sheet.
+  *Figure 1: The rubber sheet is our spacetime. The weight of the planets warps it, and the scalar field is like someone hitting the sheet.*
 </div>
 
 We've already established that a strong enough wave will form a black hole. This would be akin to the fist punching right through our rubber sheet. If the wave isn't strong enough to form a black hole, then the ripples will simply disperse outwards to infinity and nothing much happens. The question this project is concerned with is: **What happens if we confine our spacetime?** In other words, what happens to these small energy waves if they're not allowed to diffuse out to infinity?
