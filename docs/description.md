@@ -8,11 +8,18 @@ In general relativity, energy curves spacetime. If enough energy is crammed into
 
 The kind of energy we're going to be working with is called a "massless scalar field." Using the common analogy of spacetime as a big rubber sheet with planets and stars as balls rolling around on it, the field we're discussing would be like ripples in the rubber caused by a fist coming down and lightly tapping the sheet.
 
-<div style="width: 600px; margin: 0 auto;">
-    <figure>
-        <img src="images/gravitational_wave.jpg" alt="A cartoon depicting a scalar field analogy" width="600">
-        <figcaption style="text-align: left;">Figure 1: The rubber sheet is our spacetime. The weight of the planets warps it, and the scalar field is like someone hitting the sheet.</figcaption>
-    </figure>
+<div align="center">
+  <img src="images/gravitational_wave.jpg" alt="A cartoon depicting a scalar field analogy" width="600">
+</div>
+
+<div align="center">
+  <table style="width: 600px;">
+    <tr>
+      <td>
+        Figure 1: The rubber sheet is our spacetime. The weight of the planets warps it, and the scalar field is like someone hitting the sheet.
+      </td>
+    </tr>
+  </table>
 </div>
 
 We've already established that a strong enough wave will form a black hole. This would be akin to the fist punching right through our rubber sheet. If the wave isn't strong enough to form a black hole, then the ripples will simply disperse outwards to infinity and nothing much happens. The question this project is concerned with is: **What happens if we confine our spacetime?** In other words, what happens to these small energy waves if they're not allowed to diffuse out to infinity?
@@ -44,10 +51,10 @@ $$
 This is the equation we have to solve to track the evolution of our wave in our spacetime. If those alphas weren't there, this would be the same wave equation that governs a vibrating drum or a guitar string, but unfortunately for us they are there and they introduce a heck of a lot of complexity into an otherwise simple concept. What those alphas tell us is that our wave equation is operating in curved space, and the way that space curves is described by a spactime metric. Our spherically symmetric spacetime metric looks like this:
 
 $$
-\mathrm{d}s^2 = -\frac{A}{N^2}\mathrm{d}t^2 + \frac{1}{A}\mathrm{d}r^2 + r^2\mathrm{d}\Omega
+ds^2 = -\frac{A}{N^2}dt^2 + \frac{1}{A}dr^2 + r^2d\Omega
 $$
 
-This metric tells us how spacetime warps at a local level due to the presence of our field. The function $A$ is called the "radial factor," and it will be very important for determining black hole formation later. The function $N$ is called the "lapse," and it tracks the gravitiational time dilation of the system. We will define these more properly in a moment. Now that we have our metric, we can write our Klein-Gordon equation as a pair of coupled equations which look uglier but are much easier to work with computationally:
+This metric tells us how spacetime warps at a local level due to the presence of our field. The function $A$ is called the radial factor, and it will be very important for determining black hole formation later. The function $N$ is called the lapse, and it tracks the gravitiational time dilation of the system. We will define these more properly in a moment. Now that we have our metric, we can write our Klein-Gordon equation as a pair of coupled equations which look uglier but are much easier to work with computationally:
 
 $$
 \partial_t\phi = \frac{A\Pi}{N}
@@ -55,7 +62,7 @@ $$
 \partial_t\Pi = \frac{A}{N}\partial_{rr}\phi + \frac{A+1}{rN}\partial_r\phi
 $$
 
-Where the "conjugate momentum" $\Pi=A\dot{\phi}/N$. These are the two equations that we will solve iteratively in time to evolve our wave. Unfortunately, we are not done yet because as the wave travels through spacetime, it warps the spacetime that it is moving through, which changes the way it moves, which changes how it warps spacetime, etc. This relationship is governed by the Einstein Field equations, which relate the curvature of spacetime to the matter/energy content of the system and put additional constraints on our system. For our field $\phi$ (in  units where $4\pi G = c = 1$), these take the form:
+Where the conjugate momentum $\Pi=A\partial_t\phi/N$. These are the two equations that we will solve iteratively in time to evolve our wave. Unfortunately, we are not done yet because as the wave travels through spacetime, it warps the spacetime that it is moving through, which changes the way it moves, which changes how it warps spacetime, etc. This relationship is governed by the Einstein Field equations, which relate the curvature of spacetime to the matter/energy content of the system and put additional constraints on our system. For our field $\phi$ (in  units where $4\pi G = c = 1$), these take the form:
 
 $$
 G_{\mu\nu} = 2\partial_\mu\phi \partial_\nu\phi - g_{\mu\nu} \partial^\alpha\phi \partial_\alpha\phi.
@@ -71,7 +78,7 @@ $$
 \partial_t m = r^2\frac{A}{N}\Phi\Pi
 $$
 
-The concept of a "mass" function may be confusing to some at first since there is no matter in our system, but remember that $E=mc^2$. In units where $c=1$, that takes on the much more evokative form of $E=m$. The mass function $m(r)$ is thus a measure of how much energy is contained in a sphere of radius $r$. If our total cavity is size 1, then $m(1)$ is the total energy of the system, which must be conserved. We will use this conservation law, along with the fact that we have two different ways of calculating mass (via the radial and temporal derivatives above), to help us prove the validity of our system later on.
+The concept of a *mass* function may be confusing to some at first since there is no matter in our system, but remember that $E=mc^2$. In units where $c=1$, that takes on the much more evokative form of $E=m$. The mass function $m(r)$ is thus a measure of how much energy is contained in a sphere of radius $r$. If our total cavity is size 1, then $m(1)$ is the total energy of the system, which must be conserved. We will use this conservation law, along with the fact that we have two different ways of calculating mass (via the radial and temporal derivatives above), to help us prove the validity of our system later on.
 
 We're almost done with the physics now. There are only two things left. The first is the initial profile of our scalar field. This takes the form:
 
@@ -83,19 +90,19 @@ $$
 
 That is to say, all the energy of the field at the start is kinetic. It's in the momentum equation. That's why we chose the metaphor of the hand punching the rubber sheet. The simulation starts the moment the fist makes contact with the sheet.
 
-The last thing we need here is to understand when a black hole has formed. Mathematically, this happens when enough mass is contained in a small enough radius such that the Schwarzschield condition is met:
+The last thing we need is to understand when a black hole has formed. Mathematically, this happens when enough mass is contained in a small enough radius such that the Schwarzschield condition is met:
 
 $$
 \frac{2m}{r} = 1
 $$
 
-As you might expect, the simulation gets a little messy when this happens. In particular, our radial factor $A$ goes to zero, causing the $\mathrm{d}r$ component of our metric to diverge, and blasting the local curvature off to infinity. To avoid this nastiness, our simulation instead defines black hole formation at
+As you might expect, the simulation gets a little messy when this happens. In particular, our radial factor $A$ goes to zero, causing the $dr$ component of our metric to diverge, and blasting the local curvature off to infinity. This breaks our simulation. To avoid this nastiness, we instead define black hole formation at
 
 $$
 \frac{2m}{r} = 0.99
 $$
 
-There exist fancy techniques for moving closer to black hole formation and excising the horizon out of your simulation, but for our purposes 0.99 is more than enough to resolve the behaviour we care about.
+There exist fancy techniques for moving closer to black hole formation and excising the horizon out of your simulation, but for our purposes this approximation is good enough to resolve the behaviour that we care about.
 
 This completes our mathematical model. Congratulations to you if you've made it this far. Next we will discuss how we turn this model into code and move through time.
 
