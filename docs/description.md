@@ -8,19 +8,10 @@ In general relativity, energy curves spacetime. If enough energy is crammed into
 
 The kind of energy we're going to be working with is called a "massless scalar field." Using the common analogy of spacetime as a big rubber sheet with planets and stars as balls rolling around on it, the field we're discussing would be like ripples in the rubber caused by a fist coming down and lightly tapping the sheet.
 
-<div align="center">
-  <img src="images/gravitational_wave.jpg" alt="A cartoon depicting a scalar field analogy" width="600">
-</div>
-
-<div align="center">
-  <table style="width: 600px;">
-    <tr>
-      <td>
-        Figure 1: The rubber sheet is our spacetime. The weight of the planets warps it, and the scalar field is like someone hitting the sheet.
-      </td>
-    </tr>
-  </table>
-</div>
+<span class="img_container center" style="display: block; margin-bottom: 20px;">
+    <img alt="A cartoon depicting a scalar field analogy" src="images/gravitational_wave.jpg" style="display:block; margin-left: auto; margin-right: auto; width: 600px;" title="Figure 1" />
+    <span class="img_caption" style="display: block; text-align: center; width: 600px; margin: 0 auto;">Figure 1: The rubber sheet is our spacetime. The weight of the planets warps it, and the scalar field is like someone hitting the sheet.</span>
+</span>
 
 We've already established that a strong enough wave will form a black hole. This would be akin to the fist punching right through our rubber sheet. If the wave isn't strong enough to form a black hole, then the ripples will simply disperse outwards to infinity and nothing much happens. The question this project is concerned with is: **What happens if we confine our spacetime?** In other words, what happens to these small energy waves if they're not allowed to diffuse out to infinity?
 
@@ -42,7 +33,7 @@ Now that we have a well-posed problem, we can talk about the physics of our syst
 
 **Warning: This section has math in it. You do not need to understand the math to understand the concepts.**
 
-We said above that we are working with a massless scalar field. We will label our field $\phi(t, r)$, and $\phi$ obeys a seemingly simple wave equation called the massless Klein-Gordon equation:
+We said above that we are working with a massless scalar field, which we will label $\phi(t, r)$. This field obeys a seemingly simple wave equation called the massless Klein-Gordon equation:
 
 $$
 \nabla^\alpha\Delta_\alpha\phi = 0
@@ -54,7 +45,7 @@ $$
 ds^2 = -\frac{A}{N^2}dt^2 + \frac{1}{A}dr^2 + r^2d\Omega
 $$
 
-This metric tells us how spacetime warps at a local level due to the presence of our field. The function $A$ is called the radial factor, and it will be very important for determining black hole formation later. The function $N$ is called the lapse, and it tracks the gravitiational time dilation of the system. We will define these more properly in a moment. Now that we have our metric, we can write our Klein-Gordon equation as a pair of coupled equations which look uglier but are much easier to work with computationally:
+This metric tells us how spacetime warps at a local level due to the presence of our field. The function $A$ is called the radial factor, and it will be very important for determining black hole formation later. The function $N$ is called the lapse, and it tracks the gravitiational time dilation of the system. Now that we have our metric, we can resolve what's going on behind the alphas and write our Klein-Gordon equation as a pair of coupled equations, which look uglier but are much easier to work with computationally:
 
 $$
 \partial_t\phi = \frac{A\Pi}{N}
@@ -90,7 +81,7 @@ $$
 
 That is to say, all the energy of the field at the start is kinetic. It's in the momentum equation. That's why we chose the metaphor of the hand punching the rubber sheet. The simulation starts the moment the fist makes contact with the sheet.
 
-The last thing we need is to understand when a black hole has formed. Mathematically, this happens when enough mass is contained in a small enough radius such that the Schwarzschield condition is met:
+The last thing we need is to understand when a black hole has formed. This happens when enough mass is contained in a small enough radius such that the Schwarzschield condition is met:
 
 $$
 \frac{2m}{r} = 1
