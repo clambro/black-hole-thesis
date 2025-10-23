@@ -80,7 +80,7 @@ $$
 \Pi(0, r) = \epsilon \exp\left(-64\tan^2\frac{\pi r}{2}\right)
 $$
 
-That is to say, all the energy of the field at the start is kinetic. It's in the momentum equation. That's why we chose the metaphor of the hand punching the rubber sheet. The simulation starts the moment the fist makes contact with the sheet.
+Where $\epsilon$ is the initial amplitude of the field that we will vary to get different effects. You will notice that all the energy of the field at the start is kinetic. It's in the momentum equation, and the field itself is zero. That's why we chose the metaphor of the hand punching the rubber sheet. The simulation starts the moment the fist makes contact with the sheet.
 
 The last thing we need is to understand when a black hole has formed. This happens when enough mass is contained in a small enough radius such that the Schwarzschield condition is met:
 
@@ -94,17 +94,43 @@ $$
 \frac{2m}{r} = 0.99
 $$
 
-There exist fancy techniques for moving closer to black hole formation and excising the horizon out of your simulation, but for our purposes this approximation is good enough to resolve the behaviour that we care about.
+This is about as close to formation as we can get in our simulation before the whole thing goes off the rails. There exist fancy techniques for moving closer to black hole formation and even beyond it by excising the horizon out of your simulation, but this approximation is good enough to resolve the behaviour that we care about.
 
 This completes our mathematical model. Congratulations to you if you've made it this far. Next we will discuss how we turn this model into code and move through time.
 
 ## The Code
 
-### The Grid
+The physical model we have built is continuous, but our computer model operates discretely. This section will explain how we break our physical model into a grid of space and time that we can work on computationally with guaranteed error bounds.
 
+### The Spatial Grid
+
+The first step is creating a spatial grid. Our various functions are operating in a sphere of radius 1. We will thus take the radial points from 0 to 1 and approximate them by a grid of $2^\ell + 1$ points, where $\ell$ is called the level of discretization. Increasing $\ell$ roughly doubles the number of points that are in the grid. Higher $\ell$ means a better approximation to our physical model, but increased computational demand. Why $2^\ell + 1$ points? A diagram comparing $\ell = 1, 2, 3$ will make it more clear:
+
+<div align="center">
+  <img src="images/level_of_discretization.png" alt="A comparison of levels of discretization" width="600">
+
+  *Figure 2: A comparison of the grid points for $\ell = 1, 2, 3$. The even numbered points from level $\ell$ are exactly the points of level $\ell - 1$.*
+</div>
+
+As you can see in the figure above, taking every other point from discretization $\ell$ gives the points from discretization $\ell - 1$. We can therefore compare our approximations at the same radial points across levels by looking at a subset of the points. This will enable us to do our error analysis later on.
+
+Now that we have our grid, our continuous physical functions just become vectors of length $2^\ell + 1$, valued by the respective function's value at those grid points. Derivatives of our vectors are calculated via the [finite difference approximation](https://en.wikipedia.org/wiki/Finite_difference). This is all we need to set up our initial conditions. Now we need to evolve the system in time.
 
 ### Timestepping
 
+To move our simulation forward in time, we will use [a common integration technique called RK4](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods). The details of this technique are beyond the scope of this discussion, but in essence what we are doing is taking a very tiny step $\Delta t$ forward in time, re-evaluating our equations, taking another step, re-evaluating, etc. If our spatial grid size is $\Delta x = 2^{-l}$, then we require $\Delta t < \Delta x$ for the whole system to remain stable. In our case, we can get away with $\Delta t = 0.95 \Delta x$ most of the time, but we drop the simulation speed by a factor of four very close to black hole formation to improve stability there.
+
+### Time Complexity, Error, and Choosing $\ell$
+
+We have everything we need to build our simulation. All we need to do now is pick the level of discretization that we will work at. All of our differentiation and integration operators operate at fourth order accuracy. What this means is that if you double the fidelity of your approximation (i.e. increase $\ell$ by 1), your error will go down by a factor of $2^4=16$. This order of accuracy is considered table stakes for most scientific computing applications. You wouldn't want your simulation to be any less accurate than that if you were going to publish it.
+
+Practically speaking, what this means is that around $\ell=14$ (around 8000 grid points) we reach the limits of floating point precision in our error analysis. Going higher than that may seem unnecessary at first glance, but it can still be useful for resolving high frequency limiting behaviour very near the critical points. Research papers in this field operate closer to $\ell=17$ (around 64,000 points).
+
+There are two issues with increasing $\ell$ too much, however. The first issue is simply time. Increasing $\ell$ doubles the number gridpoints, and thus the number of computations we have to do per timestep, and since $\Delta t \sim \Delta x$, it also doubles the number of timesteps. This makes the whole algorithm $\mathcal{O}(4^\ell)$, which is pretty nasty.
+
+The other issue is the floating point issue we mentioned above. Once your simulation error drops far enough that floating point errors become the dominant error mode in your calculation, you end up with a lot of non-physical high frequency noise arising. This can build over time and destabilize your simulation. The solution to this in the code is an artifical dissipation term, which operates at the noise level (at 5th order, below our signal), and acts as a low-pass filter, eliminating the high frequency noise.
+
+In the results shown below, I used $\ell=15$ (around 16,000 grid points). This was about as high as I could go while still being able to collect all the data in a single day. Part of me wanted to go higher, but this is already 4x more accurate than my actual undergrad thesis results were, and I didn't want to spend two weeks collecting data.
 
 ## Results
 
