@@ -147,15 +147,15 @@ We have everything we need now, so let's visualize a few simulations. This first
 
 https://github.com/user-attachments/assets/2e2b00d9-4553-428c-b7d1-1d953cc10d7e
 
-Here is one at $\epsilon=23$, which reflects twice before collapsing
+Here is one at $\epsilon=21.5$, which reflects three times before collapsing
 
 https://github.com/user-attachments/assets/14f942d7-7f00-4730-b5a3-60897e2be5a6
 
-The 2D visualizations look a lot sleeker, but let's look at that same $\epsilon=23$ in one dimension (just the radius) to watch the wave profile sharpen more clearly at each implosion:
+The 2D visualizations look a lot sleeker, but let's look at that same $\epsilon=21.5$ in one dimension (just the radius) to watch the wave profile sharpen more clearly at each implosion:
 
 https://github.com/user-attachments/assets/77f3c00b-c35e-4e02-b4d3-b4a90091a13a
 
-That gives us an idea of how individual runs look, but what does the overall picture look like across a range of amplitudes I knew from my previous work that the range of interest for this study was between $\epsilon = 18$ and $38$, so I started by doing a scan of that range every 0.25 units. This revealed the overall pattern we were looking for. I then did a closer scan of 40 points at $\pm 3\%$ of each critical point to resolve the scaling behaviour, and then ten more points really close to each estimated critical point to narrow them down even more. The final results look like this:
+That gives us an idea of how individual runs look, but what does the overall picture look like across a range of amplitudes? I knew from my previous work that the range of interest for this study was between $\epsilon = 18$ and $38$, so I started by doing a scan of that range every 0.25 units. This revealed the overall pattern we were looking for. I then did a closer scan of 40 points at $\pm 3\%$ of each critical point to resolve the scaling behaviour, and then ten more points really close to each estimated critical point to narrow them down even more. The final results look like this:
 
 <div align="center">
   <img src="images/final_results.png" alt="The final results showing the critical scaling behaviour" width="600">
