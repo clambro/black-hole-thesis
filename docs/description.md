@@ -2,6 +2,11 @@
 
 This is a detailed, but not-too-technical explanation of the physics and computational techniques at work in this black hole simulation. It is intended for an intelligent, but general audience. Equations will be included for illustration and completeness, but you do not need to understand them to understand the discussion.
 
+The three main references that this work is based on are:
+- Matthew W. Choptuik: [Universality and scaling in gravitational collapse of a massless scalar field](https://blackholes.tecnico.ulisboa.pt/gritting/pdf/black_holes/Choptuik_Universality-and-scaling-in-gravitational-collapse-of-a-massless-scalar-field.pdf)
+- M. Maliborski: [Instability of Flat Space Enclosed in a Cavity](https://arxiv.org/abs/1208.2934)
+- R.-G. Cai, L.-W. Ji, and R.-Q. Yang: [On the critical behaviour of gapped gravitational collapse in confined spacetime](https://arxiv.org/abs/1609.02804v1)
+
 ## Background
 
 In general relativity, energy curves spacetime. If enough energy is crammed into a small enough region of space, the curvature becomes so extreme that not even light can escape, and a black hole is formed. In this project, we will be studying the evolution of a wave of energy under different conditions to learn about the physical properties of systems that lead to black hole formation.
@@ -120,6 +125,8 @@ Now that we have our grid, our continuous physical functions just become vectors
 
 To move our simulation forward in time, we will use [a common integration technique called RK4](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods). The details of this technique are beyond the scope of this discussion, but in essence what we are doing is taking a very tiny step $\Delta t$ forward in time, re-evaluating our equations, taking another step, re-evaluating, etc. If our spatial grid size is $\Delta x = 2^{-l}$, then we require $\Delta t < \Delta x$ for the whole system to remain stable. In our case, we can get away with $\Delta t = 0.95 \Delta x$ most of the time, but we drop the simulation speed by a factor of four very close to black hole formation to improve stability there.
 
+Technical aside: If you're curious about how this timestepping interacts with gravitational time dilation, the answer is in our lapse function $N$. There is a degree of freedom in the scale of $N$, corresponding to our ability to choose a reference frame. By defining $N(1) = 1$, we make it so that our measured time $t$ is the proper time at $r=1$.
+
 ### Time Complexity, Error, and Choosing $\ell$
 
 We have everything we need to build our simulation. All we need to do now is pick the level of discretization that we will work at. All of our differentiation and integration operators operate at fourth order accuracy. What this means is that if you double the fidelity of your approximation (i.e. increase $\ell$ by 1), your error will go down by a factor of $2^4=16$. This order of accuracy is considered table stakes for most scientific computing applications. You wouldn't want your simulation to be any less accurate than that if you were going to publish it.
@@ -136,5 +143,28 @@ In the results shown below, I used $\ell=15$ (around 16,000 grid points). This w
 
 ### The Main Results
 
+We have everything we need now, so let's visualize a few simulations. This first one is at amplitude $\epsilon=35$ and collapses immediately into a black hole (the sharp ring at the end of the video is the horizon):
+
+[video at amplitude 35]
+
+Here is one at $\epsilon=23$, which reflects twice before collapsing
+
+[video at amplitude 23]
+
+The 2D visualizations look a lot sleeker, but let's look at that same $\epsilon=23$ in one dimension (just the radius) to watch the wave profile sharpen more clearly at each implosion:
+
+[video at amplitude 23 in 1D]
+
+That gives us an idea of how individual runs look, but what does the overall picture look like across a range of amplitudes I knew from my previous work that the range of interest for this study was between $\epsilon = 18$ and $38$, so I started by doing a scan of that range every 0.25 units. This revealed the overall pattern we were looking for. I then did a closer scan of 40 points at $\pm 3\%$ of each critical point to resolve the scaling behaviour, and then ten more points really close to each estimated critical point to narrow them down even more. The final results look like this:
+
+<div align="center">
+  <img src="images/final_results.png" alt="The final results showing the critical scaling behaviour" width="600">
+
+  *Figure 3: The final results showing the critical scaling behaviour.*
+</div>
+
+The rightmost mass curve at the highest initial amplitude corresponds to fields that immediately formed a black hole without reflection. The second curve from the right is one reflection off the boundary, then two for the third curve, and so on.
+
+A fit of $M_{bh} \propto (\epsilon - \epsilon^*)^\gamma$ was performed near each critical amplitude $\epsilon^*$, and the resulting $\gamma$ values cluster nicely around Choptuik's universal value of $\gamma \approx 0.37$.
 
 ### Error Analysis
