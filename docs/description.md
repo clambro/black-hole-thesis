@@ -167,6 +167,6 @@ That gives us an idea of how individual runs look, but what does the overall pic
 
 The rightmost mass curve at the highest initial amplitude corresponds to fields that immediately formed a black hole without reflection. The second curve from the right is one reflection off the boundary, then two for the third curve, and so on.
 
-A fit of $M_{bh} \propto (\epsilon - \epsilon^*)^\gamma$ was performed near each critical amplitude $\epsilon^*$, and the resulting $\gamma$ values cluster nicely around Choptuik's universal value of $\gamma \approx 0.37$.
+A fit of $M_{bh} \propto (\epsilon - \epsilon^ * )^\gamma$ was performed near each critical amplitude $\epsilon^ * $, and the resulting $\gamma$ values cluster nicely around Choptuik's universal value of $\gamma \approx 0.37$.
 
 ### Error Analysis
