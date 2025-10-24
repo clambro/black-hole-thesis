@@ -149,11 +149,11 @@ https://github.com/user-attachments/assets/2e2b00d9-4553-428c-b7d1-1d953cc10d7e
 
 Here is one at $\epsilon=21.5$, which reflects three times before collapsing
 
-https://github.com/user-attachments/assets/14f942d7-7f00-4730-b5a3-60897e2be5a6
+https://github.com/user-attachments/assets/251b2dda-4cea-4b1f-9686-3c114f5dc50f
 
 The 2D visualizations look a lot sleeker, but let's look at that same $\epsilon=21.5$ in one dimension (just the radius) to watch the wave profile sharpen more clearly at each implosion:
 
-https://github.com/user-attachments/assets/77f3c00b-c35e-4e02-b4d3-b4a90091a13a
+https://github.com/user-attachments/assets/9c9a346b-193c-4a71-bae6-bb3209e3b617
 
 (The flickering you see at the sharp peak of the wave is not physical. It's just an artifact of the downsampling we use for the visualization.)
 
