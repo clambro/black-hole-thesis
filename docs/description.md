@@ -155,7 +155,9 @@ The 2D visualizations look a lot sleeker, but let's look at that same $\epsilon=
 
 https://github.com/user-attachments/assets/77f3c00b-c35e-4e02-b4d3-b4a90091a13a
 
-That gives us an idea of how individual runs look, but what does the overall picture look like across a range of amplitudes? I knew from my previous work that the range of interest for this study was between $\epsilon = 18$ and $38$, so I started by doing a scan of that range every 0.25 units. This revealed the overall pattern we were looking for. I then did a closer scan of 40 points at $\pm 3\%$ of each critical point to resolve the scaling behaviour, and then ten more points really close to each estimated critical point to narrow them down even more. The final results look like this:
+(The flickering you see at the sharp peak of the wave is not physical. It's just an artifact of the downsampling we use for the visualization.)
+
+That gives us an idea of how individual runs look, but what does the overall picture look like across a range of amplitudes? I knew from my previous work that the range of interest for this study was between $\epsilon = 18$ and $38$, so I started by doing a scan of that range every 0.25 units and tracking the final black hole mass and formation time. This revealed the overall pattern we were looking for. I then did a closer scan of 40 points at $\pm 3\%$ of each estimated critical point to resolve the scaling behaviour, and then ten more points really close to each estimated critical point to narrow them down even more. The final results look like this:
 
 <div align="center">
   <img src="images/final_results.png" alt="The final results showing the critical scaling behaviour" width="600">
