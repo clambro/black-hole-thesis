@@ -263,6 +263,13 @@ Where $n$ is the expected order of convergence. That means that if our simulatio
 
 As usual, things get a little crazy when the horizon begins to form, but aside from a little noise we have clear 4th order convergence.
 
+
 ## Conclusion
 
-That brings us to the end of our discussion. Kudos to you once again if you've actually made it this far. We have successfully built a simulation of the gravitational collapse of a massless scalar field in confined space, proved that it was operating correctly, and provided convincing evidence of its instability. I hope you learned something.
+That brings us to the end of our discussion. Kudos to you once again if you've actually made it this far.
+
+We set out to demonstrate that confining flat spacetime makes it unstable, meaning that any energy wave, no matter how small, will eventually collapse into a black hole. The results show exactly that. Across multiple critical amplitudes corresponding to different numbers of reflections, we consistently observe the universal Choptuik scaling with $\gamma \approx 0.37$. Smaller and smaller waves still form black holes; they just take more reflections to get there.
+
+We've also shown through three independent methods (energy conservation, mass residual, and Q-factor analysis) that our simulation converges to fourth order accuracy throughout the collapse process. This gives us confidence that we're seeing real physics and not just numerical noise.
+
+I hope you enjoyed this taste of numerical relativity. We've barely scratched the surface of this field. This work is focused on flat space, but the real motivation comes from studying more exotic spacetimes like anti-de Sitter space, where confinement is built into the geometry. Our results suggest that instability under confinement may be a general feature of gravity, but proving that is a problem for real physicists.
