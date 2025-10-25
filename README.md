@@ -1,6 +1,6 @@
 # Black Hole Formation Simulation
 
-This is a redo of my undergraduate thesis in Rust. Briefly and non-technically, we are simulating the evolution of a pulse of energy in a confined region of space. If the pulse has enough energy to begin with, it will immediately collapse into a black hole (thus ending the simulation). If it does not have enough energy, it will start dispersing out to the boundary of our simulation, at which point it will be redirected back towards the center. The idea is that every time the pulse collapses through the center, its own self-gravity focuses it to be denser and denser, until it inevtiably forms a black hole.
+This is a redo of my undergraduate thesis, and my first ever Rust project. Briefly and non-technically, we are simulating the evolution of a pulse of energy in a confined region of space. If the pulse has enough energy to begin with, it will immediately collapse into a black hole (thus ending the simulation). If it does not have enough energy, it will start dispersing out to the boundary of our simulation, at which point it will be redirected back towards the center. The idea is that every time the pulse collapses through the center, its own self-gravity focuses it to be denser and denser, until it inevtiably forms a black hole.
 
 **For those who want to dive deeper, a detailed (and not too technical) explanation of how this all works [is provided in the `docs/` folder](/docs/description.md).**
 
