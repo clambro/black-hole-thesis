@@ -114,7 +114,7 @@ The first step is creating a spatial grid. Our various functions are operating i
 <div align="center">
   <img src="images/level_of_discretization.png" alt="A comparison of levels of discretization" width="600">
 
-  *Figure 2: A comparison of the grid points for $\ell = 1, 2, 3$. The even numbered points from level $\ell$ are exactly the points of level $\ell - 1$.*
+  *Figure 2: A comparison of the grid points for levels 1, 2, and 3. The even numbered points from one level are exactly the points of the previous level.*
 </div>
 
 As you can see in the figure above, taking every other point from discretization $\ell$ gives the points from discretization $\ell - 1$. We can therefore compare our approximations at the same radial points across levels by looking at a subset of the points. This will enable us to do our error analysis later on.
@@ -191,12 +191,12 @@ $$
 \log_{16}\xi_\ell \approx 1 + \log_{16}\xi_{\ell + 1} \approx 2 + \log_{16}\xi_{\ell + 2}
 $$
 
-Calculating our own error in energy conservation at $\ell = 12, 13, 14$ and plotting the results in log space shows precisely this relationship:
+Calculating our own error in energy conservation at $\ell = 12, 13, 14$ and $\epsilon=21.5$ and plotting the results in log space shows precisely this relationship:
 
 <div align="center">
   <img src="images/energy_conservation.png" alt="A plot demonstrating conservation of energy" width="600">
 
-  *Figure 4: Energy conservation at $\epsilon=21.5$ converges to zero to 4th order, right until the moment of black hole formation at the end.*
+  *Figure 4: Energy conservation converges to zero to 4th order, right until the moment of black hole formation at the end.*
 </div>
 
 The high frequency noise you're seeing at $\ell = 14$ is precisely the floating point noise I was describing above. If we go to higher levels of discretization than this, it begins to dominate over the physical error. The decoherence you're seeing near black hole formation at $t=7$ is due to the fact that formation time depends slightly on the level of discretization, so right at the end the three simulations fall out of sync.
@@ -224,12 +224,12 @@ $$
 \log_{16}\zeta_\ell \approx 1 + \log_{16}\zeta_{\ell + 1} \approx 2 + \log_{16}\zeta_{\ell + 2}
 $$
 
-Plotting this out gives us a very similar looking graph to the previous one
+Plotting this out at the same $\ell$ and $\epsilon$ values as above gives us a very similar looking graph to the previous one
 
 <div align="center">
   <img src="images/mass_residual.png" alt="A plot demonstrating conservation of energy" width="600">
 
-  *Figure 5: The mass residual at $\epsilon=21.5$ converges to zero to 4th order, right until the moment of black hole formation at the end.*
+  *Figure 5: The mass residual converges to zero to 4th order, right until the moment of black hole formation at the end.*
 </div>
 
 These two graphs look extremely similar, but they tell two very different stories. Energy conservation is a global property: We get one number per timestep. This mass residual, however, is a local property. It tells us that our residual converges to zero to fourth order at every spatial and temporal point in our grid, *and* that our system is following the expected laws of physics. It is a much stronger proof of convergence than the energy conservation shown above.
@@ -248,7 +248,7 @@ Where $n$ is the expected order of convergence. That means that if our simulatio
   <img src="images/q_factor_phi.png" alt="A plot demonstrating conservation of energy" width="500">
   <img src="images/q_factor_Pi.png" alt="A plot demonstrating conservation of energy" width="500">
 
-  *Figure 6: The Q-factors of $\phi$ and $\Pi$ demonstrating 4th order convergence, right until the moment of black hole formation at the end.*
+  *Figure 6: The Q-factors of our evolved quantities demonstrating 4th order convergence, right until the moment of black hole formation at the end.*
 </div>
 
 As usual, things get a little crazy when the horizon begins to form, but aside from a little noise we have clear 4th order convergence.
