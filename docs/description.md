@@ -1,6 +1,6 @@
 # What is Going on in this Repo?
 
-This is a detailed, but not-too-technical explanation of the physics and computational techniques at work in this black hole simulation. It is intended for an intelligent, but general audience. Equations will be included for illustration and completeness, but you do not need to understand them to understand the discussion.
+This is a detailed, but not-too-technical explanation of the physics and computational techniques at work in this black hole simulation. It is intended for an intelligent, but general audience. Equations will be included for illustration and completeness, but you do not need to understand them to understand the discussion. Remember that you live in the age of AI, and AI is more than capable of helping you understand anything in here that confuses you!
 
 The three main references that this work is based on are:
 - Matthew W. Choptuik: [Universality and scaling in gravitational collapse of a massless scalar field](https://blackholes.tecnico.ulisboa.pt/gritting/pdf/black_holes/Choptuik_Universality-and-scaling-in-gravitational-collapse-of-a-massless-scalar-field.pdf)
@@ -151,22 +151,108 @@ Here is one at $\epsilon=21.5$, which reflects three times before collapsing
 
 https://github.com/user-attachments/assets/251b2dda-4cea-4b1f-9686-3c114f5dc50f
 
-The 2D visualizations look a lot sleeker, but let's look at that same $\epsilon=21.5$ in one dimension (just the radius) to watch the wave profile sharpen more clearly at each implosion:
+The 2D visualizations look a lot sleeker, but let's look at that same $\epsilon=21.5$ result in one dimension (just the radius) to watch the wave profile sharpen more clearly at each implosion:
 
 https://github.com/user-attachments/assets/9c9a346b-193c-4a71-bae6-bb3209e3b617
 
 (The flickering you see at the sharp peak of the wave is not physical. It's just an artifact of the downsampling we use for the visualization.)
 
-That gives us an idea of how individual runs look, but what does the overall picture look like across a range of amplitudes? I knew from my previous work that the range of interest for this study was between $\epsilon = 18$ and $38$, so I started by doing a scan of that range every 0.25 units and tracking the final black hole mass and formation time. This revealed the overall pattern we were looking for. I then did a closer scan of 40 points at $\pm 3\%$ of each estimated critical point to resolve the scaling behaviour, and then ten more points really close to each estimated critical point to narrow them down even more. The final results look like this:
+That gives us an idea of how the individual runs look, but what does the overall picture look like across a range of amplitudes? I knew from previous work that the range of interest for this study was between $\epsilon = 18$ and $38$, so I started by doing a scan of that range every 0.25 units and tracking the final black hole mass and formation time. This revealed the overall pattern we were looking for. I then did a closer scan of 40 points at $\pm 3\%$ of each estimated critical point to resolve the scaling behaviour, and then ten more points really close to each estimated critical point to narrow them down even more. The final results look like this:
 
 <div align="center">
   <img src="images/final_results.png" alt="The final results showing the critical scaling behaviour" width="600">
 
-  *Figure 3: The final results showing the critical scaling behaviour.*
+  *Figure 3: The final results showing the instability of confined space and the critical scaling behaviour.*
 </div>
 
-The rightmost mass curve at the highest initial amplitude corresponds to fields that immediately formed a black hole without reflection. The second curve from the right is one reflection off the boundary, then two for the third curve, and so on.
-
-A fit of $M_{bh} \propto (\epsilon - \epsilon^ * )^\gamma$ was performed near each critical amplitude $\epsilon^ * $, and the resulting $\gamma$ values cluster nicely around Choptuik's universal value of $\gamma \approx 0.37$.
+The rightmost mass curve at the highest initial amplitude corresponds to fields that immediately formed a black hole without reflection. The second curve from the right is one reflection off the boundary, then two for the third curve, and so on. A fit of $M_{bh} \propto (\epsilon - \epsilon^ * )^\gamma$ was performed near each critical amplitude $\epsilon^ * $, and the resulting $\gamma$ values cluster nicely around Choptuik's universal value of $\gamma \approx 0.37$.
 
 ### Error Analysis
+
+These results certainly look satisfying, but how do we know that they are correct? As anyone who has ever done numerical analysis can tell you, just because a simulation is stable, does not mean it is correct (and vice versa, just because it is correct does not mean it will be stable). We will demonstrate three independent proofs that our simulation is converging as expected with fourth order accuracy.
+
+#### Conservation of Energy
+
+The first proof is conservation of energy. Our system is confined, therefore the total energy of the system $m(t, 1)$ must be constant throughout time. Let's define the energy conservation error as
+
+$$
+|m(0, 1) - m(t, 1)| = \xi(t)
+$$
+
+In a perfect simulation, $\xi(t)$ would be exactly zero. Our simulation is imperfect, however, so $\xi(t)$ is some small function of time representing our error in conserving energy. We said above that our simulation is 4th order accurate, so doubling the number of gridpoints decreases the error by a factor of 16. This means that if we denote the error $\xi$ at level $\ell$ as $\xi_\ell$, we get
+
+$$
+\xi_\ell \approx 16\xi_{\ell + 1} \approx 256\xi_{\ell + 2}
+$$
+
+Or in log space
+
+$$
+\log_{16}\xi_\ell \approx 1 + \log_{16}\xi_{\ell + 1} \approx 2 + \log_{16}\xi_{\ell + 2}
+$$
+
+Calculating our own error in energy conservation at $\ell = 12, 13, 14$ and plotting the results in log space shows precisely this relationship:
+
+<div align="center">
+  <img src="images/energy_conservation.png" alt="A plot demonstrating conservation of energy" width="600">
+
+  *Figure 4: Energy conservation at $\epsilon=21.5$ converges to zero to 4th order, right until the moment of black hole formation at the end.*
+</div>
+
+The high frequency noise you're seeing at $\ell = 14$ is precisely the floating point noise I was describing above. If we go to higher levels of discretization than this, it begins to dominate over the physical error. The decoherence you're seeing near black hole formation at $t=7$ is due to the fact that formation time depends slightly on the level of discretization, so right at the end the three simulations fall out of sync.
+
+
+#### The Mass Equations
+
+The second proof of our simulation's correctness comes from the two different ways of calculating mass. Recall from the Einstein constraints above that we have
+
+$$
+\partial_r m = \frac{1}{2}r^2(\Phi^2 + \Pi^2)
+\qquad\qquad
+\partial_t m = r^2\frac{A}{N}\Phi\Pi
+$$
+
+In our simulation, we only ever use the $\partial_r m$ equation to update our other functions, but we track the $\partial_t m$ equation throughout the simulation as well (we call it the "alternate mass" in the code). These two independent ways of calculating mass must be equal to fourth order across our whole simulation. Defining the "alternate mass" as $m_A$, we get a similar residual quantity as before:
+
+$$
+||m(t, r) - m_A(t, r)||_2 = \zeta(t)
+$$
+
+Where $||x||_2$ is the spatial $L_2$-norm of $x$. We can then demonstrate fourth order convergence like before using the relationship
+
+$$
+\log_{16}\zeta_\ell \approx 1 + \log_{16}\zeta_{\ell + 1} \approx 2 + \log_{16}\zeta_{\ell + 2}
+$$
+
+Plotting this out gives us a very similar looking graph to the previous one
+
+<div align="center">
+  <img src="images/mass_residual.png" alt="A plot demonstrating conservation of energy" width="600">
+
+  *Figure 5: The mass residual at $\epsilon=21.5$ converges to zero to 4th order, right until the moment of black hole formation at the end.*
+</div>
+
+These two graphs look extremely similar, but they tell two very different stories. Energy conservation is a global property: We get one number per timestep. This mass residual, however, is a local property. It tells us that our residual converges to zero to fourth order at every spatial and temporal point in our grid, *and* that our system is following the expected laws of physics. It is a much stronger proof of convergence than the energy conservation shown above.
+
+#### The Q-Factor
+
+The final proof of convergence that we will demonstrate is called the Q-factor, and its derivation is a little too complicated for this discussion. [There's a PDF here that explains it if you're curious](https://www.csc.kth.se/utbildning/kth/kurser/DN2255/ndiff13/ConvRate.pdf). The punchline is that if we have a simulated quantity $u_\ell(t, r)$, where $\ell$ is the level of discretization, then
+
+$$
+Q(t,u,l) \equiv \frac{||u_{\ell - 1} - u_{\ell - 2}||_2}{||u_{\ell} - u_{\ell - 1}||_2} \approx 2^n
+$$
+
+Where $n$ is the expected order of convergence. That means that if our simulation is converging to 4th order, that $Q$ function should equal approximately $2^4=16$ at all points in time. We can plot the Q-factor for our two evolved quantities, the field $\phi$ and the conjugate momentum $\Pi$ at $\ell=12,13,14$ and $\epsilon=21.5$ and we get the following graphs
+
+<div align="center">
+  <img src="images/q_factor_phi.png" alt="A plot demonstrating conservation of energy" width="500">
+  <img src="images/q_factor_Pi.png" alt="A plot demonstrating conservation of energy" width="500">
+
+  *Figure 6: The Q-factors of $\phi$ and $\Pi$ demonstrating 4th order convergence, right until the moment of black hole formation at the end.*
+</div>
+
+As usual, things get a little crazy when the horizon begins to form, but aside from a little noise we have clear 4th order convergence.
+
+## Conclusion
+
+That brings us to the end of our discussion. Kudos to you once again if you've actually made it this far. We have successfully built a simulation of the gravitational collapse of a massless scalar field in confined space and provided convincing evidence of its instability. I hope you learned something.
