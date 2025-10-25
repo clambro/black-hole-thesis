@@ -60,7 +60,7 @@ def _get_ylabel(check_type: CheckType) -> str:
     """Get y-axis label based on check type."""
     if check_type == CheckType.ENERGY:
         return r"$\log_{16}(\Delta E_{total})$"
-    return r"$\log_{16}(|P_{flux}|)$"
+    return r"$\log_{16}(|\Delta m|)$"
 
 
 def _get_title(check_type: CheckType) -> str:

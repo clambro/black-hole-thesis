@@ -84,7 +84,7 @@ def _setup_plot(function: str, values: np.ndarray) -> tuple[Figure, Axes, Line2D
     ax.grid(visible=True, alpha=0.3)
     ax.set_xlim(0, 1)
     ax.set_ylim(_get_extrema(values[0]))
-    ax.set_xlabel("Position")
+    ax.set_xlabel("Radius")
     ax.set_ylabel(function.replace("_", " ").capitalize())
     ax.set_title("Confined Space Simulation")
 
