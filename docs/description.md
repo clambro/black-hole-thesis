@@ -47,13 +47,13 @@ $$
 \nabla^\alpha\Delta_\alpha\phi = 0
 $$
 
-This is the equation we have to solve to track the evolution of our wave in our spacetime. If those alphas weren't there, this would be the same wave equation that governs a vibrating drum or a guitar string, but unfortunately for us they are there and they introduce a heck of a lot of complexity into an otherwise simple concept. What those alphas tell us is that our wave is moving through curved space, and the way that space curves is described by a spactime metric. Our spherically symmetric spacetime metric looks like this
+This is the equation we have to solve to track the evolution of our wave in our spacetime. If those alphas weren't there, this would be the same wave equation that governs a vibrating drum or a guitar string, but unfortunately for us they are there and they introduce a heck of a lot of complexity into an otherwise simple concept. What those alphas tell us is that our wave is moving through curved space, and the way that space curves is described by a spacetime metric. Our spherically symmetric spacetime metric looks like this
 
 $$
 ds^2 = -\frac{A}{N^2}dt^2 + \frac{1}{A}dr^2 + r^2d\Omega
 $$
 
-This metric tells us how spacetime warps at a local level due to the presence of our field. The function $A$ is called the radial factor, and it will be very important for determining black hole formation later. The function $N$ is called the lapse, and it tracks the gravitiational time dilation of the system. Now that we have our metric, we can resolve what's going on behind the alphas and write our Klein-Gordon equation as a pair of coupled equations, which look uglier but are much easier to work with computationally
+This metric tells us how spacetime warps at a local level due to the presence of our field. The function $A$ is called the radial factor, and it will be very important for determining black hole formation later. The function $N$ is called the lapse, and it tracks the gravitational time dilation of the system. Now that we have our metric, we can resolve what's going on behind the alphas and write our Klein-Gordon equation as a pair of coupled equations, which look uglier but are much easier to work with computationally
 
 $$
 \partial_t\phi = \frac{A\Pi}{N}
@@ -81,7 +81,7 @@ $$
 \partial_t m = r^2\frac{A}{N}\Phi\Pi
 $$
 
-The concept of a *mass* function may be confusing at first since there is no matter in our system, but remember that $E=mc^2$. In units where $c=1$, that takes on the much more evokative form of $E=m$. The mass function $m(r)$ is thus a measure of how much energy is contained in a sphere of radius $r$. If our total cavity is size 1, then $m(1)$ is the total energy of the system, which must be conserved. We will use this conservation law, along with the fact that we have two different ways of calculating mass (via the radial and temporal derivatives above), to help us prove the validity of our system later on.
+The concept of a *mass* function may be confusing at first since there is no matter in our system, but remember that $E=mc^2$. In units where $c=1$, that takes on the much more evocative form of $E=m$. The mass function $m(r)$ is thus a measure of how much energy is contained in a sphere of radius $r$. If our total cavity is size 1, then $m(1)$ is the total energy of the system, which must be conserved. We will use this conservation law, along with the fact that we have two different ways of calculating mass (via the radial and temporal derivatives above), to help us prove the validity of our system later on.
 
 ### The Initial Conditions
 
@@ -93,7 +93,7 @@ $$
 \Pi(0, r) = \epsilon \exp\left(-64\tan^2\frac{\pi r}{2}\right)
 $$
 
-Where $\epsilon$ is the initial amplitude of the field that we will vary to get different effects. The field is focused in the center of the cavity, and all the energy of the at the start is kinetic: It's in the momentum equation, and the field itself is zero. That's why we chose the metaphor of the hand punching the rubber sheet. The simulation starts the moment the fist makes contact with the sheet.
+Where $\epsilon$ is the initial amplitude of the field that we will vary to get different effects. The field is focused in the center of the cavity, and all the energy at the start is kinetic: It's in the momentum equation, and the field itself is zero. That's why we chose the metaphor of the hand punching the rubber sheet. The simulation starts the moment the fist makes contact with the sheet.
 
 ### Black Hole Formation
 
@@ -103,7 +103,7 @@ $$
 \frac{2m}{r} = 1
 $$
 
-This is called the Schwarzchield condition. As you might expect, the simulation gets a little messy when this happens. In particular, our radial factor $A$ goes to zero, causing the $dr$ component of our metric to diverge, and blasting the local curvature off to infinity. This breaks our simulation. To avoid this nastiness, we instead define black hole formation at
+This is called the Schwarzschild condition. As you might expect, the simulation gets a little messy when this happens. In particular, our radial factor $A$ goes to zero, causing the $dr$ component of our metric to diverge, and blasting the local curvature off to infinity. This breaks our simulation. To avoid this nastiness, we instead define black hole formation at
 
 $$
 \frac{2m}{r} = 0.99
@@ -143,9 +143,9 @@ We have everything we need to build our simulation. All we need to do now is pic
 
 Practically speaking, what this means is that around $\ell=14$ (around 8000 grid points) we reach the limits of floating point precision in our error analysis. Going higher than that may seem unnecessary, but it can still be useful for resolving high frequency limiting behaviour very near the critical points. Research papers in this field operate closer to $\ell=17$ (around 64,000 points).
 
-There are two issues with increasing $\ell$ too much, however. The first issue is simply time. Increasing $\ell$ doubles the number gridpoints, and thus the number of computations we have to do per timestep, and since $\Delta t \sim \Delta x$, it also doubles the number of timesteps. This makes the whole algorithm $\mathcal{O}(4^\ell)$, which is pretty nasty.
+There are two issues with increasing $\ell$ too much, however. The first issue is simply time. Increasing $\ell$ doubles the number of gridpoints, and thus the number of computations we have to do per timestep, and since $\Delta t \sim \Delta x$, it also doubles the number of timesteps. This makes the whole algorithm $\mathcal{O}(4^\ell)$, which is pretty nasty.
 
-The other issue is the floating point errors that we mentioned above. Once your simulation error drops far enough that floating point errors become the dominant error mode in your calculation, you end up with a lot of non-physical high frequency noise arising. This can build over time and destabilize your simulation. The solution to this in the code is an artifical dissipation term, which operates at the noise level (at 5th order, below our signal), and acts as a low-pass filter, eliminating the high frequency noise without altering the physical model. This is standard practice in such simulations; the simulation will not converge without it.
+The other issue is the floating point errors that we mentioned above. Once your simulation error drops far enough that floating point errors become the dominant error mode in your calculation, you end up with a lot of non-physical high frequency noise arising. This can build over time and destabilize your simulation. The solution to this in the code is an artificial dissipation term, which operates at the noise level (at 5th order, below our signal), and acts as a low-pass filter, eliminating the high frequency noise without altering the physical model. This is standard practice in such simulations; the simulation will not converge without it.
 
 In the results shown below, I used $\ell=15$ (around 16,000 grid points). This was about as high as I could go while still being able to collect all the data in a single day. Part of me wanted to go higher, but this is already 4x more accurate than my actual thesis results were, and I didn't want to spend two weeks collecting data.
 
