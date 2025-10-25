@@ -16,28 +16,28 @@ The kind of energy we're going to be working with is called a massless scalar fi
 <div align="center">
   <img src="images/gravitational_wave.jpg" alt="A cartoon depicting a scalar field analogy" width="600">
 
-  *Figure 1: The rubber sheet is our spacetime. The weight of the planets warps it, and the scalar field is like someone hitting the sheet.*
+  *Figure 1: The rubber sheet is our spacetime. The mass of the planets warps it, and the scalar field is like someone hitting the sheet.*
 </div>
 
 We've already established that a strong enough wave will form a black hole. This would be akin to the fist punching right through our rubber sheet. If the wave isn't strong enough to form a black hole, then the ripples will simply disperse outwards to infinity and nothing much happens. The question this project is concerned with is: **What happens if we confine our spacetime?** In other words, what happens to these small energy waves if they're not allowed to diffuse out to infinity?
 
 ## Motivation
 
-Why on earth are we confining our spacetime like this? The answer has to do with a concept called "stability." **A spacetime is defined to be <u>un</u>stable if any amount of energy put into it, no matter how small, inevitably forms a black hole.** Stability simply means that there are configurations of the spacetime that *don't* collapse into black holes.
+Why on earth are we confining our spacetime like this? The answer has to do with a concept called <u>stability</u>. **A spacetime is defined to be <u>un</u>stable if any amount of energy put into it, no matter how small, eventually forms a black hole.** Stability simply means that there are configurations of the spacetime that *don't* collapse into black holes.
 
-The flat universe that we live in is known to be stable (we said above that weak energy will simply diffuse out to infinity), but there are more exotic geometries of spacetime whose stability is not known, and it is interesting to ask what changes from flatness can transition us from a stable spacetime to an unstable one. The point of this whole project is to provide evidence that confining flat spacetime is all it takes to make it unstable. This claimed instability has implications in the study of more exotic forms of spacetime, which themselves have implications in string theory, but such discussions would take us way too far afield. All we need to concern ourselves with here is our flat space model.
+The flat universe that we live in is known to be stable (because weak energy will simply diffuse out to infinity), but there are more exotic geometries of spacetime whose stability is not known, and it is interesting to ask what changes from flatness can transition us from a stable spacetime to an unstable one. The point of this whole project is to provide evidence that confining flat spacetime is all it takes to make it unstable. This claimed instability has implications in the study of more exotic forms of spacetime like Anti-de Sitter space, which themselves have implications in string theory, but such discussions would take us way too far afield. All we need to concern ourselves with here is our flat space model.
 
 ## The Problem Statement
 
 We are trying to provide evidence that confinement takes otherwise stable flat space and makes it unstable. To do this, we will show that smaller and smaller energy packets that would not form black holes in regular flat space *will* form black holes in confined flat space.
 
-How does this process work? To keep the math as simple as possible, we will imagine that our space and our scalar field have perfect spherical symmetry. Imagine our scalar field, which initially does not have enough energy to collapse. It starts diffusing outwards, but eventually reaches our artificial boundary. The energy of our system must be conserved, so the field has no choice but to be reflected back towards the center. Naively, one might think that this causes a stable pattern of infinite back and forth reflection: inwards, outwards, inwards, outwards, etc., but remember that energy curves spacetime. Every time the energy collapses into the center, it comes under the influence of its own self-gravity, making the energy packet a little denser. As this process repeats over and over, the energy packet becomes denser and denser until it inevitably forms a black hole, thus demonstrating instability.
+How does this process work? To keep the math as simple as possible, we will imagine that our space and our scalar field have perfect spherical symmetry. Imagine our scalar field, which initially does not have enough energy to collapse. It starts diffusing outwards, but eventually reaches our artificial boundary. The energy of our system must be conserved, so the field has no choice but to be reflected back towards the center. Naively, one might think that this causes a stable pattern of infinite back and forth reflection: inwards, outwards, inwards, outwards, etc., but remember that energy curves spacetime. Every time the wave collapses into the center, it comes under the influence of its own self-gravity, making the energy packet a little denser (higher in frequency). As this process repeats over and over, the energy packet becomes denser and denser until it inevitably forms a black hole, thus demonstrating instability.
 
 Let's break down the physics of this system.
 
 ## The Physics
 
-**Warning: This section has equations in it, but should not be skipped. You can understand the concepts discussed without understanding the math.**
+**Warning: This section has equations in it, but should not be skipped. You can understand the concepts without understanding the math.**
 
 ### A Wave in Curved Spacetime
 
@@ -47,13 +47,13 @@ $$
 \nabla^\alpha\Delta_\alpha\phi = 0
 $$
 
-This is the equation we have to solve to track the evolution of our wave in our spacetime. If those alphas weren't there, this would be the same wave equation that governs a vibrating drum or a guitar string, but unfortunately for us they are there and they introduce a heck of a lot of complexity into an otherwise simple concept. What those alphas tell us is that our wave is moving through curved space, and the way that space curves is described by a spacetime metric. Our spherically symmetric spacetime metric looks like this
+This is the equation we have to solve to track the evolution of our wave in our spacetime. If those alpha indices weren't there, this would be the same wave equation that governs the surface of a drum or a vibrating guitar string, but unfortunately for us they are there and they introduce a heck of a lot of complexity into an otherwise simple concept. What those alphas tell us is that our wave is moving through curved spacetime. The way that spacetime curves is described by a metric. Our spherically symmetric spacetime metric looks like this
 
 $$
 ds^2 = -\frac{A}{N^2}dt^2 + \frac{1}{A}dr^2 + r^2d\Omega
 $$
 
-This metric tells us how spacetime warps at a local level due to the presence of our field. The function $A$ is called the radial factor, and it will be very important for determining black hole formation later. The function $N$ is called the lapse, and it tracks the gravitational time dilation of the system. Now that we have our metric, we can resolve what's going on behind the alphas and write our Klein-Gordon equation as a pair of coupled equations, which look uglier but are much easier to work with computationally
+This metric tells us how spacetime curves at a local level due to the presence of our field. The function $A$ is called the radial factor, and it will be important for tracking black hole formation later. The function $N$ is called the lapse, and it measures the gravitational time dilation of the system. Now that we have our metric, we can resolve what's going on behind the alphas and rewrite our Klein-Gordon equation as a pair of coupled equations, which look uglier but are much easier to work with computationally
 
 $$
 \partial_t\phi = \frac{A\Pi}{N}
@@ -65,7 +65,7 @@ Where the conjugate momentum $\Pi=A\partial_t\phi/N$. These are the two equation
 
 ### The Einstein Field Equations
 
-Unfortunately, we are not done yet because as the wave travels through spacetime, it warps the spacetime that it is moving through, which changes the way it moves, which changes how it warps spacetime, etc. This relationship is governed by the Einstein Field evolution. For our field $\phi$ (in  units where $4\pi G = c = 1$), these take the form
+Unfortunately, we are not done yet because as the wave travels through spacetime it warps the spacetime that it is moving through, which changes the way it moves, which changes how it warps spacetime, etc. This recursive relationship is governed by the Einstein Field Equations. For our field $\phi$ (in  units where $4\pi G = c = 1$), these take the form
 
 $$
 G_{\mu\nu} = 2\partial_\mu\phi \partial_\nu\phi - g_{\mu\nu} \partial^\alpha\phi \partial_\alpha\phi.
@@ -85,7 +85,7 @@ The concept of a *mass* function may be confusing at first since there is no mat
 
 ### The Initial Conditions
 
-We're almost done with the physics now. There are only two things left. The first is the initial profile of our scalar field. This takes the form
+We're almost done with the physics now. There are only two things left. The first is the initial profile of our scalar field. This is based on past research, and it takes the form
 
 $$
 \phi(0, r) = 0
@@ -103,7 +103,7 @@ $$
 \frac{2m}{r} = 1
 $$
 
-This is called the Schwarzschild condition. As you might expect, the simulation gets a little messy when this happens. In particular, our radial factor $A$ goes to zero, causing the $dr$ component of our metric to diverge, and blasting the local curvature off to infinity. This breaks our simulation. To avoid this nastiness, we instead define black hole formation at
+This is called the Schwarzschild condition. As you might expect, the simulation gets a little messy when this happens. In particular, our radial factor $A$ goes to zero, causing the $dr$ component of our metric to diverge and blasting the local curvature off to infinity. This breaks our simulation. To avoid this nastiness, we instead define black hole formation at
 
 $$
 \frac{2m}{r} = 0.99
@@ -119,7 +119,9 @@ The physical model we have built is continuous, but our computer model operates 
 
 ### The Spatial Grid
 
-The first step is creating a spatial grid. Our various functions are operating in a sphere of radius 1. We will thus take the radial points from 0 to 1 and approximate them by a grid of $2^\ell + 1$ points, where $\ell$ is called the level of discretization. Increasing $\ell$ roughly doubles the number of points that are in the grid. Higher $\ell$ means a better approximation to our physical model, but increased computational demand. Why $2^\ell + 1$ points? A diagram comparing $\ell = 1, 2, 3$ will make it more clear:
+The first step is creating a spatial grid. Our various functions are operating in a sphere of radius 1. We will thus take the radial points from 0 to 1 and approximate them by a grid of $2^\ell + 1$ points, where $\ell$ is called the level of discretization. Increasing $\ell$ roughly doubles the number of points that are in the grid. Higher $\ell$ means a better approximation to our physical model, but increased computational demand.
+
+Why $2^\ell + 1$ points? A diagram comparing $\ell = 1, 2, 3$ will make it more clear:
 
 <div align="center">
   <img src="images/level_of_discretization.png" alt="A comparison of levels of discretization" width="600">
@@ -133,7 +135,7 @@ Now that we have our grid, our continuous physical functions just become vectors
 
 ### Timestepping
 
-To move our simulation forward in time, we will use [a common integration technique called RK4](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods). The details of this technique are also beyond the scope of this discussion, but in essence what we are doing is taking a very tiny step $\Delta t$ forward in time, re-evaluating our equations, taking another step, re-evaluating, etc. If our spatial grid size is $\Delta x = 2^{-l}$, then we require $\Delta t < \Delta x$ for the whole system to remain stable. In our case, we can get away with $\Delta t = 0.95 \Delta x$ most of the time, but we drop the simulation speed by a factor of four very close to black hole formation to improve stability.
+To move our simulation forward in time, we will use [a common integration technique called RK4](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods). The details of this technique are also beyond the scope of this discussion, but in essence what we are doing is taking a very tiny step $\Delta t$ forward in time, re-evaluating our equations, taking another step, re-evaluating, etc. If our time step is small enough, this process converges to the actual equations of motion with guaranteed error bounds. How small? If our spatial grid size is $\Delta x = 2^{-l}$, then we require $\Delta t < \Delta x$ for the whole system to remain stable. In our case, we can get away with $\Delta t = 0.95 \Delta x$ most of the time, but we drop the simulation speed by a factor of four very close to black hole formation to improve stability.
 
 Technical aside: If you're curious about how this timestepping interacts with gravitational time dilation, the answer is in our lapse function $N$. There is a degree of freedom in the scale of $N$, corresponding to our ability to choose a reference frame. By defining $N(1) = 1$, we make it so that our measured time $t$ is the proper time at $r=1$.
 
@@ -141,11 +143,11 @@ Technical aside: If you're curious about how this timestepping interacts with gr
 
 We have everything we need to build our simulation. All we need to do now is pick the level of discretization that we will work at. All of our differentiation and integration operators operate at fourth order accuracy. What this means is that if we double the fidelity of our approximation (i.e. increase $\ell$ by 1), our error will go down by a factor of $2^4=16$. This order of accuracy is considered a baseline for most scientific computing applications. We wouldn't want to publish anything that was less than fourth order accurate.
 
-Practically speaking, what this means is that around $\ell=14$ (around 8000 grid points) we reach the limits of floating point precision in our error analysis. Going higher than that may seem unnecessary, but it can still be useful for resolving high frequency limiting behaviour very near the critical points. Research papers in this field operate closer to $\ell=17$ (around 64,000 points).
+Practically speaking, what this means is that around $\ell=14$ (around 8000 grid points) we reach the limits of floating point precision in our error analysis. Going higher than that may seem unnecessary, but it can still be useful for resolving high frequency behaviour very near the critical points. Research papers in this field operate closer to $\ell=17$ (around 64,000 points).
 
 There are two issues with increasing $\ell$ too much, however. The first issue is simply time. Increasing $\ell$ doubles the number of gridpoints, and thus the number of computations we have to do per timestep, and since $\Delta t \sim \Delta x$, it also doubles the number of timesteps. This makes the whole algorithm $\mathcal{O}(4^\ell)$, which is pretty nasty.
 
-The other issue is the floating point errors that we mentioned above. Once your simulation error drops far enough that floating point errors become the dominant error mode in your calculation, you end up with a lot of non-physical high frequency noise arising. This can build over time and destabilize your simulation. The solution to this in the code is an artificial dissipation term, which operates at the noise level (at 5th order, below our signal), and acts as a low-pass filter, eliminating the high frequency noise without altering the physical model. This is standard practice in such simulations; the simulation will not converge without it.
+The other issue is the floating point errors that we mentioned above. Once our simulation error drops far enough that floating point errors become the dominant error mode in our calculation, we end up with a lot of non-physical high frequency noise arising from these rounding errors. This can build over time and destabilize the simulation. The solution to this in the code is an artificial dissipation term, which operates at the noise level (at 5th order, below our signal), and acts as a low-pass filter, eliminating the high frequency noise without altering the physical model. This is standard practice in such simulations; the simulation will not converge without it.
 
 In the results shown below, I used $\ell=15$ (around 16,000 grid points). This was about as high as I could go while still being able to collect all the data in a single day. Part of me wanted to go higher, but this is already 4x more accurate than my actual thesis results were, and I didn't want to spend two weeks collecting data.
 
@@ -167,7 +169,7 @@ https://github.com/user-attachments/assets/9c9a346b-193c-4a71-bae6-bb3209e3b617
 
 (The flickering you see at the sharp peak of the wave is not physical. It's just an artifact of the visualization.)
 
-That gives us an idea of how the individual runs look, but what does the overall picture look like across a range of amplitudes? I knew from previous work that the range of interest for this study was between $\epsilon = 18$ and $38$, so I started by doing a scan of that range every 0.25 units and tracking the final black hole mass and formation time. This revealed the overall pattern we were looking for. I then did a closer scan of 40 points at $\pm 3\%$ of each estimated critical point to resolve the scaling behaviour, and then ten more points really close to each estimated critical point to narrow them down even more. The final results look like this
+That gives us an idea of how the individual runs look, but what does the overall picture look like across a range of amplitudes? I knew from previous work that the range of interest for this study was between $\epsilon = 18$ and $38$, so I started by doing a scan of that range every 0.25 units and tracking the final black hole mass and formation time. This revealed the overall pattern we were looking for. I then did a closer scan of 40 points at $\pm 3\%$ of each estimated critical point to resolve the scaling behaviour, and then ten more points really close to each estimated critical point to narrow them down even further. The final results look like this
 
 <div align="center">
   <img src="images/final_results.png" alt="The final results showing the critical scaling behaviour" width="600">
@@ -179,7 +181,7 @@ The rightmost mass curve at the highest initial amplitude corresponds to fields 
 
 ### Error Analysis
 
-These results certainly look satisfying, but how do we know that they are correct? As anyone who has ever done numerical analysis can tell you, just because a simulation is stable does not mean it is correct (and vice versa, just because it is correct does not mean it will be stable). We will provide three independent proofs that our simulation is converging as expected with fourth order accuracy.
+These results certainly look satisfying, but how do we know that they are valid? As anyone who has ever done numerical analysis can tell you, just because a simulation is stable does not mean it is correct (and vice versa, just because it is correct does not mean it will be stable). We will provide three independent proofs that our simulation is converging as expected with fourth order accuracy.
 
 #### Conservation of Energy
 
@@ -201,7 +203,7 @@ $$
 \log_{16}\xi_\ell \approx 1 + \log_{16}\xi_{\ell + 1} \approx 2 + \log_{16}\xi_{\ell + 2}
 $$
 
-Plotting our own error in energy conservation at $\ell = 12, 13, 14$ and $\epsilon=21.5$ in log space shows precisely this relationship
+Plotting our own error in energy conservation at $\ell = 12, 13, 14$ and $\epsilon=21.5$ in log space shows precisely this relationship with the three curves separated by one unit each
 
 <div align="center">
   <img src="images/energy_conservation.png" alt="A plot demonstrating conservation of energy" width="600">
@@ -222,7 +224,7 @@ $$
 \partial_t m = r^2\frac{A}{N}\Phi\Pi
 $$
 
-In our simulation, we only ever use the $\partial_r m$ equation to update our other functions, but we track the $\partial_t m$ equation throughout the simulation as well (we call it the "alternate mass" in the code). These two independent ways of calculating mass must be equal to fourth order across our whole simulation if it is working correctly. Defining the "alternate mass" as $m_A$, we get a similar residual quantity as before
+In our simulation, we only ever use the $\partial_r m$ equation to update our other functions, but we track the $\partial_t m$ equation separately throughout the simulation as well (we call it the "alternate mass" in the code). These two independent ways of calculating mass must be equal to fourth order across our whole simulation if it is working correctly. Defining the "alternate mass" as $m_A$, we get a similar residual quantity as before
 
 $$
 ||m(t, r) - m_A(t, r)||_2 = \zeta(t)
@@ -268,7 +270,7 @@ As usual, things get a little crazy when the horizon begins to form, but aside f
 
 That brings us to the end of our discussion. Kudos to you once again if you've actually made it this far.
 
-We set out to demonstrate that confining flat spacetime makes it unstable, meaning that any energy wave, no matter how small, will eventually collapse into a black hole. The results show exactly that. Across multiple critical amplitudes corresponding to different numbers of reflections, we consistently observe the universal Choptuik scaling with $\gamma \approx 0.37$. Smaller and smaller waves still form black holes; they just take more reflections to get there.
+We set out to demonstrate that confining flat spacetime makes it unstable, meaning that any energy put into the system, no matter how weak, will eventually collapse into a black hole. The results show exactly that. Across multiple critical amplitudes corresponding to different numbers of reflections, we consistently observe the universal Choptuik scaling with $\gamma \approx 0.37$. Smaller and smaller waves still form black holes; they just take more reflections to get there.
 
 We've also shown through three independent methods (energy conservation, mass residual, and Q-factor analysis) that our simulation converges to fourth order accuracy throughout the collapse process. This gives us confidence that we're seeing real physics and not just numerical noise.
 
