@@ -37,21 +37,23 @@ Now that we have a well-posed problem, we can talk about the physics of our syst
 
 ## The Physics
 
-**Warning: This section has math in it. You do not need to understand the math to understand the concepts.**
+**Warning: This section has equations in it, but should not be skipped. You can understand the concepts discussed without understanding the math.**
 
-We said above that we are working with a massless scalar field, which we will label $\phi(t, r)$. This field obeys a seemingly simple wave equation called the massless Klein-Gordon equation:
+### A Wave in Curved Spacetime
+
+We said above that we are working with a massless scalar field, which we will label $\phi(t, r)$. This field obeys a seemingly simple wave equation called the massless Klein-Gordon equation
 
 $$
 \nabla^\alpha\Delta_\alpha\phi = 0
 $$
 
-This is the equation we have to solve to track the evolution of our wave in our spacetime. If those alphas weren't there, this would be the same wave equation that governs a vibrating drum or a guitar string, but unfortunately for us they are there and they introduce a heck of a lot of complexity into an otherwise simple concept. What those alphas tell us is that our wave equation is operating in curved space, and the way that space curves is described by a spactime metric. Our spherically symmetric spacetime metric looks like this:
+This is the equation we have to solve to track the evolution of our wave in our spacetime. If those alphas weren't there, this would be the same wave equation that governs a vibrating drum or a guitar string, but unfortunately for us they are there and they introduce a heck of a lot of complexity into an otherwise simple concept. What those alphas tell us is that our wave is moving through curved space, and the way that space curves is described by a spactime metric. Our spherically symmetric spacetime metric looks like this
 
 $$
 ds^2 = -\frac{A}{N^2}dt^2 + \frac{1}{A}dr^2 + r^2d\Omega
 $$
 
-This metric tells us how spacetime warps at a local level due to the presence of our field. The function $A$ is called the radial factor, and it will be very important for determining black hole formation later. The function $N$ is called the lapse, and it tracks the gravitiational time dilation of the system. Now that we have our metric, we can resolve what's going on behind the alphas and write our Klein-Gordon equation as a pair of coupled equations, which look uglier but are much easier to work with computationally:
+This metric tells us how spacetime warps at a local level due to the presence of our field. The function $A$ is called the radial factor, and it will be very important for determining black hole formation later. The function $N$ is called the lapse, and it tracks the gravitiational time dilation of the system. Now that we have our metric, we can resolve what's going on behind the alphas and write our Klein-Gordon equation as a pair of coupled equations, which look uglier but are much easier to work with computationally
 
 $$
 \partial_t\phi = \frac{A\Pi}{N}
@@ -59,13 +61,17 @@ $$
 \partial_t\Pi = \frac{A}{N}\partial_{rr}\phi + \frac{A+1}{rN}\partial_r\phi
 $$
 
-Where the conjugate momentum $\Pi=A\partial_t\phi/N$. These are the two equations that we will solve iteratively in time to evolve our wave. Unfortunately, we are not done yet because as the wave travels through spacetime, it warps the spacetime that it is moving through, which changes the way it moves, which changes how it warps spacetime, etc. This relationship is governed by the Einstein Field equations, which relate the curvature of spacetime to the matter/energy content of the system and put additional constraints on our system. For our field $\phi$ (in  units where $4\pi G = c = 1$), these take the form:
+Where the conjugate momentum $\Pi=A\partial_t\phi/N$. These are the two equations that we will solve iteratively in time to evolve our wave.
+
+### The Einstein Field Equations
+
+Unfortunately, we are not done yet because as the wave travels through spacetime, it warps the spacetime that it is moving through, which changes the way it moves, which changes how it warps spacetime, etc. This relationship is governed by the Einstein Field equations, which relate the curvature of spacetime to the matter/energy content of the system and put additional constraints on our system. For our field $\phi$ (in  units where $4\pi G = c = 1$), these take the form
 
 $$
 G_{\mu\nu} = 2\partial_\mu\phi \partial_\nu\phi - g_{\mu\nu} \partial^\alpha\phi \partial_\alpha\phi.
 $$
 
-Translating that to the same functions we're using above and defining the mass function $m=r(1-A)/2$ and the radial gradient $\Phi=\partial_r\phi$ means that our system must satisfy:
+Translating that to the same functions we're using above and defining the mass function $m=r(1-A)/2$ and the radial gradient $\Phi=\partial_r\phi$ means that our system must satisfy
 
 $$
 \partial_r\log N = -r(\Phi^2 + \Pi^2)
@@ -77,7 +83,9 @@ $$
 
 The concept of a *mass* function may be confusing to some at first since there is no matter in our system, but remember that $E=mc^2$. In units where $c=1$, that takes on the much more evokative form of $E=m$. The mass function $m(r)$ is thus a measure of how much energy is contained in a sphere of radius $r$. If our total cavity is size 1, then $m(1)$ is the total energy of the system, which must be conserved. We will use this conservation law, along with the fact that we have two different ways of calculating mass (via the radial and temporal derivatives above), to help us prove the validity of our system later on.
 
-We're almost done with the physics now. There are only two things left. The first is the initial profile of our scalar field. This takes the form:
+### The Initial Conditions
+
+We're almost done with the physics now. There are only two things left. The first is the initial profile of our scalar field. This concentrates the initial energy near the center and takes the form
 
 $$
 \phi(0, r) = 0
@@ -87,13 +95,15 @@ $$
 
 Where $\epsilon$ is the initial amplitude of the field that we will vary to get different effects. You will notice that all the energy of the field at the start is kinetic. It's in the momentum equation, and the field itself is zero. That's why we chose the metaphor of the hand punching the rubber sheet. The simulation starts the moment the fist makes contact with the sheet.
 
-The last thing we need is to understand when a black hole has formed. This happens when enough mass is contained in a small enough radius such that the Schwarzschield condition is met:
+### Black Hole Formation
+
+The last thing we need is to understand when a black hole has formed. This happens when enough mass is contained in a small enough radius such that
 
 $$
 \frac{2m}{r} = 1
 $$
 
-As you might expect, the simulation gets a little messy when this happens. In particular, our radial factor $A$ goes to zero, causing the $dr$ component of our metric to diverge, and blasting the local curvature off to infinity. This breaks our simulation. To avoid this nastiness, we instead define black hole formation at
+This is called the Schwarzchield condition. As you might expect, the simulation gets a little messy when this happens. In particular, our radial factor $A$ goes to zero, causing the $dr$ component of our metric to diverge, and blasting the local curvature off to infinity. This breaks our simulation. To avoid this nastiness, we instead define black hole formation at
 
 $$
 \frac{2m}{r} = 0.99
@@ -109,7 +119,7 @@ The physical model we have built is continuous, but our computer model operates 
 
 ### The Spatial Grid
 
-The first step is creating a spatial grid. Our various functions are operating in a sphere of radius 1. We will thus take the radial points from 0 to 1 and approximate them by a grid of $2^\ell + 1$ points, where $\ell$ is called the level of discretization. Increasing $\ell$ roughly doubles the number of points that are in the grid. Higher $\ell$ means a better approximation to our physical model, but increased computational demand. Why $2^\ell + 1$ points? A diagram comparing $\ell = 1, 2, 3$ will make it more clear:
+The first step is creating a spatial grid. Our various functions are operating in a sphere of radius 1. We will thus take the radial points from 0 to 1 and approximate them by a grid of $2^\ell + 1$ points, where $\ell$ is called the level of discretization. Increasing $\ell$ roughly doubles the number of points that are in the grid. Higher $\ell$ means a better approximation to our physical model, but increased computational demand. Why $2^\ell + 1$ points? A diagram comparing $\ell = 1, 2, 3$ will make it more clear.
 
 <div align="center">
   <img src="images/level_of_discretization.png" alt="A comparison of levels of discretization" width="600">
@@ -143,7 +153,7 @@ In the results shown below, I used $\ell=15$ (around 16,000 grid points). This w
 
 ### The Main Results
 
-We have everything we need now, so let's visualize a few simulations. This first one is at amplitude $\epsilon=35$ and collapses immediately into a black hole (the sharp ring at the end of the video is the horizon):
+We have everything we need now, so let's visualize a few simulations. This first one is at amplitude $\epsilon=35$ and collapses immediately into a black hole (the sharp ring at the end of the video is the horizon).
 
 https://github.com/user-attachments/assets/2e2b00d9-4553-428c-b7d1-1d953cc10d7e
 
@@ -151,13 +161,13 @@ Here is one at $\epsilon=21.5$, which reflects three times before collapsing
 
 https://github.com/user-attachments/assets/251b2dda-4cea-4b1f-9686-3c114f5dc50f
 
-The 2D visualizations look a lot sleeker, but let's look at that same $\epsilon=21.5$ result in one dimension (just the radius) to watch the wave profile sharpen more clearly at each implosion:
+The 2D visualizations look a lot sleeker, but let's look at that same $\epsilon=21.5$ result in one dimension (just the radius) to watch the wave profile sharpen more clearly at each implosion.
 
 https://github.com/user-attachments/assets/9c9a346b-193c-4a71-bae6-bb3209e3b617
 
-(The flickering you see at the sharp peak of the wave is not physical. It's just an artifact of the downsampling we use for the visualization.)
+(The flickering you see at the sharp peak of the wave is not physical. It's just an artifact of the visualization.)
 
-That gives us an idea of how the individual runs look, but what does the overall picture look like across a range of amplitudes? I knew from previous work that the range of interest for this study was between $\epsilon = 18$ and $38$, so I started by doing a scan of that range every 0.25 units and tracking the final black hole mass and formation time. This revealed the overall pattern we were looking for. I then did a closer scan of 40 points at $\pm 3\%$ of each estimated critical point to resolve the scaling behaviour, and then ten more points really close to each estimated critical point to narrow them down even more. The final results look like this:
+That gives us an idea of how the individual runs look, but what does the overall picture look like across a range of amplitudes? I knew from previous work that the range of interest for this study was between $\epsilon = 18$ and $38$, so I started by doing a scan of that range every 0.25 units and tracking the final black hole mass and formation time. This revealed the overall pattern we were looking for. I then did a closer scan of 40 points at $\pm 3\%$ of each estimated critical point to resolve the scaling behaviour, and then ten more points really close to each estimated critical point to narrow them down even more. The final results look like this
 
 <div align="center">
   <img src="images/final_results.png" alt="The final results showing the critical scaling behaviour" width="600">
@@ -165,7 +175,7 @@ That gives us an idea of how the individual runs look, but what does the overall
   *Figure 3: The final results showing the instability of confined space and the critical scaling behaviour.*
 </div>
 
-The rightmost mass curve at the highest initial amplitude corresponds to fields that immediately formed a black hole without reflection. The second curve from the right is one reflection off the boundary, then two for the third curve, and so on. A fit of $M_{bh} \propto (\epsilon - \epsilon^ * )^\gamma$ was performed near each critical amplitude $\epsilon^ * $, and the resulting $\gamma$ values cluster nicely around Choptuik's universal value of $\gamma \approx 0.37$.
+The rightmost mass curve at the highest initial amplitude corresponds to fields that immediately formed a black hole without reflection. The second curve from the right is one reflection off the boundary, then two for the third curve, and so on. A fit of $M_{bh} \propto (\epsilon - \epsilon^ * )^\gamma$ was performed near each critical amplitude $\epsilon^ * $. The expected value for $\gamma$ based on Choptuik's work is a universal 0.37 regardless of wave profile or curvature. Our results cluster nicely around that expected value.
 
 ### Error Analysis
 
@@ -191,12 +201,12 @@ $$
 \log_{16}\xi_\ell \approx 1 + \log_{16}\xi_{\ell + 1} \approx 2 + \log_{16}\xi_{\ell + 2}
 $$
 
-Calculating our own error in energy conservation at $\ell = 12, 13, 14$ and $\epsilon=21.5$ and plotting the results in log space shows precisely this relationship:
+Calculating our own error in energy conservation at $\ell = 12, 13, 14$ and $\epsilon=21.5$ and plotting the results in log space shows precisely this relationship
 
 <div align="center">
   <img src="images/energy_conservation.png" alt="A plot demonstrating conservation of energy" width="600">
 
-  *Figure 4: Energy conservation converges to zero to 4th order, right until the moment of black hole formation at the end.*
+  *Figure 4: Energy conservation converges to zero to 4th order, right until the moment of black hole formation.*
 </div>
 
 The high frequency noise you're seeing at $\ell = 14$ is precisely the floating point noise I was describing above. If we go to higher levels of discretization than this, it begins to dominate over the physical error. The decoherence you're seeing near black hole formation at $t=7$ is due to the fact that formation time depends slightly on the level of discretization, so right at the end the three simulations fall out of sync.
@@ -212,7 +222,7 @@ $$
 \partial_t m = r^2\frac{A}{N}\Phi\Pi
 $$
 
-In our simulation, we only ever use the $\partial_r m$ equation to update our other functions, but we track the $\partial_t m$ equation throughout the simulation as well (we call it the "alternate mass" in the code). These two independent ways of calculating mass must be equal to fourth order across our whole simulation. Defining the "alternate mass" as $m_A$, we get a similar residual quantity as before:
+In our simulation, we only ever use the $\partial_r m$ equation to update our other functions, but we track the $\partial_t m$ equation throughout the simulation as well (we call it the "alternate mass" in the code). These two independent ways of calculating mass must be equal to fourth order across our whole simulation. Defining the "alternate mass" as $m_A$, we get a similar residual quantity as before
 
 $$
 ||m(t, r) - m_A(t, r)||_2 = \zeta(t)
@@ -229,7 +239,7 @@ Plotting this out at the same $\ell$ and $\epsilon$ values as above gives us a v
 <div align="center">
   <img src="images/mass_residual.png" alt="A plot demonstrating conservation of energy" width="600">
 
-  *Figure 5: The mass residual converges to zero to 4th order, right until the moment of black hole formation at the end.*
+  *Figure 5: The mass residual converges to zero to 4th order, right until the moment of black hole formation.*
 </div>
 
 These two graphs look extremely similar, but they tell two very different stories. Energy conservation is a global property: We get one number per timestep. This mass residual, however, is a local property. It tells us that our residual converges to zero to fourth order at every spatial and temporal point in our grid, *and* that our system is following the expected laws of physics. It is a much stronger proof of convergence than the energy conservation shown above.
@@ -248,11 +258,11 @@ Where $n$ is the expected order of convergence. That means that if our simulatio
   <img src="images/q_factor_phi.png" alt="A plot demonstrating conservation of energy" width="500">
   <img src="images/q_factor_Pi.png" alt="A plot demonstrating conservation of energy" width="500">
 
-  *Figure 6: The Q-factors of our evolved quantities demonstrating 4th order convergence, right until the moment of black hole formation at the end.*
+  *Figure 6: The Q-factors of our evolved quantities demonstrating 4th order convergence, right until the moment of black hole formation.*
 </div>
 
 As usual, things get a little crazy when the horizon begins to form, but aside from a little noise we have clear 4th order convergence.
 
 ## Conclusion
 
-That brings us to the end of our discussion. Kudos to you once again if you've actually made it this far. We have successfully built a simulation of the gravitational collapse of a massless scalar field in confined space and provided convincing evidence of its instability. I hope you learned something.
+That brings us to the end of our discussion. Kudos to you once again if you've actually made it this far. We have successfully built a simulation of the gravitational collapse of a massless scalar field in confined space, proved that it was operating correctly, and provided convincing evidence of its instability. I hope you learned something.
